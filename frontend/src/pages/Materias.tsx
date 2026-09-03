@@ -26,6 +26,7 @@ interface Grupo {
 interface Docente {
   id: string;
   nombre: string;
+  apellido: string;
   email: string;
 }
 
@@ -76,7 +77,7 @@ const Materias = () => {
 
       setMaterias(materiasData.map((m: any) => ({ id: String(m.id), nombre: String(m.nombre || "") })));
       setGrupos(gruposData.map((g: any) => ({ id: String(g.id), nombre: String(g.nombre || "") })));
-      setDocentes(docentesData.map((d: any) => ({ id: String(d.id), nombre: String(d.nombre || ""), email: String(d.email || "") })));
+      setDocentes(docentesData.map((d: any) => ({ id: String(d.id), nombre: String(d.nombre || ""), apellido: String(d.apellido || ""), email: String(d.email || "") })));
 
       setAsignaciones(
         asignacionesData.map((a: any) => ({
@@ -389,7 +390,7 @@ const Materias = () => {
               <Select value={selDocenteId} onValueChange={setSelDocenteId}>
                 <SelectTrigger className="rounded-2xl"><SelectValue placeholder="Seleccionar docente" /></SelectTrigger>
                 <SelectContent className="rounded-2xl">
-                  {docentes.map(d => <SelectItem key={d.id} value={d.id}>{d.nombre} ({d.email})</SelectItem>)}
+                  {docentes.map(d => <SelectItem key={d.id} value={d.id}>{[d.nombre, d.apellido].filter(Boolean).join(" ")} ({d.email})</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

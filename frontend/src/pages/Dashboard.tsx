@@ -54,7 +54,7 @@ const Dashboard = () => {
       <div className="flex flex-col gap-6 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Resumen de la jornada</p>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Hola, {user?.nombre || "Docente"}.</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Hola, {[user?.nombre, user?.apellido].filter(Boolean).join(" ") || "Docente"}.</h1>
           <p className="mt-1 text-sm text-muted-foreground">Aquí tienes una lectura rápida de tus grupos y estudiantes.</p>
         </div>
         <div className="flex items-center gap-3">

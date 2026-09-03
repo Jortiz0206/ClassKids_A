@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Lock, Mail } from "lucide-react";
+import { noClipboardProps } from "@/lib/passwordField";
 
 interface Invitation {
   email: string;
@@ -19,6 +20,7 @@ const Invitation = () => {
   const token = searchParams.get("token");
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ const Invitation = () => {
     }
     setSubmitting(true);
     try {
-      await api.post(`/invitaciones/${encodeURIComponent(token || "")}/aceptar`, { nombre: name, password });
+      await api.post(`/invitaciones/${encodeURIComponent(token || "")}/aceptar`, { nombre: name, apellido: lastName, password });
       toast.success("Cuenta activada. Ya puedes iniciar sesión.");
       navigate("/auth", { replace: true });
     } catch (error: any) {
@@ -65,9 +67,15 @@ const Invitation = () => {
           </div>
           {invitation && (
             <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="invitation-name">Nombre completo</Label>
-                <Input id="invitation-name" value={name} onChange={(event) => setName(event.target.value)} required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invitation-name">Nombres</Label>
+                  <Input id="invitation-name" value={name} onChange={(event) => setName(event.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invitation-lastname">Apellidos</Label>
+                  <Input id="invitation-lastname" value={lastName} onChange={(event) => setLastName(event.target.value)} required />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="invitation-email">Correo</Label>
@@ -80,12 +88,12 @@ const Invitation = () => {
                 <Label htmlFor="invitation-password">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="invitation-password" type="password" minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} className="pl-10" required />
+                  <Input id="invitation-password" type="password" minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} className="pl-10" required autoComplete="new-password" {...noClipboardProps} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="invitation-confirmation">Confirmar contraseña</Label>
-                <Input id="invitation-confirmation" type="password" minLength={6} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
+                <Input id="invitation-confirmation" type="password" minLength={6} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required autoComplete="new-password" {...noClipboardProps} />
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? "Activando..." : "Activar cuenta"}

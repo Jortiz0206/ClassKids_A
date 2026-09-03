@@ -105,6 +105,7 @@ class InvitationSchema(BaseModel):
 class AcceptInvitationSchema(BaseModel):
     password: str
     nombre: str
+    apellido: Optional[str] = None
 
 class RoleUpdateSchema(BaseModel):
     role: str
@@ -195,7 +196,7 @@ def inicio():
 @app.post("/auth/login", tags=["Autenticación"])
 def iniciar_sesion(credentials: LoginSchema, db: Session = Depends(get_db)):
     query = text("""
-        SELECT u.id, u.email, u.nombre, u.password_hash, u.activo, r.nombre AS rol
+        SELECT u.id, u.email, u.nombre, u.apellido, u.password_hash, u.activo, r.nombre AS rol
         FROM usuarios u LEFT JOIN user_roles r ON r.id = u.rol_id
         WHERE lower(u.email) = lower(:email)
     """)
@@ -222,7 +223,7 @@ def iniciar_sesion(credentials: LoginSchema, db: Session = Depends(get_db)):
     return {
         "access_token": create_access_token(user.id, role),
         "token_type": "bearer",
-        "user": {"id": user.id, "email": user.email, "nombre": user.nombre, "rol": role},
+        "user": {"id": user.id, "email": user.email, "nombre": user.nombre, "apellido": user.apellido, "rol": role},
     }
 
 def enviar_reset_por_correo(email: str, reset_url: str) -> bool:
@@ -306,7 +307,7 @@ def enviar_invitacion_por_correo(email: str, invitation_url: str) -> bool:
 @app.get("/usuarios", tags=["Usuarios"])
 def obtener_usuarios(db: Session = Depends(get_db)):
     query = text("""
-        SELECT u.id::text AS user_id, u.email, CASE WHEN lower(r.nombre) = 'administrador' THEN 'admin' ELSE 'docente' END AS role,
+        SELECT u.id::text AS user_id, u.email, u.nombre, u.apellido, CASE WHEN lower(r.nombre) = 'administrador' THEN 'admin' ELSE 'docente' END AS role,
                u.created_at, u.last_sign_in_at
         FROM usuarios u LEFT JOIN user_roles r ON r.id = u.rol_id
         WHERE u.activo = TRUE ORDER BY u.created_at DESC
@@ -316,7 +317,7 @@ def obtener_usuarios(db: Session = Depends(get_db)):
 @app.get("/catalogo/docentes", tags=["Usuarios"])
 def obtener_catalogo_docentes(db: Session = Depends(get_db)):
     query = text("""
-        SELECT u.id, u.nombre, u.email
+        SELECT u.id, u.nombre, u.apellido, u.email
         FROM usuarios u JOIN user_roles r ON r.id = u.rol_id
         WHERE u.activo = TRUE AND lower(r.nombre) = 'docente'
         ORDER BY u.nombre ASC
@@ -416,10 +417,10 @@ def aceptar_invitacion(token: str, data: AcceptInvitationSchema, db: Session = D
     if not invitation:
         raise HTTPException(status_code=400, detail="Invitación inválida o expirada")
     db.execute(text("""
-        INSERT INTO usuarios (email, nombre, password_hash, rol_id)
-        VALUES (:email, :nombre, :password, :rol_id)
-        ON CONFLICT (email) DO UPDATE SET nombre = EXCLUDED.nombre, password_hash = EXCLUDED.password_hash, rol_id = EXCLUDED.rol_id, activo = TRUE
-    """), {"email": invitation.email, "nombre": data.nombre.strip(), "password": pwd_context.hash(data.password), "rol_id": invitation.rol_id})
+        INSERT INTO usuarios (email, nombre, apellido, password_hash, rol_id)
+        VALUES (:email, :nombre, :apellido, :password, :rol_id)
+        ON CONFLICT (email) DO UPDATE SET nombre = EXCLUDED.nombre, apellido = EXCLUDED.apellido, password_hash = EXCLUDED.password_hash, rol_id = EXCLUDED.rol_id, activo = TRUE
+    """), {"email": invitation.email, "nombre": data.nombre.strip(), "apellido": (data.apellido or "").strip() or None, "password": pwd_context.hash(data.password), "rol_id": invitation.rol_id})
     db.execute(text("UPDATE invitaciones SET accepted_at = CURRENT_TIMESTAMP WHERE token = :token"), {"token": token})
     db.commit()
     return {"mensaje": "Cuenta activada correctamente"}
@@ -691,7 +692,7 @@ def obtener_roles(db: Session = Depends(get_db)):
 def obtener_asignaciones(db: Session = Depends(get_db)):
     query = text("""
         SELECT a.id, a.docente_id, a.materia_id, a.grupo_id,
-               u.nombre as docente, m.nombre as materia_nombre, g.nombre as grupo_nombre
+               TRIM(u.nombre || ' ' || COALESCE(u.apellido, '')) as docente, m.nombre as materia_nombre, g.nombre as grupo_nombre
         FROM asignaciones a
         JOIN usuarios u ON a.docente_id = u.id
         JOIN materias m ON a.materia_id = m.id

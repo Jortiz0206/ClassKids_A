@@ -11,7 +11,7 @@ import { UserPlus, Trash2, Mail, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-type Row = { user_id: string; email: string; role: "admin" | "docente"; created_at: string; last_sign_in_at: string | null };
+type Row = { user_id: string; email: string; nombre?: string; apellido?: string; role: "admin" | "docente"; created_at: string; last_sign_in_at: string | null };
 
 const AdminUsuarios = () => {
   const { user } = useAuth();
@@ -137,6 +137,7 @@ const AdminUsuarios = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Nombre</TableHead>
               <TableHead>Correo</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Última conexión</TableHead>
@@ -146,13 +147,15 @@ const AdminUsuarios = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Cargando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Cargando...</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Sin usuarios</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sin usuarios</TableCell></TableRow>
             ) : rows.map(r => {
               const isSelf = r.user_id === (user as any)?.id;
+              const nombreCompleto = [r.nombre, r.apellido].filter(Boolean).join(" ");
               return (
                 <TableRow key={r.user_id}>
+                  <TableCell className="text-sm text-muted-foreground">{nombreCompleto || "—"}</TableCell>
                   <TableCell className="font-medium">
                     {r.email} {isSelf && <span className="text-xs text-muted-foreground ml-1">(tú)</span>}
                   </TableCell>

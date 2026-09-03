@@ -9,6 +9,7 @@ import logoC from "@/assets/logo-ClassKids.png";
 import { api } from "@/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { noClipboardProps } from "@/lib/passwordField";
 
 const Auth = () => {
   const { login } = useAuth();
@@ -25,7 +26,7 @@ const Auth = () => {
     try {
       const response = await api.post("/auth/login", { email, password });
       
-      const authResponse = response as { access_token?: string; token?: string; user?: { id: number; email: string; nombre?: string; rol?: string } };
+      const authResponse = response as { access_token?: string; token?: string; user?: { id: number; email: string; nombre?: string; apellido?: string; rol?: string } };
       const token = authResponse.access_token || authResponse.token;
       if (!token || !authResponse.user) throw new Error("Respuesta de autenticación inválida");
       login(token, authResponse.user);
@@ -128,7 +129,7 @@ const Auth = () => {
               <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                <Input id="password" type="password" placeholder="••••••••" className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete="current-password" {...noClipboardProps} />
               </div>
             </div>
 

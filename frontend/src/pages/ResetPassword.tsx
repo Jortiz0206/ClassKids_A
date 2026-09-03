@@ -8,6 +8,7 @@ import { Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import logoC from "@/assets/logo-ClassKids.png";
+import { noClipboardProps } from "@/lib/passwordField";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -88,10 +89,12 @@ const ResetPassword = () => {
                   type="password" 
                   placeholder="••••••••" 
                   className="pl-10 rounded-2xl bg-slate-50/50 border-slate-200 h-11" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                  minLength={6} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  {...noClipboardProps}
                 />
               </div>
             </div>
@@ -105,10 +108,12 @@ const ResetPassword = () => {
                   type="password" 
                   placeholder="••••••••" 
                   className="pl-10 rounded-2xl bg-slate-50/50 border-slate-200 h-11" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  required 
-                  minLength={6} 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  {...noClipboardProps}
                 />
               </div>
             </div>

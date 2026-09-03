@@ -23,6 +23,10 @@ import AdminDatos from "./pages/admin/AdminDatos";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Invitation from "./pages/Invitation";
+import Terminos from "./pages/legal/Terminos";
+import Privacidad from "./pages/legal/Privacidad";
+import Cookies from "./pages/legal/Cookies";
+import ProteccionDatos from "./pages/legal/ProteccionDatos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +66,10 @@ const App = () => (
               <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/invitacion" element={<Invitation />} />
+              <Route path="/legal/terminos" element={<Terminos />} />
+              <Route path="/legal/privacidad" element={<Privacidad />} />
+              <Route path="/legal/cookies" element={<Cookies />} />
+              <Route path="/legal/proteccion-datos" element={<ProteccionDatos />} />
 
               <Route path="/admin/*" element={
                 <AdminRoute>

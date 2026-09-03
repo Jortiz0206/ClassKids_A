@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { api } from "@/api/client";
 import { toast } from "sonner";
 import PageHeader from "@/components/layout/PageHeader";
+import logoC from "@/assets/logo-ClassKids.png";
 
 interface GrupoRow {
   id: string;
@@ -45,6 +46,16 @@ const getPerformanceBadgeVariant = (promedio: number): "default" | "secondary" |
   return "destructive";
 };
 
+// Cursos disponibles para el selector de "Nuevo grupo": de 1° a 5°, secciones A y B.
+// Reemplaza la digitación libre del nombre/grado por una lista cerrada de valores válidos.
+const CURSOS_DISPONIBLES = ["1°", "2°", "3°", "4°", "5°"].flatMap((grado) =>
+  ["A", "B"].map((seccion) => ({
+    value: `${grado}${seccion}`,
+    grado,
+    nombre: `Grado ${grado.replace("°", "")}${seccion}`,
+  })),
+);
+
 // La tabla `grupos` no tiene columna `color`; se deriva un color estable a partir
 // del nombre para poder distinguir tarjetas sin depender de un campo inexistente.
 const AVATAR_PALETTE = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16"];
@@ -61,8 +72,7 @@ const Grupos = () => {
   const [filterGrado, setFilterGrado] = useState("todos");
   const [filterTurno, setFilterTurno] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newNombre, setNewNombre] = useState("");
-  const [newGrado, setNewGrado] = useState("");
+  const [newCurso, setNewCurso] = useState("");
   const [newTurno, setNewTurno] = useState("");
 
   const fetchGrupos = async () => {
@@ -118,20 +128,20 @@ const Grupos = () => {
   useEffect(() => { fetchGrupos(); }, []);
 
   const handleCreate = async () => {
-    if (!newNombre || !newGrado || !newTurno) { 
-      toast.error("Completa todos los campos"); 
-      return; 
+    const curso = CURSOS_DISPONIBLES.find((c) => c.value === newCurso);
+    if (!curso || !newTurno) {
+      toast.error("Completa todos los campos");
+      return;
     }
     try {
       await api.post("/grupos", {
-        nombre: newNombre,
-        grado: newGrado,
+        nombre: curso.nombre,
+        grado: curso.grado,
         turno: newTurno,
       });
       toast.success("Grupo creado");
       setDialogOpen(false);
-      setNewNombre(""); 
-      setNewGrado(""); 
+      setNewCurso("");
       setNewTurno("");
       fetchGrupos();
     } catch (error) {
@@ -225,8 +235,8 @@ const Grupos = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-primary-foreground" style={{ backgroundColor: grupo.color }}>
-                    {grupo.nombre.split(" ")[0]}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1.5" style={{ backgroundColor: grupo.color }}>
+                    <img src={logoC} alt="ClassKids" className="w-full h-full rounded-md object-contain" />
                   </div>
                   <div>
                     <CardTitle className="text-base">{grupo.nombre}</CardTitle>
@@ -290,15 +300,16 @@ const Grupos = () => {
             <DialogDescription>Ingresa los datos del grupo académico</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nombre del grupo</Label>
-                <Input placeholder="Ej: 1° A" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Grado</Label>
-                <Input placeholder="Ej: 1°" value={newGrado} onChange={(e) => setNewGrado(e.target.value)} />
-              </div>
+            <div className="space-y-2">
+              <Label>Curso</Label>
+              <Select value={newCurso} onValueChange={setNewCurso}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar curso" /></SelectTrigger>
+                <SelectContent>
+                  {CURSOS_DISPONIBLES.map((curso) => (
+                    <SelectItem key={curso.value} value={curso.value}>{curso.value}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Turno</Label>

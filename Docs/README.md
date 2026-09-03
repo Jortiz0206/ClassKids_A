@@ -33,9 +33,17 @@ Donde el código implementado coincide con el diseño, se documenta como funcion
 - [`conceptos/HUs.md`](conceptos/HUs.md) — Historias de usuario derivadas de los casos de uso del proyecto.
 - [`conceptos/restricciones.md`](conceptos/restricciones.md) — Restricciones técnicas, de negocio y brechas conocidas.
 
+### Políticas
+- [`politicas/terminos-y-condiciones.md`](politicas/terminos-y-condiciones.md) — Términos y condiciones de uso de la plataforma.
+- [`politicas/politica-de-privacidad.md`](politicas/politica-de-privacidad.md) — Qué datos se tratan y con qué finalidad.
+- [`politicas/politica-de-cookies.md`](politicas/politica-de-cookies.md) — Almacenamiento del navegador usado por la plataforma.
+- [`politicas/proteccion-de-datos.md`](politicas/proteccion-de-datos.md) — Tratamiento de datos personales (Ley 1581 de 2012 / Decreto 1377 de 2013) y medidas de seguridad.
+
+Estas cuatro políticas también están publicadas en la plataforma (`/legal/terminos`, `/legal/privacidad`, `/legal/cookies`, `/legal/proteccion-datos`), enlazadas desde el CTA final y el pie de página de la landing.
+
 ## Datos demo verificados
 
-La base de datos local contiene 2 usuarios activos, 3 grupos, 20 estudiantes, 5 materias, 15 actividades con tipo, 35 calificaciones, 10 observaciones, 8 alertas y 15 asignaciones.
+La base de datos local contiene 7 usuarios activos (1 administrador y 6 docentes, uno especializado por materia; la tabla `usuarios` separa `nombre`/`apellido` igual que `estudiantes`), 10 grupos (grados 1° a 5°, secciones A y B, 20 estudiantes cada uno), 200 estudiantes — todos con al menos una calificación —, 5 materias con al menos una actividad y un docente asignado en cada uno de los 10 grupos (52 actividades en total), 215 calificaciones, 10 observaciones, 32 alertas activas (todas por bajo rendimiento real, con la misma regla de promedio &lt; 3.0 que usa `POST /calificaciones`) y 50 asignaciones docente-materia-grupo. Ver el detalle de la ampliación en [`backend/init.sql`](../backend/init.sql).
 
 ## Marco metodológico del proyecto
 
