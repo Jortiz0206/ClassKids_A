@@ -1,26 +1,19 @@
-import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type AppRole = "admin" | "docente";
 
 export function useUserRole() {
-  const { user } = useAuth();
-  const [role, setRole] = useState<AppRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!user) {
-      setRole(null);
-      setLoading(false);
-      return;
-    }
-
-    // Si tu objeto usuario guardado en FastAPI ya trae el rol, lo usamos directamente:
-    // (Por defecto asignamos "docente" o el que tenga definido)
-    const userRole = (user as any).rol || (user as any).role || "docente";
-    setRole(userRole as AppRole);
-    setLoading(false);
-  }, [user]);
+  // El rol ya viene incluido en `user` (AuthContext lo carga desde localStorage
+  // de forma síncrona), así que se deriva directamente en cada render en vez de
+  // guardarlo en un estado propio actualizado por un efecto aparte. Ese segundo
+  // estado quedaba un render "atrasado" respecto a `user` en una recarga
+  // completa (ej. entrar directo a /admin), y como AdminRoute combina ambos
+  // `loading` con OR, alcanzaba a leer `isAdmin: false` con datos ya obsoletos
+  // antes de que el efecto se disparara — redirigiendo a un administrador real
+  // fuera del panel de administración.
+  const role: AppRole | null = user ? (((user as any).rol || (user as any).role || "docente") as AppRole) : null;
 
   return { role, loading, isAdmin: role === "admin" };
 }
