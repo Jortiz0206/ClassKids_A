@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Optional
 from secrets import token_urlsafe
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 import os
 import smtplib
 from email.message import EmailMessage
@@ -25,14 +26,18 @@ app = FastAPI(
     version="2.1.0"
 )
 
+# El frontend (Vite) corre por defecto en el puerto 8080 (ver frontend/vite.config.ts).
+# Se incluye también 5173 (puerto por defecto de Vite) por si se ejecuta sin ese config.
+# Esta misma lista se reutiliza para validar `redirect_to` en /auth/forgot-password
+# (evita que alguien use ese campo para apuntar el enlace de recuperación a un dominio externo).
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173",
+).split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    # El frontend (Vite) corre por defecto en el puerto 8080 (ver frontend/vite.config.ts).
-    # Se incluye también 5173 (puerto por defecto de Vite) por si se ejecuta sin ese config.
-    allow_origins=[origin.strip() for origin in os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173",
-    ).split(",")],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -256,7 +261,19 @@ def solicitar_recuperacion(data: ForgotPasswordSchema, db: Session = Depends(get
             VALUES (:email, :token, :expires_at)
         """), {"email": email, "token": reset_token, "expires_at": expires_at})
         db.commit()
-        reset_url = f"{(data.redirect_to or os.getenv('FRONTEND_URL', 'http://127.0.0.1:8080')).rstrip('/')}?token={reset_token}"
+        # `redirect_to` lo envía el cliente: solo se acepta si su origen (esquema +
+        # host + puerto, comparado de forma exacta, no como prefijo de texto) es uno
+        # de ALLOWED_ORIGINS. Si no, se ignora y se usa FRONTEND_URL. Esto evita que
+        # el enlace de recuperación termine apuntando a un dominio externo — incluido
+        # un dominio que simplemente empiece con el texto de un origen permitido
+        # (ej. "http://localhost:8080.atacante.com").
+        frontend_base = os.getenv('FRONTEND_URL', 'http://127.0.0.1:8080')
+        if data.redirect_to:
+            candidate = urlsplit(data.redirect_to)
+            candidate_origin = f"{candidate.scheme}://{candidate.netloc}"
+            if candidate_origin in ALLOWED_ORIGINS:
+                frontend_base = data.redirect_to
+        reset_url = f"{frontend_base.rstrip('/')}?token={reset_token}"
         try:
             email_sent = enviar_reset_por_correo(email, reset_url)
         except Exception:
@@ -365,17 +382,30 @@ def desactivar_usuario(user_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"mensaje": "Usuario desactivado"}
 
-def count_query(table: str, condition: str = ""):
-    return text(f"SELECT COUNT(*) AS count FROM {table} {condition}")
+# Consultas de conteo fijadas de antemano (sin interpolar texto de entrada en el
+# SQL): cada clave mapea a una sentencia completa y conocida, así esta función
+# nunca puede convertirse en una vía de inyección SQL aunque en el futuro alguien
+# la reutilice con datos que no sean literales de código.
+_COUNT_QUERIES = {
+    "docentes": "SELECT COUNT(*) AS count FROM usuarios u JOIN user_roles r ON r.id = u.rol_id WHERE u.activo = TRUE AND lower(r.nombre) = 'docente'",
+    "administradores": "SELECT COUNT(*) AS count FROM usuarios u JOIN user_roles r ON r.id = u.rol_id WHERE u.activo = TRUE AND lower(r.nombre) = 'administrador'",
+    "grupos": "SELECT COUNT(*) AS count FROM grupos",
+    "estudiantes_activos": "SELECT COUNT(*) AS count FROM estudiantes WHERE activo = TRUE",
+    "actividades": "SELECT COUNT(*) AS count FROM actividades",
+    "alertas_activas": "SELECT COUNT(*) AS count FROM alertas WHERE estado = 'active'",
+}
+
+def count_query(key: str):
+    return text(_COUNT_QUERIES[key])
 
 @app.get("/docentes/count", tags=["Usuarios"])
 def contar_docentes(db: Session = Depends(get_db)):
-    row = db.execute(count_query("usuarios u JOIN user_roles r ON r.id = u.rol_id", "WHERE u.activo = TRUE AND lower(r.nombre) = 'docente'")).first()
+    row = db.execute(count_query("docentes")).first()
     return {"count": row.count}
 
 @app.get("/admins/count", tags=["Usuarios"])
 def contar_administradores(db: Session = Depends(get_db)):
-    row = db.execute(count_query("usuarios u JOIN user_roles r ON r.id = u.rol_id", "WHERE u.activo = TRUE AND lower(r.nombre) = 'administrador'")).first()
+    row = db.execute(count_query("administradores")).first()
     return {"count": row.count}
 
 @app.get("/grupos/count", tags=["Grupos"])
@@ -384,7 +414,7 @@ def contar_grupos(db: Session = Depends(get_db)):
 
 @app.get("/estudiantes/count", tags=["Estudiantes"])
 def contar_estudiantes(db: Session = Depends(get_db)):
-    return {"count": db.execute(count_query("estudiantes", "WHERE activo = TRUE")).scalar_one()}
+    return {"count": db.execute(count_query("estudiantes_activos")).scalar_one()}
 
 @app.get("/actividades/count", tags=["Actividades"])
 def contar_actividades(db: Session = Depends(get_db)):
@@ -392,7 +422,7 @@ def contar_actividades(db: Session = Depends(get_db)):
 
 @app.get("/alertas/activas/count", tags=["Alertas"])
 def contar_alertas_activas(db: Session = Depends(get_db)):
-    return {"count": db.execute(count_query("alertas", "WHERE estado = 'active'")).scalar_one()}
+    return {"count": db.execute(count_query("alertas_activas")).scalar_one()}
 
 
 @app.get("/invitaciones/{token}", tags=["Usuarios"])
