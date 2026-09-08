@@ -30,7 +30,7 @@ interface EstudianteView {
 
 const getEstadoBadge = (estado: string) => {
   switch (estado) {
-    case "activo": return <Badge variant="default" className="text-[10px]">Activo</Badge>;
+    case "activo": return <Badge variant="default" className="text-[10px]">Alto</Badge>;
     case "en riesgo": return <Badge variant="secondary" className="text-[10px] bg-warning/15 text-warning-foreground border-warning/30">En riesgo</Badge>;
     case "crítico": return <Badge variant="destructive" className="text-[10px]">Crítico</Badge>;
     default: return <Badge variant="outline" className="text-[10px]">Activo</Badge>;
@@ -255,7 +255,7 @@ const Estudiantes = () => {
           <SelectTrigger className="w-[140px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
-            <SelectItem value="activo">Activo</SelectItem>
+            <SelectItem value="activo">Alto</SelectItem>
             <SelectItem value="en riesgo">En riesgo</SelectItem>
             <SelectItem value="crítico">Crítico</SelectItem>
           </SelectContent>
@@ -270,8 +270,8 @@ const Estudiantes = () => {
                 <TableHead>Estudiante</TableHead>
                 <TableHead>Grupo</TableHead>
                 <TableHead className="text-center">Promedio</TableHead>
-                <TableHead className="text-center">Tendencia</TableHead>
-                <TableHead className="text-center">Estado</TableHead>
+
+                <TableHead className="text-center">Rendimiento</TableHead>
                 <TableHead className="text-center">Alertas</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -293,7 +293,7 @@ const Estudiantes = () => {
                   <TableCell className="text-center">
                     <span className={`font-bold text-sm ${est.promedio >= 80 ? "text-primary" : est.promedio >= 70 ? "text-warning" : "text-destructive"}`}>{est.promedio}%</span>
                   </TableCell>
-                  <TableCell className="text-center">{getTendenciaIcon(est.tendencia)}</TableCell>
+
                   <TableCell className="text-center">{getEstadoBadge(est.estado)}</TableCell>
                   <TableCell className="text-center">
                     {est.alertas > 0 ? <Badge variant="destructive" className="text-[10px] px-1.5">{est.alertas}</Badge> : <span className="text-xs text-muted-foreground">—</span>}
