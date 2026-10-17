@@ -250,10 +250,11 @@ def enviar_reset_por_correo(email: str, reset_url: str) -> bool:
 @app.post("/auth/forgot-password", tags=["Autenticación"])
 def solicitar_recuperacion(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
     email = data.email.strip().lower()
-    exists = db.execute(text("SELECT 1 FROM usuarios WHERE lower(email) = :email AND activo = TRUE"), {"email": email}).first()
+    user = db.execute(text("SELECT email FROM usuarios WHERE lower(email) = :email AND activo = TRUE"), {"email": email}).first()
 
     email_sent = False
-    if exists:
+    if user:
+        email = user.email
         reset_token = token_urlsafe(24)
         expires_at = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_TTL_MINUTES)
         db.execute(text("""
