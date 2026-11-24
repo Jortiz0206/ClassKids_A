@@ -339,7 +339,7 @@ Durante el proyecto circularon dos numeraciones. La siguiente tabla relaciona la
 | Postcondiciones | Solo las calificaciones que el docente creó o modificó quedan guardadas; las nuevas en el periodo 1, las editadas conservan su periodo y su observación. Al crear una calificación, el sistema evalúa la regla de alerta (CU-12). |
 | Frecuencia | Muy alta |
 | Implementación | Pantalla `/app/calificaciones` (`Calificaciones.tsx`) · `GET /calificaciones`, `POST /calificaciones`, `PUT /calificaciones/{id}` |
-| Estado | Implementado con observaciones: H-02, H-31 y H-33 corregidos; siguen pendientes H-03 (precisión), H-05 (validación en el backend) y H-19 (promedio con vacíos). En la base real, «Entregado» persiste solo tras la migración 001. |
+| Estado | Implementado con observaciones: H-02, H-31 y H-33 corregidos; H-05 (validación en el backend) corregido el 24/11/2026; siguen pendientes H-03 (precisión) y H-19 (promedio con vacíos). En la base real, «Entregado» persiste solo tras la migración 001. |
 
 **Flujo normal**
 

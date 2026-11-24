@@ -24,7 +24,7 @@ Las celdas de ClassKids se basan en el código revisado. Las del candidato Expre
 | Lenguaje y framework | Python, FastAPI, Pydantic v2 | JavaScript, Express 5 | PENDIENTE | PENDIENTE |
 | Persistencia | PostgreSQL 15 (relacional) con SQL parametrizado (SQLAlchemy Core `text()`) | MongoDB (documental) con Mongoose | PENDIENTE | PENDIENTE |
 | Arquitectura | API REST monolítica en un módulo; middleware de autenticación | Rutas (`routes/`) y modelos (`models/`) separados | PENDIENTE | PENDIENTE |
-| Validación | Esquemas Pydantic (tipos); validación de reglas mínima (H-05) | PENDIENTE (Mongoose permite esquemas) | PENDIENTE | PENDIENTE |
+| Validación | Esquemas Pydantic con rangos y longitudes; errores de integridad con 409/422 (H-05 corregido) | PENDIENTE (Mongoose permite esquemas) | PENDIENTE | PENDIENTE |
 | Seguridad | JWT HS256 de 8 h, PBKDF2, CORS configurable; permisos por rol y por asignación docente–materia–grupo (H-08 corregido el 24/11/2026) | PENDIENTE | PENDIENTE | PENDIENTE |
 | Pruebas | pytest: 24 de integración y 18 unitarias | PENDIENTE | PENDIENTE | PENDIENTE |
 | Documentación de la API | OpenAPI automática (`/docs`) y `api-endpoints.md` | PENDIENTE | PENDIENTE | PENDIENTE |

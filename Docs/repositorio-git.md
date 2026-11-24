@@ -54,3 +54,17 @@ No se confirmó a qué integrante pertenece cada cuenta de Git; lo debe indicar 
 6. `chore: migración 001 e informes` (sin ejecutar la migración)
 
 Luego, un PR `stg` → `develop` y otro `develop` → `master`, revisados por el equipo.
+
+## Sincronización del cierre (24/11/2026)
+
+- **Antes:**
+  - `origin/stg` en `4f7667e`;
+  - `origin/master` en `872f55a`;
+  - `origin/develop` en `7c98b7d` (commit de la cuenta «Fervelop», que no estaba en las otras ramas).
+- **Respaldos:**
+  - etiquetas anotadas locales `respaldo-cierre-20261124/*` (ramas locales y remotas, y `fervelop-7c98b7d`);
+  - el bundle `backend/backups/git/classkids-todas-las-ramas-20261124.bundle`.
+- **Commits locales:** los commits pendientes se reconstruyeron sobre `origin/stg` sin los dos que agregaban archivos de configuración local del entorno de desarrollo, que no se publican. El contenido del proyecto es idéntico.
+- **Integración de `develop`:** el commit de Fervelop se integra con un merge (`git merge -s ours`) que conserva su ascendencia y su autoría. Sus cambios no se incorporan porque contradicen la versión aprobada (detalle en el informe de cierre, sección I).
+- **Publicación:** `stg`, `develop` y `master` quedan en el mismo commit y se publican con avance rápido. No se usó push forzado.
+

@@ -10,15 +10,15 @@ Este capítulo reúne los defectos y las funcionalidades incompletas encontrados
 
 | ID | Hallazgo | Prioridad | Evidencia |
 |---|---|---|---|
-| H-01 | La interfaz y el backend usan umbrales distintos sobre la escala oficial 0.0–5.0: la interfaz aprueba desde 3.5 (70 %) y la alerta se genera por debajo de 3.0. | Crítica | Verificado |
+| H-01 | La interfaz y el backend usan umbrales distintos sobre la escala oficial 0.0–5.0: la interfaz aprueba desde 3.5 (70 %) y la alerta se genera por debajo de 3.0. | Crítica | Corregido (24/11/2026) |
 | H-02 | Guardar calificaciones registra nota 0 a los estudiantes que no fueron calificados. | Crítica | Código |
 | H-03 | Al convertir el porcentaje digitado a la escala oficial (un decimal) se pierde precisión. | Alta | Código |
-| H-04 | La regla de alerta automática está incompleta. | Alta | Código y datos |
-| H-05 | El backend no valida los datos de entrada y responde con error 500. | Alta | Verificado |
+| H-04 | La regla de alerta automática está incompleta. | Alta | Pendiente de decisión funcional |
+| H-05 | El backend no valida los datos de entrada y responde con error 500. | Alta | Corregido (24/11/2026) |
 | H-06 | Hay calificaciones sin actividad y calificaciones repetidas para la misma actividad. | Alta | Verificado |
 | H-07 | La gráfica de tendencia muestra un mes equivocado. | Media | Verificado |
 | H-08 | El docente tenía acceso total a los datos y a funciones administrativas. | Crítica | Corregido (24/11/2026) |
-| H-09 | El token sigue siendo válido después de cerrar sesión, desactivar al usuario o cambiar su rol. | Alta | Código |
+| H-09 | El token sigue siendo válido después de cerrar sesión, desactivar al usuario o cambiar su rol. | Alta | Corregido (24/11/2026) |
 | H-10 | La interfaz no detecta una sesión vencida. | Media | Código |
 | H-11 | Eliminar un registro inexistente responde «eliminado» y eliminar un estudiante borra su historial. | Alta | Verificado |
 | H-12 | Operaciones que existen en la API pero no en la interfaz. | Alta | Verificado |
@@ -26,7 +26,7 @@ Este capítulo reúne los defectos y las funcionalidades incompletas encontrados
 | H-14 | Inconsistencias en los indicadores del Dashboard. | Media | Verificado |
 | H-15 | El detalle de la alerta no muestra el mensaje ni el grupo. | Baja | Código |
 | H-16 | Carga ineficiente de datos: Actividades tarda 5,2 s y hace 107 peticiones. | Media | Verificado |
-| H-17 | La variable `DATABASE_URL` del archivo `.env` se ignora. | Media | Código |
+| H-17 | La variable `DATABASE_URL` del archivo `.env` se ignora. | Media | Corregido (24/11/2026) |
 | H-18 | El administrador podía quitarse el rol o desactivar su propia cuenta. | Alta | Corregido (24/11/2026) |
 | H-19 | El promedio de una actividad cuenta como 0 a los estudiantes sin nota. | Media | Verificado |
 | H-20 | Calidad del código: tipado débil y ausencia de pruebas. | Media | Verificado |
@@ -52,6 +52,7 @@ Este capítulo reúne los defectos y las funcionalidades incompletas encontrados
 | H-40 | En el celular, la tabla de Usuarios obligaba a desplazarse de lado y ocultaba el rol y las acciones. | Baja | Captura y prueba E2E |
 | H-41 | Tras reiniciar el equipo, la base de pruebas quedaba detenida y pytest fallaba al cargar los fixtures. | Media | Corregido (24/11/2026) |
 | H-42 | El backend respondía 500 en la primera petición tras reiniciar PostgreSQL. | Media | Corregido (24/11/2026) |
+| H-43 | Las respuestas 401 y 403 del middleware salían sin cabeceras CORS. | Media | Corregido (24/11/2026) |
 
 Los hallazgos H-24 a H-33 provienen de la auditoría de integración entre capas (ver el capítulo correspondiente).
 
@@ -84,8 +85,9 @@ Las correcciones se probaron en el entorno aislado `classkids_test` (ver el cap�
 | H-40 | **Corregido** | En el celular, Usuarios muestra una tarjeta por persona con el rol y la acción visibles. | Playwright: «Usuarios en celular (H-40)» |
 | H-41 | **Corregido** | `conftest.py` comprueba la base en `pytest_sessionstart` y termina con un mensaje claro si no responde; el contenedor de pruebas se reinicia con Docker. | pytest con la base apagada: salida 3 con instrucciones; con la base encendida: 61 de 61 |
 | H-42 | **Corregido** | `database.py` crea el motor con `pool_pre_ping=True`: tras reiniciar PostgreSQL la primera petición ya no responde 500. | Reinicio de la base de pruebas con el backend encendido: inicio de sesión 200 |
+| H-43 | **Corregido** | CORS se registra como el middleware más externo: las respuestas 401 y 403 llevan sus cabeceras y la interfaz puede mostrar el motivo. | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
 
-**Siguen pendientes**, entre otros: **H-01** (umbrales distintos: 3.5 en la interfaz y 3.0 en la alerta), **H-04** (la regla de alerta no se evalúa al editar ni por materia) y **H-19** (el promedio de una actividad cuenta como 0 a los estudiantes sin nota). También H-03 y H-05 a H-23. H-14 queda parcialmente resuelto (ver su fila). El registro de seguimiento con severidad y estado está en [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md).
+**Actualización del 24/11/2026:** H-01, H-05, H-09 y H-17 se corrigieron; H-04 queda pendiente de decisión funcional. **Situación anterior**: **H-01** (umbrales distintos: 3.5 en la interfaz y 3.0 en la alerta), **H-04** (la regla de alerta no se evalúa al editar ni por materia) y **H-19** (el promedio de una actividad cuenta como 0 a los estudiantes sin nota). También H-03 y H-05 a H-23. H-14 queda parcialmente resuelto (ver su fila). El registro de seguimiento con severidad y estado está en [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md).
 
 ## Detalle
 
@@ -98,6 +100,8 @@ Cada detalle describe el problema tal como se encontró en la auditoría. Para s
 - **Qué ocurre:** un estudiante con promedio entre 3.0 y 3.4 (60 % a 69 %) aparece «En riesgo» en las pantallas, pero nunca recibe una alerta automática. En los datos demo, Análisis muestra 66 estudiantes en riesgo y solo existen 32 alertas.
 - **Efecto del redondeo:** la interfaz redondea los promedios a porcentajes enteros, mientras que el backend compara el promedio sin redondear. Por ejemplo, un promedio de 2.99 se muestra como 60 % (En riesgo, no Crítico) aunque sí genera alerta.
 - **Estado:** se documenta tal como está implementado; no se corrigió.
+
+**Estado (24/11/2026): corregido.** Los dos umbrales son reglas aprobadas y no cambian: 3.5 (70 %) para aprobar y 3.0 (60 %) para la alerta. «En riesgo» significa por debajo de la aprobación y «Crítico», por debajo del umbral de alerta. La interfaz clasifica ahora con el promedio exacto, igual que el backend; el redondeo es solo para mostrar (`promedioExacto` en `lib/notas.ts`). Que haya más estudiantes en riesgo que alertas es el comportamiento esperado: la alerta solo existe por debajo de 3.0, se crea al registrar una nota (RN-10) y no se duplica (H-32). Pruebas: `notas.test.ts`.
 
 ### H-02. Guardar calificaciones registra ceros
 
@@ -119,10 +123,14 @@ Cada detalle describe el problema tal como se encontró en la auditoría. Para s
   3. Para evitar duplicados busca alertas con tipo `low_grade`, pero las alertas de los datos demo tienen tipo «Bajo Rendimiento»; un mismo estudiante puede terminar con dos alertas de bajo rendimiento activas.
   4. No existen las reglas de inasistencia, riesgo comportamental ni deserción que planteaba el diseño original.
 
+**Estado (24/11/2026): pendiente de decisión funcional.** La parte 3 (duplicados) se corrigió con H-32. Las partes 1 y 2 contradicen reglas aprobadas: RN-10 excluye las ediciones y RN-09 usa el promedio de todas las materias. Además, la tabla `alertas` no guarda la materia. La parte 4 requiere datos que el sistema no registra (asistencia, comportamiento). Se probó evaluar la regla al editar y se revirtió, porque una prueba existente que documenta RN-10 falló. Para avanzar, el equipo debe decidir si cambia RN-09/RN-10 y si agrega `alertas.materia_id`.
+
 ### H-05. El backend no valida los datos de entrada
 
 - **Dónde:** esquemas Pydantic de `backend/main.py` (líneas 50–124) y endpoints de creación.
 - **Qué ocurre:** los esquemas no limitan rangos, longitudes ni formatos (la nota es un `float` sin rango y el correo un `str` sin formato), y los errores de la base de datos no se capturan. Verificado: nota 7 → 500; estudiante inexistente → 500; documento duplicado → 500. La interfaz muestra un mensaje genérico, sin indicar la causa.
+
+**Estado (24/11/2026): corregido.** Los esquemas limitan rangos y longitudes según las columnas: nota de 0.0 a 5.0, textos no vacíos, fecha AAAA-MM-DD, rol `docente` o `admin` y correo con formato. Los errores de integridad responden 409 (valor duplicado) o 422 (registro relacionado inexistente, valor fuera de rango), y un manejador global evita exponer detalles internos. Pruebas: `test_hallazgos_cierre.py`.
 
 ### H-06. Calificaciones sin actividad y repetidas
 
@@ -145,6 +153,8 @@ Cada detalle describe el problema tal como se encontró en la auditoría. Para s
 
 - **Dónde:** middleware `require_authentication` (`backend/main.py`, líneas 169–183).
 - **Qué ocurre:** el middleware solo valida la firma y el vencimiento del token, sin consultar la base de datos. Un usuario desactivado, o un administrador al que se le quitó el rol, conserva sus permisos hasta 8 horas. Cerrar sesión tampoco invalida el token.
+
+**Estado (24/11/2026): corregido para desactivación y cambio de rol.** El middleware consulta en cada petición que la cuenta siga activa y con el mismo rol; si no, responde 401 y la interfaz cierra la sesión y explica el motivo. **Limitación:** cerrar sesión no revoca el token en el servidor; hacerlo requiere guardar los tokens revocados o una versión de sesión por usuario (cambio de esquema). Pruebas: pytest, Vitest y Playwright.
 
 ### H-10. Sesión vencida no detectada
 
@@ -193,6 +203,8 @@ En `Alertas.tsx`, el recuadro del detalle muestra el tipo de la alerta en lugar 
 ### H-17. `DATABASE_URL` ignorada
 
 `backend/main.py` importa `database.py` (línea 19) antes de cargar el archivo `.env` (línea 21), y `database.py` lee la variable al importarse. Una `DATABASE_URL` definida en `.env` no tiene efecto; hoy funciona porque se usa el valor por defecto.
+
+**Estado (24/11/2026): corregido.** `database.py` carga `.env` antes de leer `DATABASE_URL`; una variable definida en el entorno tiene prioridad. Pruebas: `test_hallazgos_cierre.py`.
 
 ### H-18. Autodesactivación del administrador
 

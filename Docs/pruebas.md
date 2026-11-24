@@ -128,10 +128,10 @@ Las verificaciones de la tabla anterior se ejecutaron **antes** de las correccio
 | P-INT-11 (entregas 7/20 frente a 5/20) | H-30c | Corregido | `integracion.spec.ts` |
 | P-SEG-07 (autoprotección del administrador) | H-18 | Corregido (24/11/2026) | `renovacion.spec.ts`, `test_permisos.py` |
 | P-SEG-04 y P-SEG-05 (acceso del docente) | H-08 | Corregido (24/11/2026) | `test_permisos.py`, `permisos.spec.ts`, `evidencias/permisos/verificacion-api-permisos.md` |
-| P-VAL-01 a P-VAL-03 (errores 500) | H-05 | Pendiente | — |
+| P-VAL-01 a P-VAL-03 (errores 500) | H-05 | Corregido (24/11/2026) | `test_hallazgos_cierre.py` |
 | P-VAL-05 (eliminar inexistente) | H-11 | Pendiente | — |
 | P-UI-02 (mes de la tendencia) | H-07 | Pendiente | — |
-| P-UI-03 (riesgo frente a alertas) | H-01 | Pendiente | — |
+| P-UI-03 (riesgo frente a alertas) | H-01 | Corregido (24/11/2026): misma clasificación que el backend; la diferencia de cantidades es esperada (RN-09, RN-10) | `notas.test.ts` |
 | P-UI-04 (promedio con vacíos) | H-19 | Pendiente | — |
 | P-REN-01 y P-INT-02 (carga de Actividades) | H-16 | Pendiente | — |
 | P-DAT-01 (alertas demo) | H-32 | Regla corregida; datos demo sin cambios por decisión | `test_alertas.py` |
@@ -159,13 +159,13 @@ Estas pruebas están diseñadas pero **no se han ejecutado**. Algunas ya quedaro
 | T-11 | Calificaciones | Calificar 3 de 20 estudiantes y guardar | 85, 60, 90 | Solo 3 calificaciones nuevas | Pendiente (se espera que falle: H-02) |
 | T-12 | Calificaciones | Editar una nota existente | 90 → 40 | Nota actualizada | Pendiente |
 | T-13 | Alertas | Nota baja a un estudiante sin alertas | Promedio resultante < 3.0 | Una alerta `low_grade` activa | Pendiente |
-| T-14 | Alertas | Editar una nota a un valor bajo | PUT con nota 1.0 | Se genera la alerta | Pendiente (se espera que falle: H-04) |
+| T-14 | Alertas | Editar una nota a un valor bajo | PUT con nota 1.0 | Se genera la alerta | Pendiente de decisión funcional (RN-10 excluye las ediciones; H-04) |
 | T-15 | Alertas | Marcar como revisada y resolver | Alerta activa | Estados `reviewed` y `resolved` | Pendiente |
 | T-16 | Observaciones | Registrar y eliminar una observación | Tipo Académica | Visible y luego eliminada | Pendiente |
 | T-17 | Materias | Eliminar una materia con actividades | Matemáticas | 409 y mensaje de error | Pendiente |
 | T-18 | Asignaciones | Asignar una materia que ya tiene docente en el grupo | Matemáticas, 1A | Mensaje «Esta asignación ya existe» | Pendiente |
 | T-19 | Sesión | Reiniciar el backend con la interfaz abierta | — | Redirige al login | Pendiente (se espera que falle: H-10) |
-| T-20 | Sesión | Usar el token de un usuario después de desactivarlo | — | 401 | Pendiente (se espera que falle: H-09) |
+| T-20 | Sesión | Usar el token de un usuario después de desactivarlo | — | 401 | Aprobada (24/11/2026): 401 inmediato (`test_h09_cuenta_desactivada_pierde_el_acceso_de_inmediato`) |
 | T-21 | Recuperación | Solicitar y usar un enlace de recuperación (con SMTP de pruebas) | Correo de un usuario activo | Contraseña actualizada; el enlace no se puede reutilizar | Pendiente |
 | T-22 | Interfaz | Revisar las pantallas en Firefox y Edge | — | Mismo comportamiento que en Chromium | Pendiente |
 | T-23 | Rendimiento | Tiempo de carga de Análisis y Estudiantes (Actividades ya se midió: P-REN-01) | Datos demo | Menos de 3 segundos | Pendiente |

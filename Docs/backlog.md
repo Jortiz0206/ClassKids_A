@@ -61,7 +61,8 @@ Estado revisado: 20 de noviembre de 2026. Organizado para las columnas del GitHu
 - [ ] Completar la regla de alertas: evaluar al actualizar y por materia (H-04; los duplicados ya se corrigieron con H-32).
 - [x] Corregir la autoprotección del administrador en la interfaz (H-18, 24/11: la comparación de identificadores usa texto en ambos lados; prueba E2E).
 - [x] Añadir la misma protección en el backend (H-18, 24/11/2026: 403 en la API).
-- [ ] Guardar la materia en cada alerta (columna `alertas.materia_id`) para que su visibilidad no dependa del texto del mensaje (RN-37). Requiere una migración y una decisión sobre la regla de alertas por materia (H-04).
+- [x] Corregir H-01 (clasificación con el promedio exacto), H-05 (validación y errores), H-09 (cuenta revalidada en cada petición), H-17 (`.env`) y H-43 (CORS en 401/403), el 24/11/2026.
+- [ ] Decidir H-04 (evaluar la alerta al editar y por materia) y, si procede, guardar la materia en cada alerta (columna `alertas.materia_id`) para que su visibilidad no dependa del texto del mensaje (RN-37). Requiere una migración y una decisión sobre la regla de alertas por materia (H-04).
 - [ ] Revalidar en cada petición que el usuario siga activo y con el mismo rol (H-09).
 - [ ] Responder 404 al eliminar registros inexistentes y usar baja lógica de estudiantes (H-11).
 - [ ] Agregar en la interfaz editar y eliminar grupos, actividades y materias, desactivar estudiantes y crear alertas manuales (H-12).

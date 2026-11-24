@@ -344,3 +344,34 @@ Todas aprobadas antes y después de cada etapa. Casos unitarios reales: 55. `tsc
 
 **Git.** Commits locales en `stg`, integrados con avance rápido en `develop` y en `master`. No hubo push ni despliegue.
 
+## I. Cierre definitivo (24/11/2026)
+
+**Respaldos:**
+- Etiquetas anotadas `respaldo-cierre-20261124/*` de las ramas locales y remotas, incluida `fervelop-7c98b7d`.
+- Bundle de Git de todas las referencias, verificado.
+- Respaldos de PostgreSQL de la base real (solo lectura) y de la de pruebas.
+- Los cuatro respaldos de PostgreSQL se restauraron sin errores en una base temporal.
+- Todo queda en `backend/backups/` (excluido de Git).
+
+**Hallazgos:**
+
+| Hallazgo | Resultado |
+|---|---|
+| H-01 | Corregido sin cambiar los umbrales: clasificación con el promedio exacto |
+| H-05 | Corregido: validación y errores 409/422, más manejador global |
+| H-09 | Corregido para desactivación y cambio de rol. Cerrar sesión no revoca el token en el servidor (requiere cambio de esquema) |
+| H-17 | Corregido |
+| H-43 | Corregido (CORS) |
+| H-04 | Pendiente de decisión funcional: contradice RN-09 y RN-10, aprobadas |
+
+**Equipo:** [`matriz-responsabilidades.md`](../../Docs/equipo/matriz-responsabilidades.md) reconstruye actividades y entregables con evidencia. No hay roles asignados formalmente.
+
+**Configuración local del entorno de desarrollo:** sus archivos quedan fuera del repositorio. La cadena de commits pendientes se reconstruyó sin los dos commits que las incluían (nunca se habían publicado), y quedan excluidas en `.git/info/exclude`.
+
+**Ramas:** el commit de Fervelop (`7c98b7d`) se integra con un merge que conserva su ascendencia. Sus cambios se evaluaron y no se incorporan, porque contradicen la versión aprobada:
+- la nota pasa a 0–100, contra la escala oficial 0–5;
+- se quita la cuenta del docente de demostración;
+- desaparece la columna Tendencia de Estudiantes.
+
+Las tres ramas quedan en el mismo commit y se publican con avance rápido, sin push forzado.
+

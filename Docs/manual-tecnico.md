@@ -58,7 +58,7 @@ Se definen en `backend/.env` (ver `backend/.env.example`).
 
 | Variable | Obligatoria | Descripción |
 |---|---|---|
-| `DATABASE_URL` | No | Cadena de conexión. Por defecto, la base local de Docker. Hoy solo surte efecto si se define en el sistema operativo (H-17). |
+| `DATABASE_URL` | No | Cadena de conexión. Por defecto, la base local de Docker. Se lee de `backend/.env` o del sistema operativo; si existe en ambos, gana la del sistema (H-17 corregido el 24/11/2026). `CLASSKIDS_ENV_FILE` permite indicar otro archivo `.env`. |
 | `CORS_ORIGINS` | No | Orígenes permitidos, separados por comas. |
 | `JWT_SECRET` | Sí en producción | Clave de firma de los tokens. Si no se define en desarrollo, se genera una nueva en cada arranque y las sesiones se pierden al reiniciar. **Se recomienda definirla siempre.** |
 | `ENVIRONMENT` | No | `development` o `production`. En `production` el backend no arranca sin `JWT_SECRET`. |
@@ -115,16 +115,30 @@ docker exec -i classkids_db psql -U postgres -d classkids < backend/backups/clas
 
 La carpeta `backend/backups/` está excluida de Git.
 
+**Respaldos verificados el 24/11/2026** (restaurados en una base temporal del contenedor de pruebas, sin errores):
+
+| Archivo | Contenido (grupos/estudiantes/calificaciones/usuarios) |
+|---|---|
+| `classkids_real_cierre_20261124.dump` | Base real: 11/201/216/9 |
+| `classkids_test_cierre_20261124.dump` | Base de pruebas: 10/200/215/7 |
+| `classkids_pre_001_20261120.dump` | Base real antes de la migración 001: 10/200/215/8 |
+| `classkids_pre_recreate_20260901_132214.sql` | Respaldo de septiembre: 3/20/35/2 |
+| `git/classkids-todas-las-ramas-20261124.bundle` | Todas las ramas y etiquetas de Git (`git bundle verify`: correcto) |
+
+Restaurar un respaldo `.dump`: `docker exec -i <contenedor> pg_restore -U postgres -d <base_vacía> < archivo.dump`.
+
 ## 8. Solución de problemas
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | Todas las pantallas muestran «Error al cargar…» después de reiniciar el backend | El backend generó un nuevo `JWT_SECRET` y el token guardado ya no es válido. | Cerrar sesión e ingresar de nuevo; definir `JWT_SECRET` en `.env`. |
 | Error de CORS en la consola del navegador | El origen del frontend no está en `CORS_ORIGINS`. | Agregar el origen y reiniciar el backend. |
+| La aplicación vuelve al inicio de sesión con «Tu cuenta ya no está activa» o «Tu rol cambió» | El administrador desactivó la cuenta o cambió su rol (H-09). | Volver a iniciar sesión; si la cuenta está desactivada, pedir al administrador que la reactive con una invitación. |
+| pytest se detiene con «La base de pruebas classkids_test … no responde» | El contenedor de pruebas está detenido. | `docker compose -f docker-compose.test.yml up -d` en `backend/`. |
 | El backend no conecta con la base de datos | El contenedor no está activo. | `docker compose up -d` en `backend/` y verificar con `docker ps`. |
 | No llegan los correos | `SMTP_HOST` no está definido o las credenciales son incorrectas. | Configurar las variables SMTP; mientras tanto, usar el enlace que muestra la pantalla de invitación. |
 | El puerto 8080 está ocupado | Otra aplicación usa el puerto. | Liberarlo o cambiarlo en `vite.config.ts` y agregar el nuevo origen a `CORS_ORIGINS`. |
 
 ## 9. Consideraciones antes de un despliegue
 
-Antes de llevar el sistema a un servidor deben resolverse los hallazgos de seguridad pendientes (H-09 y H-23; H-08 y H-18 se corrigieron el 24/11/2026), definir `JWT_SECRET` y `ENVIRONMENT=production`, cambiar la contraseña de PostgreSQL y no publicar su puerto, restringir `/docs`, usar HTTPS y programar respaldos automáticos.
+Antes de llevar el sistema a un servidor deben resolverse los hallazgos de seguridad pendientes (H-23; H-08, H-09 y H-18 se corrigieron el 24/11/2026), definir `JWT_SECRET` y `ENVIRONMENT=production`, cambiar la contraseña de PostgreSQL y no publicar su puerto, restringir `/docs`, usar HTTPS y programar respaldos automáticos.

@@ -39,7 +39,7 @@ El entorno de pruebas se levanta igual, con otros puertos y variables (ver [`../
 | Dockerfile del backend | Hoy el backend depende del Python instalado en el equipo | Imagen `python:3.12-slim` con `uvicorn main:app --host 0.0.0.0` |
 | Dockerfile del frontend | `dist/` se debe servir con un servidor web | Construcción multietapa: `node` → `nginx` sirviendo `dist/` con *fallback* a `index.html` |
 | `docker-compose` completo (db + api + web) | Levantar todo con un comando y variables por entorno | `docker-compose.prod.yml` con `env_file` |
-| Corregir H-17 | `DATABASE_URL` del `.env` se ignora | Cargar `.env` antes de crear el motor (requiere autorización) |
+| H-17 (corregido el 24/11/2026) | `database.py` carga `.env` antes de crear el motor | Definir `DATABASE_URL` en `backend/.env` o como variable de entorno (esta tiene prioridad) |
 | Configuración segura (H-23) | Credenciales por defecto de PostgreSQL, `/docs` público, `ENVIRONMENT` en desarrollo | Secretos fuera del código, `ENVIRONMENT=production`, `JWT_SECRET` largo, CORS limitado al dominio real |
 | HTTPS y dominio | Los tokens viajan en cada petición | Proxy inverso con TLS |
 | Migración 001 en la base real | La columna `entregado` falta en producción | Ejecutar con respaldo nuevo y autorización; reiniciar el backend después |

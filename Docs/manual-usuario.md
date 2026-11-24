@@ -56,7 +56,7 @@ Si un docente intenta abrir información que no le corresponde, el sistema no la
 
 En el computador, pulse «Cerrar sesión» en la parte inferior del menú lateral. En el celular, abra «Más» y pulse «Salir». Hágalo siempre al terminar, sobre todo en equipos compartidos.
 
-> Si el sistema empieza a mostrar errores al cargar cualquier pantalla, es posible que su sesión haya vencido (dura 8 horas) o que el servidor se haya reiniciado. Cierre sesión y vuelva a ingresar.
+> Si el administrador desactiva su cuenta o cambia su rol mientras usted trabaja, la plataforma lo lleva al inicio de sesión con el aviso «Tu cuenta ya no está activa» o «Tu rol cambió». Si el sistema muestra errores al cargar cualquier pantalla, es posible que su sesión haya vencido (dura 8 horas) o que el servidor se haya reiniciado: cierre sesión y vuelva a ingresar.
 
 ## 2. Navegación
 

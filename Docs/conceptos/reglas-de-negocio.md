@@ -28,7 +28,7 @@ Las reglas de este capítulo describen el comportamiento **implementado** en el 
 | 3.0 a 3.4 | 60 a 69 | En riesgo | No genera alerta |
 | 0.0 a 2.9 | 0 a 59 | En riesgo (Crítico en la tabla de Análisis) | Genera alerta si el **promedio acumulado** es menor a 3.0 |
 
-> La interfaz y el backend no usan el mismo umbral: la interfaz considera aprobado desde 3.5 (70 %) y el backend genera la alerta solo por debajo de 3.0. Esta diferencia se documenta como hallazgo H-01 y no se corrigió.
+> Los dos umbrales son reglas aprobadas y no se contradicen: 3.5 (70 %) define la aprobación y 3.0 (60 %) define la alerta. «En riesgo» es estar por debajo de la aprobación y «Crítico», por debajo del umbral de alerta. Desde el 24/11/2026 la interfaz clasifica con el promedio exacto, igual que el backend (H-01).
 
 ### Reglas de calificación y rendimiento
 
@@ -84,7 +84,7 @@ Las reglas de este capítulo describen el comportamiento **implementado** en el 
 | RN-24 | La contraseña debe tener como mínimo 6 caracteres y se almacena con hash PBKDF2. La interfaz no permite copiar ni pegar en los campos de contraseña. | Backend (validación y hash) y `lib/passwordField.ts`. |
 | RN-25 | El enlace de recuperación de contraseña vence a los 30 minutos y se usa una sola vez. La respuesta es la misma exista o no el correo, para no revelar qué cuentas existen. | `POST /auth/forgot-password`, `POST /auth/reset-password`. |
 | RN-26 | Desactivar un usuario es una baja lógica (`activo = false`). Un usuario desactivado no puede iniciar sesión. | `DELETE /usuarios/{id}`, `POST /auth/login`. |
-| RN-27 | La sesión dura 8 horas. Toda ruta privada de la API exige un token válido; las rutas de gestión de usuarios, métricas de usuarios y catálogo de docentes exigen rol Administrador. El permiso por asignación del docente se describe en RN-33 a RN-37. | Middleware `require_authentication` y dependencia `sesion_actual` (`main.py`). |
+| RN-27 | La sesión dura 8 horas. Toda ruta privada de la API exige un token válido y, en cada petición, comprueba que la cuenta siga activa y con el mismo rol (H-09); si no, responde 401 y la interfaz cierra la sesión; las rutas de gestión de usuarios, métricas de usuarios y catálogo de docentes exigen rol Administrador. El permiso por asignación del docente se describe en RN-33 a RN-37. | Middleware `require_authentication` y dependencia `sesion_actual` (`main.py`). |
 | RN-28 | El administrador no puede cambiar su propio rol ni desactivar su propia cuenta. **Se cumple (24/11/2026):** la API responde 403 aunque se llame directamente (compara el id del token con el de la ruta) y la interfaz deshabilita esos controles en la fila propia, marcada «(tú)» (H-18). | `PUT /usuarios/{id}/rol`, `DELETE /usuarios/{id}`, `AdminUsuarios.tsx` (`isSelf`). |
 
 ## Acceso por rol y por asignación (24/11/2026, H-08)

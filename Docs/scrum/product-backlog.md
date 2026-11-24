@@ -21,7 +21,7 @@ Historias tomadas de [`../conceptos/HUs.md`](../conceptos/HUs.md); los criterios
 | HU-13 | Consulta del expediente académico | CU-05, RF-09 | Parcial | 3 | detalle con promedio, estado y tendencia | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
 | HU-14 | Observaciones pedagógicas | CU-10, RF-14, RF-15 | Parcial | 3 | alta y listado por estudiante | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
 | HU-15 | Tablero de rendimiento | CU-11, RF-10 | Parcial | 8 | 4 gráficas y agregados calculados en el cliente | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
-| HU-16 | Alertas automáticas | CU-12, RF-11 | Parcial (H-01, H-04) | 5 | regla < 3.0 y deduplicación D3 | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
+| HU-16 | Alertas automáticas | CU-12, RF-11 | Parcial (H-04 pendiente de decisión; H-01 corregido) | 5 | regla < 3.0 y deduplicación D3 | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
 | HU-17 | Seguimiento de alertas | CU-13, RF-12, RF-13 | Cumple | 3 | cambio de estado e historial | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
 | HU-18 | Métricas globales | CU-16, RF-22 | Cumple | 2 | 6 conteos | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
 | HU-19 | Datos globales | CU-16, RF-23 | Cumple | 3 | tablas de solo lectura con pestañas | PENDIENTE | PENDIENTE | E-3/E-4 | PENDIENTE |
@@ -37,5 +37,6 @@ Estos elementos provienen de [`../backlog.md`](../backlog.md) y del [registro de
 |---|---|---|
 | Renovación visual del frontend | Terminada en el entorno de pruebas (20/11/2026) | Revisión del equipo |
 | Migración 001 en la base real | Pendiente | Autorización |
-| Corrección de H-01, H-04, H-05, H-08 y H-17 | Pendiente | Autorización |
+| Corrección de H-01, H-05, H-08, H-09 y H-17 | Hecho (24/11/2026) | — |
+| Decisión sobre H-04 | Pendiente | Decisión funcional del equipo |
 | Despliegue con contenedores | Pendiente | Decisión del equipo |

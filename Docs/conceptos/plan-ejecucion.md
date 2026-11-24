@@ -14,7 +14,7 @@ El documento original planteaba cinco fases de trabajo. Esta tabla conserva esas
 
 1. La escala académica oficial quedó definida como 0.0–5.0, la que implementan el backend y la base de datos.
 2. Decidir la aplicación de la migración 001 en la base real (informe de preparación listo).
-3. Corregir los hallazgos críticos pendientes: diferencia de umbrales entre la interfaz y la alerta (H-01) y control de acceso por rol y asignación (H-08, **hecho el 24/11/2026**).
-4. Corregir los hallazgos de prioridad alta pendientes: validación en el backend (H-05), regla de alertas al editar y por materia (H-04), autoprotección del administrador (H-18, **hecho el 24/11/2026**), operaciones sin interfaz (H-12), vigencia del token (H-09) y eliminaciones (H-11).
+3. Corregir los hallazgos críticos pendientes: diferencia de umbrales entre la interfaz y la alerta (H-01, **hecho el 24/11/2026**) y control de acceso por rol y asignación (H-08, **hecho el 24/11/2026**).
+4. Corregir los hallazgos de prioridad alta pendientes: validación en el backend (H-05, **hecho el 24/11/2026**), regla de alertas al editar y por materia (H-04, **pendiente de decisión funcional**), autoprotección del administrador (H-18, **hecho el 24/11/2026**), operaciones sin interfaz (H-12), vigencia del token (H-09) y eliminaciones (H-11).
 5. Ampliar la suite automatizada a los módulos sin pruebas y ejecutar el plan de pruebas pendientes en el entorno aislado.
 6. Actualizar esta documentación con los resultados.

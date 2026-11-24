@@ -18,7 +18,9 @@ Fuente de la composición: `README.md`, `Docs/conceptos/descripcion-general.md` 
 |---|---|
 | Documento versión 1.0 (portada) | Aprendices: María Alejandra Guio, Johanna Ortiz y Jan Llanos |
 | Fichas de casos de uso de la versión 1.0 | Autores: Alejandra Guio, Andrés Gutiérrez y Johanna Ortiz. **Andrés Gutiérrez ya no forma parte del equipo**; su autoría se conserva como registro histórico |
-| Historial de Git (`git shortlog -sn --all`) | Cuenta «Jortiz0206»: 4 commits; cuenta «Faloon Johanna Ortiz»: 1 commit; cuenta «Fervelop»: 1 commit (rama `origin/develop`). **No se confirmó a qué persona pertenece cada cuenta**; el equipo debe indicarlo |
+| Historial de Git (`git shortlog -sn --all`) | Al 24/11/2026: cuenta «Faloon Johanna Ortiz»: el commit del 16/10/2026 y los de la versión 3; cuenta «Jortiz0206»: 4 commits; cuenta «Fervelop»: 1 commit (rama `develop`). **No se confirmó a qué persona pertenece cada cuenta**; el equipo debe indicarlo |
+
+La reconstrucción con evidencia de las actividades y entregables está en [`matriz-responsabilidades.md`](matriz-responsabilidades.md) (24/11/2026).
 
 ## 3. Distribución del trabajo (la completa el equipo)
 

@@ -34,7 +34,7 @@ Esta carpeta es un **índice**. No reemplaza los archivos oficiales del proyecto
 |---|---|
 | Fecha de esta versión | 23/11/2026 |
 | Rama | `stg` (cambios locales sin commit; ver criterio 12) |
-| Pruebas automatizadas | **152 de 152** aprobadas el 24/11/2026 (pytest 61, Vitest 49, Playwright 42); `tsc` sin errores, ESLint sin errores y `vite build` exitoso. Reporte: [`Docs/pruebas/reporte-ejecucion-2026-11-24.md`](../../Docs/pruebas/reporte-ejecucion-2026-11-24.md) |
+| Pruebas automatizadas | **170 de 170** aprobadas el 24/11/2026 (pytest 72, Vitest 55, Playwright 43); `tsc` sin errores, ESLint sin errores y `vite build` exitoso. Reporte: [`Docs/pruebas/reporte-ejecucion-2026-11-24.md`](../../Docs/pruebas/reporte-ejecucion-2026-11-24.md) |
 | Evidencias visuales vigentes | 142 capturas reales de la versión vigente: landing, inicio de sesión, Dashboard, los ocho módulos (en `modulos/`), modo claro y oscuro y video; escritorio y celular, en [`Docs/evidencias/capturas-v3/vigente/`](../../Docs/evidencias/capturas-v3/README.md) |
 | Entorno donde se validó | Pruebas aislado: frontend 8081, API 8001, base `classkids_test` (5433) |
 | Base de datos real | No se modificó; migración 001 **no ejecutada**. Se detectaron registros creados desde la aplicación real el 20/11 por la noche (ver el informe de cierre); se requiere un respaldo nuevo antes de migrar |

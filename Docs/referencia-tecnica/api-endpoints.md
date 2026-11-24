@@ -109,12 +109,15 @@ La API REST de ClassKids está implementada en `backend/main.py` con FastAPI y e
 | `GET /usuarios` con token de docente | 403 «Permisos insuficientes» |
 | `POST /auth/login` con contraseña incorrecta o correo inexistente | 401 con el mismo mensaje genérico |
 | `PUT /alertas/999999/estado` con estado «xyz» | 422 «Estado de alerta inválido» |
-| `POST /calificaciones` con nota 7 | 500 (la restricción CHECK de la base de datos rechaza el valor) |
-| `POST /estudiantes` con documento duplicado | 500 (la restricción UNIQUE rechaza el valor) |
+| `POST /calificaciones` con nota 7 | 20/11: 500. **24/11: 422** con la causa (`nota` debe estar entre 0 y 5; H-05) |
+| `POST /estudiantes` con documento duplicado | 20/11: 500. **24/11: 409** «Ya existe un registro con ese valor» (H-05) |
+| `POST /calificaciones` con un estudiante inexistente (administrador) | **24/11: 422** «El registro relacionado no existe» (H-05) |
+| Token de una cuenta desactivada o con el rol cambiado | **24/11: 401** «Tu cuenta ya no está activa» / «Tu rol cambió» (H-09) |
+| Respuestas 401 y 403 del middleware | **24/11:** incluyen las cabeceras CORS (H-43) |
 | `DELETE /estudiantes/999999` (inexistente) | 200 «Estudiante eliminado» |
 | `POST /calificaciones` con `nota: "abc"` | 422 con `detail` en forma de lista (la interfaz lo muestra como «nota: Input should be a valid number» desde la corrección de H-24) |
 
-Los resultados 500 y el 200 sobre un registro inexistente se documentan como hallazgos.
+El 200 sobre un registro inexistente sigue documentado como hallazgo (H-11). Los errores 500 por datos inválidos se corrigieron con H-05.
 
 ### Permisos verificados el 24/11/2026 (H-08 y H-18)
 

@@ -55,3 +55,26 @@ Estas pruebas validaban otras reglas, pero fijaban el alcance anterior (el docen
 ## Módulos verificados de extremo a extremo
 
 Inicio y cierre de sesión, Usuarios (invitación, roles, desactivación con confirmación, autoprotección), Dashboard del administrador y del docente, Grupos, Estudiantes (filtros, paginación, edición), Materias (catálogo y asignaciones), Actividades (fechas, entregas, vencidas), Calificaciones (guardado, equivalencia, entregas), Análisis (filtro por materia), Alertas (resumen, resueltas, detalle), landing (video con música y controles) y modo claro y oscuro.
+
+## Ejecución del cierre definitivo (24/11/2026, tarde)
+
+Después de corregir H-01, H-05, H-09, H-17 y H-43 (CORS en las respuestas 401 y 403):
+
+| Suite | Resultado |
+|---|---|
+| pytest | **72 de 72** (11 nuevas en `test_hallazgos_cierre.py`; con el backend anterior fallan 7 de esas 11) |
+| Vitest | **55 de 55** (6 nuevas: 3 de H-01 y 3 de H-09) |
+| Playwright | **43 de 43** (nueva `sesion.spec.ts`: la sesión se cierra con el motivo al cambiar el rol, 4 de 4 repeticiones) |
+| Verificación de permisos | 18 de 18 |
+| TypeScript, ESLint y compilación | Sin errores (ESLint: 9 avisos heredados) |
+
+**Total: 170 pruebas automatizadas, 170 aprobadas, 0 fallidas, 0 omitidas.** Ninguna prueba está deshabilitada (`skip`).
+
+**Fallos encontrados durante el cierre, y su corrección:**
+- Evaluar la alerta al editar hizo fallar `test_editar_una_nota_no_evalua_la_regla`, que documenta RN-10 (aprobada). Se revirtió ese cambio y H-04 quedó pendiente de decisión funcional.
+- La primera versión de `sesion.spec.ts` no veía el 401 porque el middleware respondía sin cabeceras CORS (H-43). Se corrigió el orden de los middlewares.
+- La segunda falló una vez por una carrera entre peticiones simultáneas que sobrescribían el motivo. Ahora se conserva el primer motivo, con una prueba unitaria nueva.
+- En ningún caso se cambió una expectativa para ocultar un defecto.
+
+**Bases de datos:** la base de pruebas quedó idéntica al respaldo tras cada ejecución con escritura (salvo las horas de inicio de sesión). Cuando una prueba interrumpida dejó un rol cambiado, se restauró y se verificó la base tabla por tabla. La base real solo se consultó en lectura (11/201/216/9).
+

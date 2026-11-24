@@ -27,11 +27,12 @@ Comprobar que ClassKids cumple sus reglas académicas y funcionales, y que las c
 
 | Nivel | Herramienta | Qué comprueba | Ubicación | Casos |
 |---|---|---|---|---:|
-| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 49 |
+| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 55 |
 | Unitarias (backend) | pytest | Funciones y esquemas puros sin base de datos: estados de alerta, hash PBKDF2, JWT, esquemas Pydantic, caché de columnas | `backend/tests/test_unitarias.py` | 11 funciones (18 ejecuciones con parámetros) |
 | Integración (API + PostgreSQL) | pytest + TestClient | Endpoints contra `classkids_test` dentro de una transacción que se deshace | `backend/tests/test_alertas.py`, `test_calificaciones.py`, `test_grupos.py`, `test_entorno.py` | 24 |
 | Seguridad de la API (permisos) | pytest + TestClient | H-18 y H-08 con casos permitidos y denegados, llamando a la API directamente con tres sesiones | `backend/tests/test_permisos.py` | 19 |
-| Interfaz de extremo a extremo | Playwright (Chromium) | Flujos completos en el navegador: frontend 8081 → API 8001 → `classkids_test` (incluye modo claro y oscuro, landing, confirmaciones, celular y permisos por rol) | `e2e/tests/` | 42 |
+| Hallazgos del cierre | pytest + TestClient | H-05 (validación y errores), H-09 (cuenta revalidada), H-17 (`.env`) y CORS en 401/403 | `backend/tests/test_hallazgos_cierre.py` | 11 |
+| Interfaz de extremo a extremo | Playwright (Chromium) | Flujos completos en el navegador: frontend 8081 → API 8001 → `classkids_test` (incluye modo claro y oscuro, landing, confirmaciones, celular y permisos por rol) | `e2e/tests/` | 43 |
 | Estáticas | TypeScript (`tsc`), ESLint, `vite build` | Tipos, estilo y compilación de producción | `frontend/` | — |
 | Accesibilidad | Script de contraste WCAG | 32 pares de color por tema (claro y oscuro) de `index.css` | `Docs/evidencias/scripts/contraste-wcag.py` | 64 |
 | Visuales | Script de capturas | Todas las vistas de la plataforma por módulo, en claro y oscuro, de escritorio y celular, con verificación del tema y del desborde | `Docs/evidencias/scripts/capturas-plataforma.cjs` | 142 |
@@ -46,7 +47,7 @@ Comprobar que ClassKids cumple sus reglas académicas y funcionales, y que las c
 | `backend/tests/test_permisos.py` | Seguridad: H-18 y H-08 | Sí, dentro de una transacción | Igual que la fila anterior |
 | `frontend/src/test/*.test.ts` | Unitarias del frontend | No | Sin red |
 | `e2e/tests/entorno.spec.ts`, `landing.spec.ts`, `renovacion.spec.ts`, `permisos.spec.ts` | Interfaz, solo lectura | No | `guardedPage` detiene la prueba si hay peticiones a `:8000` |
-| `e2e/tests/calificaciones.spec.ts`, `estudiantes.spec.ts`, `integracion.spec.ts`, `materias.spec.ts` | Interfaz con escritura | Sí, en `classkids_test` | Cada prueba restaura lo que cambia; antes de la ejecución se respalda la base de pruebas y después se compara tabla por tabla |
+| `e2e/tests/calificaciones.spec.ts`, `estudiantes.spec.ts`, `integracion.spec.ts`, `materias.spec.ts`, `sesion.spec.ts` | Interfaz con escritura | Sí, en `classkids_test` | Cada prueba restaura lo que cambia; antes de la ejecución se respalda la base de pruebas y después se compara tabla por tabla |
 
 Las pruebas que dependían del alcance anterior del docente (por ejemplo, ver los 200 estudiantes o borrar materias) se ajustaron el 24/11/2026: las reglas globales se prueban con el administrador y las del docente con su alcance real (H-08).
 

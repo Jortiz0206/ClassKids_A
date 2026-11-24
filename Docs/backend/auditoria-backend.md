@@ -46,7 +46,7 @@ Revisión del 20/11/2026 sobre `backend/main.py` (810 líneas) y `backend/databa
 
 La plantilla documentada está en `backend/.env.example`. `.env` está excluido de Git (`.gitignore`).
 
-**Corrección propuesta para H-17** (una línea, requiere autorización): mover `load_dotenv()` antes de `from database import get_db`, o llamarla dentro de `database.py`.
+**H-17 corregido el 24/11/2026.** Corrección aplicada: mover `load_dotenv()` antes de `from database import get_db`, o llamarla dentro de `database.py`.
 
 ## 5. Conexión a PostgreSQL
 

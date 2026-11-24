@@ -21,15 +21,15 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 
 | ID | Defecto | Módulo | Severidad | Prioridad | Estado | Evidencia |
 |---|---|---|---|---|---|---|
-| H-01 | Umbral de aprobación 3.5 en la interfaz y alerta por < 3.0 en el backend | Calificaciones / Alertas | Alta | Crítica | Pendiente de autorización (regla académica) | Verificado en código y datos |
+| H-01 | La interfaz clasificaba con el promedio redondeado y no coincidía con la alerta del backend en el límite de 3.0 | Calificaciones / Alertas | Alta | Crítica | **Corregido** (24/11): se clasifica con el promedio exacto; los dos umbrales aprobados (3.5 aprobación, 3.0 alerta) no cambian | Vitest `notas.test.ts` (H-01) |
 | H-02 | Guardar calificaciones registraba 0 a estudiantes sin nota | Calificaciones | Crítica | Crítica | **Corregido** | Playwright `calificaciones.spec.ts` (3 pruebas) |
 | H-03 | Pérdida de precisión al convertir % a un decimal | Calificaciones | Media | Alta | Abierto | `lib/notas.ts` documenta la conversión; Vitest fija el comportamiento actual |
-| H-04 | La regla de alerta no se evalúa al editar ni por materia | Alertas (backend) | Alta | Alta | Pendiente de autorización (backend) | Código |
-| H-05 | Entradas inválidas responden 500 | Backend | Alta | Alta | Pendiente de autorización (backend) | Verificado |
+| H-04 | La regla de alerta no se evalúa al editar ni por materia | Alertas (backend) | Alta | Alta | **Pendiente de decisión funcional**: evaluar al editar contradice RN-10 (aprobada) y evaluar por materia contradice RN-09; la parte de duplicados se corrigió con H-32 | Código, RN-09, RN-10 |
+| H-05 | Entradas inválidas respondían 500 | Backend | Alta | Alta | **Corregido** (24/11): validación de rangos y longitudes en los esquemas, errores de integridad con 409/422 y manejador global | pytest `test_hallazgos_cierre.py` (5 casos H-05) |
 | H-06 | Calificaciones sin actividad o repetidas | Datos | Media | Alta | Abierto | Verificado con `Docs/evidencias/scripts/verificacion-bd.sql` |
 | H-07 | Mes equivocado en la tendencia | Análisis | Media | Media | Abierto | Verificado |
 | H-08 | El docente tenía acceso total a datos y funciones administrativas en la API | Seguridad (backend) | Crítica | Crítica | **Corregido** (24/11) | `backend/tests/test_permisos.py` (15 casos H-08); `e2e/tests/permisos.spec.ts`; `evidencias/permisos/verificacion-api-permisos.md` |
-| H-09 | Token vigente tras cerrar sesión, desactivar o cambiar rol | Seguridad | Alta | Alta | Abierto | Código |
+| H-09 | El token seguía sirviendo tras desactivar la cuenta o cambiar el rol | Seguridad | Alta | Alta | **Corregido** (24/11) para desactivación y cambio de rol (la cuenta se revalida en cada petición y la interfaz cierra la sesión). Cerrar sesión sigue sin revocar el token en el servidor: requiere guardar tokens o versiones de sesión (cambio de esquema, RF-02 parcial) | pytest (3 casos H-09), Vitest `client.test.ts`, Playwright `sesion.spec.ts` |
 | H-10 | La interfaz no detecta una sesión vencida | Frontend | Media | Media | Abierto | Código |
 | H-11 | Eliminar inexistente responde «eliminado»; borrar estudiante borra historial | Backend | Alta | Alta | Abierto | Verificado |
 | H-12 | Operaciones de la API sin interfaz | Frontend | Media | Alta | Abierto | Verificado |
@@ -37,7 +37,7 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 | H-14 | Indicadores del Dashboard (conteos, «Activo» fijo, lista, nombre oculto) | Dashboard | Media | Media | **Corregido parcialmente** | Playwright «H-25…», «Panel de alertas…», «Ver todos…»; capturas `02_dashboard_escritorio.png` |
 | H-15 | El detalle de la alerta no mostraba el mensaje ni el grupo | Alertas | Baja | Baja | **Corregido** | Playwright «Alertas: el detalle muestra el grupo y el mensaje…» |
 | H-16 | Actividades: 107 peticiones y 5,2 s; sin paginación en servidor | Rendimiento | Media | Media | Abierto | Medición del 20/11/2026 |
-| H-17 | `DATABASE_URL` del archivo `.env` se ignora | Backend | Media | Media | Pendiente de autorización (backend) | Código (`database.py` no carga `.env`) |
+| H-17 | `DATABASE_URL` del archivo `.env` se ignoraba | Backend | Media | Media | **Corregido** (24/11): `database.py` carga `.env` antes de leer la variable | pytest `test_hallazgos_cierre.py` (2 casos H-17) |
 | H-18 | El administrador podía quitarse el rol o desactivarse | Usuarios | Alta | Alta | **Corregido** (24/11, interfaz y API) | Playwright «El administrador no puede cambiarse el rol ni desactivarse… (H-18)»; `test_permisos.py` (4 casos H-18) |
 | H-19 | El promedio de la actividad cuenta como 0 a quien no tiene nota | Calificaciones | Media | Media | Abierto (se muestra la aclaración en pantalla) | Vitest `promedioActividad` fija el comportamiento actual |
 | H-20 | Tipado débil (`any`) | Calidad | Media | Media | Corregido parcialmente | Suite pasa de 54 a 102 pruebas; 28 avisos `no-explicit-any` siguen |
@@ -63,12 +63,13 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 | H-40 | Usuarios en celular: la tabla obligaba a desplazarse de lado y el rol y las acciones no se veían | Usuarios | Baja | Media | **Corregido** | Playwright «Usuarios en celular (H-40)»; captura 29 (celular) |
 | H-41 | Tras reiniciar el equipo, el contenedor de pruebas quedaba detenido (`restart: no`) y pytest fallaba al cargar `conftest.py` con una traza de SQLAlchemy, sin ejecutar ninguna prueba | Pruebas (fixtures) | Media | Alta | **Corregido** (24/11) | `conftest.py` comprueba la base en `pytest_sessionstart` y sale con código 3 y un mensaje claro; `docker-compose.test.yml` con `restart: unless-stopped` |
 | H-42 | El backend respondía 500 en la primera petición después de reiniciar PostgreSQL (conexión muerta en el pool de SQLAlchemy) | Backend | Media | Media | **Corregido** (24/11) | `create_engine(..., pool_pre_ping=True)` en `database.py`; comprobado reiniciando la base de pruebas con el backend encendido: el primer inicio de sesión responde 200 |
+| H-43 | Las respuestas 401 y 403 del middleware de autenticación salían sin cabeceras CORS: el navegador las bloqueaba y la interfaz no veía el motivo | Backend | Media | Alta | **Corregido** (24/11): CORS es el middleware más externo | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
 
 **Conteo:**
-- Corregidos: 21 (H-08, H-18, H-41 y H-42 el 24/11/2026).
+- Corregidos: 26 (el 24/11/2026: H-01, H-05, H-08, H-09, H-17, H-18, H-41, H-42 y H-43).
 - Corregidos parcialmente o solo en pruebas: 6.
-- Abiertos: 11.
-- Pendientes de autorización: 4 (H-01, H-04, H-05, H-17).
+- Abiertos: 10.
+- Pendiente de decisión funcional: 1 (H-04).
 
 ## 2. Detalle de los defectos de la renovación visual
 

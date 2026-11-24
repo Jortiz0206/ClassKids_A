@@ -10,7 +10,7 @@ La auditoría se hizo el 20/11/2026 combinando tres fuentes: lectura del código
 
 | Módulo | Resultado en la auditoría | Resultado actual | Evidencia |
 |---|---|---|---|
-| Manejo de errores | Falla (H-24) | OK para los errores 422; los errores 500 siguen pendientes (H-05) | `client.test.ts` |
+| Manejo de errores | Falla (H-24) | OK: 422 y 409 con mensajes claros (H-05 corregido el 24/11/2026) | `client.test.ts` |
 | Métricas y Dashboard | Observaciones (H-25) | OK: mismos criterios de conteo; el panel de alertas lista solo las activas | `conteos.test.ts`, `integracion.spec.ts` |
 | Datos globales | Falla (H-26) | OK | `integracion.spec.ts` |
 | Grupos | Observaciones (H-27) | OK en el nombre del campo; editar y eliminar siguen sin pantalla (H-12) | `test_grupos.py` |
@@ -19,7 +19,7 @@ La auditoría se hizo el 20/11/2026 combinando tres fuentes: lectura del código
 | Calificaciones: guardado | Falla (H-02, H-31, H-33) | OK en la base de pruebas. En la base real, la conservación de observaciones y periodos funciona; «Entregado» persiste solo tras la migración 001 | `test_calificaciones.py`, `calificaciones.spec.ts` |
 | Alertas | OK con H-32 | Regla sin duplicados (D3); los datos demo no se modificaron | `test_alertas.py` |
 | Usuarios (autoprotección) | Falla (H-18) | Sin cambios: pendiente | — |
-| Sesión y autorización | Observaciones (H-08, H-09, H-10) | Sin cambios: pendiente | — |
+| Sesión y autorización | Observaciones (H-08, H-09, H-10) | H-08 y H-09 corregidos el 24/11/2026 (permisos por asignación y cuenta revalidada); H-10 pendiente | `test_permisos.py`, `test_hallazgos_cierre.py` |
 
 ## Base de datos verificada (la misma que muestra DBeaver)
 

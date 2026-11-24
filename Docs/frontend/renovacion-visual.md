@@ -131,6 +131,6 @@ Los componentes de shadcn/ui (botones, campos, selectores, tablas, diálogos y p
 |---|---|
 | Elegir el periodo al calificar (HU-12) | Requiere decisión funcional; el guardado usa el periodo 1 por defecto (RN-08) |
 | Crear o editar observaciones desde Calificaciones | Las observaciones se gestionan en el detalle del estudiante; moverlas cambiaría el flujo |
-| Unificar la diferencia de umbrales 3.5 (interfaz) / 3.0 (alerta) | Hallazgo H-01; es una regla académica y requiere autorización |
+| Diferencia de umbrales 3.5 / 3.0 | H-01 corregido el 24/11/2026 sin cambiar los umbrales: la interfaz clasifica con el promedio exacto |
 | Dividir el paquete JavaScript (aviso de bloque > 500 kB en `vite build`) | Optimización; no afecta el funcionamiento |
 | Tipado estricto (28 avisos `no-explicit-any` de ESLint en código existente) | Deuda técnica H-20 |
