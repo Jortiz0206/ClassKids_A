@@ -51,7 +51,7 @@ Relaciona cada requisito funcional con su caso de uso, historia de usuario, pant
 | RNF-14 Control de acceso | Middleware `require_authentication`, `sesion_actual`, `solo_admin`; `test_permisos.py`; P-SEG-01 a P-SEG-07 | Cumplido |
 | RNF-18 Confidencialidad por asignación | Filtros por asignación en `main.py`; `test_permisos.py` (19), `permisos.spec.ts` (2); `evidencias/permisos/verificacion-api-permisos.md` | Cumplido |
 | RNF-15 CORS | `CORSMiddleware` con `CORS_ORIGINS` | Cumplido |
-| RNF-16 Pruebas automatizadas | 170 pruebas el 24/11/2026: 72 pytest, 55 Vitest y 43 Playwright, en entorno aislado | Parcial |
+| RNF-16 Pruebas automatizadas | 231 pruebas el 24/11/2026: 128 pytest, 59 Vitest y 44 Playwright, en entorno aislado | Parcial |
 | RNF-17 Tokens de recuperación | Tabla `password_reset_tokens` | Cumplido |
 
 ## Trazabilidad de los permisos (24/11/2026)
@@ -77,4 +77,5 @@ Cadena completa de cada cambio de seguridad: requisito → regla de negocio → 
 | H-09 | RNF-14, RN-27; RF-18, RF-19 | `_estado_cuenta` en el middleware; `cerrarSesionLocal` en `api/client.ts`; motivo en `Auth.tsx` | pytest (3), Vitest `client.test.ts` (2), Playwright `sesion.spec.ts` | Reporte del 24/11 |
 | H-17 | Manual técnico (configuración) | `load_dotenv` en `database.py` | pytest (2 casos) | Reporte del 24/11 |
 | H-43 | RNF-15 | CORS como middleware más externo | pytest (1 caso) | Reporte del 24/11 |
+| H-44 | RN-01, RN-02, RNF-11; RF-07 | `CalificacionSchema.nota` y `nota_con_un_decimal` en `main.py`; `aEscala5` en `lib/notas.ts` | pytest `test_escala_notas.py` (56), Vitest `notas.test.ts` (4), Playwright `calificaciones.spec.ts` (1) | `Docs/evidencias/escala-notas/verificacion-escala.md` |
 | H-04 | RN-09, RN-10 | Sin cambios (decisión pendiente) | `test_alertas.py::test_editar_una_nota_no_evalua_la_regla` documenta RN-10 | `Docs/hallazgos.md` |

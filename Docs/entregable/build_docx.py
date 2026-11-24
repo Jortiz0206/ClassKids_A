@@ -71,6 +71,7 @@ CHAPTERS = [
     ("repositorio-git.md", "anexo"),
     ("iot/propuesta-iot.md", "anexo"),
     ("evidencias/permisos/verificacion-api-permisos.md", "anexo"),
+    ("evidencias/escala-notas/verificacion-escala.md", "anexo"),
 ]
 
 VERSIONS = [

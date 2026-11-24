@@ -146,7 +146,7 @@ Convenciones: **PK** clave primaria, **FK** clave foránea, **UQ** valor único,
 | estudiante_id | INTEGER | NN, FK → estudiantes.id, ON DELETE CASCADE | Estudiante calificado. |
 | materia_id | INTEGER | NN, FK → materias.id | Materia. |
 | actividad_id | INTEGER | FK → actividades.id, ON DELETE SET NULL | Actividad evaluada (opcional). |
-| nota | NUMERIC(3,1) | NN, CHECK 0 ≤ nota ≤ 5 | Nota en la escala académica oficial 0.0–5.0, con un decimal. La interfaz la muestra como porcentaje (nota × 20). |
+| nota | NUMERIC(3,1) | NN, CHECK 0 ≤ nota ≤ 5 | Nota en la escala académica oficial 0.0–5.0, con un decimal. La interfaz la muestra como porcentaje (nota × 20). La API rechaza más de un decimal antes de llegar aquí, porque `NUMERIC(3,1)` redondearía en silencio (H-44). |
 | periodo | INTEGER | NN, por defecto 1 | Periodo académico. |
 | observacion | TEXT | | Comentario; la interfaz guarda «Actividad entregada». |
 | fecha_registro | TIMESTAMP | NN, por defecto fecha actual | Fecha de registro. |

@@ -56,6 +56,44 @@ describe("conversión entre escalas", () => {
   });
 });
 
+describe("escala oficial 0.0 – 5.0 y sus equivalencias", () => {
+  it("equivalencias: nota × 20 = porcentaje que se digita y se muestra", () => {
+    for (const [nota, porcentaje] of [[2.5, 50], [3.0, 60], [4.0, 80], [5.0, 100]]) {
+      expect(aPorcentaje(nota)).toBe(porcentaje);
+      expect(aEscala5(porcentaje)).toBe(nota);
+      expect(nota * 4).toBe(porcentaje / 5); // sobre 20: 2.5 = 10, 3.0 = 12, 4.0 = 16, 5.0 = 20
+    }
+  });
+
+  it("límites: 0, 2, 98 y 100 % se guardan como 0.0, 0.1, 4.9 y 5.0", () => {
+    expect(aEscala5(0)).toBe(0);
+    expect(aEscala5(2)).toBe(0.1);
+    expect(aEscala5(98)).toBe(4.9);
+    expect(aEscala5(100)).toBe(5);
+  });
+
+  it("lo digitado fuera de 0–100 se limita, así que nunca se envía una nota menor que 0 ni mayor que 5", () => {
+    expect(aEscala5(normalizarEntradaNota("-2") as number)).toBe(0);
+    expect(aEscala5(normalizarEntradaNota("102") as number)).toBe(5);
+    expect(aEscala5(normalizarEntradaNota("80") as number)).toBe(4); // 80 es un porcentaje: se guarda 4.0, nunca 80
+    for (let p = 0; p <= 100; p += 0.5) {
+      const nota = aEscala5(p);
+      expect(nota).toBeGreaterThanOrEqual(0);
+      expect(nota).toBeLessThanOrEqual(5);
+      expect(Math.round(nota * 10)).toBeCloseTo(nota * 10, 9); // un solo decimal
+    }
+  });
+
+  it("redondea la mitad hacia arriba de forma uniforme, como NUMERIC(3,1)", () => {
+    // Con toFixed, 87 % daba 4.3 y 91 % daba 4.5 por el redondeo binario.
+    expect(aEscala5(85)).toBe(4.3);
+    expect(aEscala5(87)).toBe(4.4);
+    expect(aEscala5(91)).toBe(4.6);
+    expect(aEscala5(97)).toBe(4.9);
+    expect(aEscala5(61)).toBe(3.1);
+  });
+});
+
 describe("normalizarEntradaNota", () => {
   it("vacío o texto no numérico → sin nota; los valores fuera de rango se limitan a 0–100", () => {
     expect(normalizarEntradaNota("")).toBeNull();

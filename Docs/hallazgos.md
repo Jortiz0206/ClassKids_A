@@ -53,6 +53,7 @@ Este capítulo reúne los defectos y las funcionalidades incompletas encontrados
 | H-41 | Tras reiniciar el equipo, la base de pruebas quedaba detenida y pytest fallaba al cargar los fixtures. | Media | Corregido (24/11/2026) |
 | H-42 | El backend respondía 500 en la primera petición tras reiniciar PostgreSQL. | Media | Corregido (24/11/2026) |
 | H-43 | Las respuestas 401 y 403 del middleware salían sin cabeceras CORS. | Media | Corregido (24/11/2026) |
+| H-44 | La API aceptaba notas con más de un decimal (PostgreSQL las redondeaba en silencio: 2.96 → 3.0), además de texto («4.0») y booleanos. La interfaz redondeaba los porcentajes impares de forma desigual (87 % → 4.3; 85 % → 4.3). | Media | Corregido (24/11/2026) |
 
 Los hallazgos H-24 a H-33 provienen de la auditoría de integración entre capas (ver el capítulo correspondiente).
 
@@ -86,6 +87,7 @@ Las correcciones se probaron en el entorno aislado `classkids_test` (ver el cap�
 | H-41 | **Corregido** | `conftest.py` comprueba la base en `pytest_sessionstart` y termina con un mensaje claro si no responde; el contenedor de pruebas se reinicia con Docker. | pytest con la base apagada: salida 3 con instrucciones; con la base encendida: 61 de 61 |
 | H-42 | **Corregido** | `database.py` crea el motor con `pool_pre_ping=True`: tras reiniciar PostgreSQL la primera petición ya no responde 500. | Reinicio de la base de pruebas con el backend encendido: inicio de sesión 200 |
 | H-43 | **Corregido** | CORS se registra como el middleware más externo: las respuestas 401 y 403 llevan sus cabeceras y la interfaz puede mostrar el motivo. | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
+| H-44 | **Corregido** | `CalificacionSchema.nota` es estricto (solo números) y `nota_con_un_decimal` rechaza más de un decimal con 422. `aEscala5` redondea con `round(porcentaje ÷ 2) ÷ 10`. Escala, fórmulas y umbrales sin cambios. | pytest `test_escala_notas.py` (56; con el backend anterior fallan 12), Vitest (4), Playwright «escala 0.0 – 5.0…» |
 
 **Actualización del 24/11/2026:** H-01, H-05, H-09 y H-17 se corrigieron; H-04 queda pendiente de decisión funcional. **Situación anterior**: **H-01** (umbrales distintos: 3.5 en la interfaz y 3.0 en la alerta), **H-04** (la regla de alerta no se evalúa al editar ni por materia) y **H-19** (el promedio de una actividad cuenta como 0 a los estudiantes sin nota). También H-03 y H-05 a H-23. H-14 queda parcialmente resuelto (ver su fila). El registro de seguimiento con severidad y estado está en [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md).
 

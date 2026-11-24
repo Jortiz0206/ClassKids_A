@@ -51,9 +51,14 @@ export function estadoNota(porcentaje: number | null | undefined): EstadoNota {
   return "sin";
 }
 
-/** Convierte el porcentaje digitado a la escala oficial con un decimal (÷ 20). */
+/**
+ * Convierte el porcentaje digitado a la escala oficial con un decimal (÷ 20), redondeando
+ * la mitad hacia arriba, igual que PostgreSQL con NUMERIC(3,1): 87 % → 4.35 → 4.4.
+ * Se calcula como round(porcentaje ÷ 2) ÷ 10 porque `toFixed` trabaja sobre el binario y
+ * redondeaba distinto según el valor (87 % daba 4.3 y 85 % también 4.3).
+ */
 export function aEscala5(porcentaje: number): number {
-  return Number((porcentaje / 20).toFixed(1));
+  return Math.round(porcentaje / 2) / 10;
 }
 
 /** Convierte una nota de la escala oficial al porcentaje que muestra la interfaz (× 20). */

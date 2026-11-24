@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import DataError, IntegrityError
-from pydantic import BaseModel, Field, AliasChoices
+from pydantic import BaseModel, Field, AliasChoices, field_validator
 from datetime import date
 from typing import Literal, NamedTuple, Optional
 from secrets import token_urlsafe
@@ -103,12 +103,23 @@ class CalificacionSchema(BaseModel):
     estudiante_id: int = Field(gt=0)
     materia_id: int = Field(gt=0)
     actividad_id: Optional[int] = Field(default=None, gt=0)
-    nota: float = Field(ge=0, le=5)  # escala oficial 0.0 – 5.0 (sin cambios)
+    # Escala oficial 0.0 – 5.0 con un decimal (sin cambios). strict: solo números (no texto ni
+    # booleanos). Fuera de 0 – 5 (por ejemplo 80 o 100, que son porcentajes) responde 422.
+    nota: float = Field(ge=0, le=5, strict=True)
     periodo: Optional[int] = Field(default=1, ge=1)
     observacion: Optional[str] = None
     # Estado «Entregado» (H-31). Se guarda en calificaciones.entregado solo si la
     # migración 001 está aplicada en la base; si no, se acepta y se ignora.
     entregado: Optional[bool] = None
+
+    @field_validator("nota")
+    @classmethod
+    def nota_con_un_decimal(cls, valor: float) -> float:
+        # La columna es NUMERIC(3,1): PostgreSQL redondearía en silencio 2.96 a 3.0 y cambiaría
+        # el promedio que evalúa la alerta. Se rechaza en lugar de redondear.
+        if abs(valor * 10 - round(valor * 10)) > 1e-9:
+            raise ValueError("La nota usa la escala 0.0 a 5.0 con un solo decimal")
+        return round(valor, 1)
 
 class ObservacionSchema(BaseModel):
     estudiante_id: int = Field(gt=0)

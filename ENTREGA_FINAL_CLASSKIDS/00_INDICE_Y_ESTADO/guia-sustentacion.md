@@ -60,7 +60,7 @@ Para cada criterio:
   - JWT de 8 horas y contraseñas PBKDF2.
   - Códigos 400, 401, 403, 404, 409, 422 y 500.
   - Variables en `.env.example`.
-- **Tenemos:** arranque limpio verificado, 72 pruebas de backend (19 de permisos y 11 de los hallazgos del cierre), la auditoría completa y los permisos por rol y por asignación (H-08) y la autoprotección del administrador (H-18) corregidos el 24/11/2026.
+- **Tenemos:** arranque limpio verificado, 128 pruebas de backend (19 de permisos, 11 de los hallazgos del cierre y 56 de la escala 0.0–5.0), la auditoría completa y los permisos por rol y por asignación (H-08) y la autoprotección del administrador (H-18) corregidos el 24/11/2026.
 - **Falta (requiere autorización):**
   - H-04: decidir si la alerta se evalúa al editar y por materia (contradice RN-09 y RN-10).
 - **Dónde:** `backend/main.py`, `Docs/backend/auditoria-backend.md`.

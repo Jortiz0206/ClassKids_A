@@ -64,9 +64,10 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 | H-41 | Tras reiniciar el equipo, el contenedor de pruebas quedaba detenido (`restart: no`) y pytest fallaba al cargar `conftest.py` con una traza de SQLAlchemy, sin ejecutar ninguna prueba | Pruebas (fixtures) | Media | Alta | **Corregido** (24/11) | `conftest.py` comprueba la base en `pytest_sessionstart` y sale con código 3 y un mensaje claro; `docker-compose.test.yml` con `restart: unless-stopped` |
 | H-42 | El backend respondía 500 en la primera petición después de reiniciar PostgreSQL (conexión muerta en el pool de SQLAlchemy) | Backend | Media | Media | **Corregido** (24/11) | `create_engine(..., pool_pre_ping=True)` en `database.py`; comprobado reiniciando la base de pruebas con el backend encendido: el primer inicio de sesión responde 200 |
 | H-43 | Las respuestas 401 y 403 del middleware de autenticación salían sin cabeceras CORS: el navegador las bloqueaba y la interfaz no veía el motivo | Backend | Media | Alta | **Corregido** (24/11): CORS es el middleware más externo | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
+| H-44 | La API aceptaba notas con más de un decimal, que PostgreSQL redondeaba en silencio (2.96 → 3.0), y la interfaz redondeaba los porcentajes impares de forma desigual (87 % → 4.3) | Backend y frontend | Media | Alta | **Corregido** (24/11): 422 si la nota no es un número de 0 a 5 con un decimal; redondeo uniforme en `aEscala5` | pytest `test_escala_notas.py`, Vitest `notas.test.ts`, Playwright `calificaciones.spec.ts` |
 
 **Conteo:**
-- Corregidos: 26 (el 24/11/2026: H-01, H-05, H-08, H-09, H-17, H-18, H-41, H-42 y H-43).
+- Corregidos: 27 (el 24/11/2026: H-01, H-05, H-08, H-09, H-17, H-18, H-41, H-42, H-43 y H-44).
 - Corregidos parcialmente o solo en pruebas: 6.
 - Abiertos: 10.
 - Pendiente de decisión funcional: 1 (H-04).

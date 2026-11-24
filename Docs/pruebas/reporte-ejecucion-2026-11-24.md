@@ -70,6 +70,19 @@ Después de corregir H-01, H-05, H-09, H-17 y H-43 (CORS en las respuestas 401 y
 
 **Total: 170 pruebas automatizadas, 170 aprobadas, 0 fallidas, 0 omitidas.** Ninguna prueba está deshabilitada (`skip`).
 
+### Verificación de la escala de calificaciones (H-44)
+
+Se revisó la escala 0.0–5.0 en todas las capas. El detalle está en [`../evidencias/escala-notas/verificacion-escala.md`](../evidencias/escala-notas/verificacion-escala.md).
+
+| Suite | Resultado |
+|---|---|
+| pytest | **128 de 128** (56 nuevas en `test_escala_notas.py`; con el backend anterior fallan 12: más de un decimal, `"4.0"` y `true`) |
+| Vitest | **59 de 59** (4 nuevas de escala y equivalencias) |
+| Playwright | **44 de 44** (nueva prueba de escala en `calificaciones.spec.ts`) |
+| TypeScript y ESLint | Sin errores (ESLint: 9 avisos heredados) |
+
+**Total: 231 pruebas automatizadas, 231 aprobadas, 0 fallidas, 0 omitidas.**
+
 **Fallos encontrados durante el cierre, y su corrección:**
 - Evaluar la alerta al editar hizo fallar `test_editar_una_nota_no_evalua_la_regla`, que documenta RN-10 (aprobada). Se revirtió ese cambio y H-04 quedó pendiente de decisión funcional.
 - La primera versión de `sesion.spec.ts` no veía el 401 porque el middleware respondía sin cabeceras CORS (H-43). Se corrigió el orden de los middlewares.

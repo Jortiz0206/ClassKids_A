@@ -77,7 +77,7 @@ La API REST de ClassKids está implementada en `backend/main.py` con FastAPI y e
 | Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
 |---|---|---|---|---|
 | GET | `/calificaciones?actividad_id=` | Asignación | Lista las calificaciones con nombre del estudiante y de la materia. | Sí |
-| POST | `/calificaciones` | Asignación | Recibe `{estudiante_id, materia_id, actividad_id?, nota, periodo?, observacion?, entregado?}` (periodo 1 por defecto). Guarda `entregado` si la base tiene la columna (migración 001). Evalúa la regla de alerta automática sin crear duplicados (D3). Nota fuera de 0–5 o estudiante inexistente: error 500. | Sí (`Calificaciones.tsx`) |
+| POST | `/calificaciones` | Asignación | Recibe `{estudiante_id, materia_id, actividad_id?, nota, periodo?, observacion?, entregado?}` (periodo 1 por defecto). Guarda `entregado` si la base tiene la columna (migración 001). Evalúa la regla de alerta automática sin crear duplicados (D3). La nota debe ser un número de 0.0 a 5.0 con un decimal; si no, 422 sin guardar (H-05, H-44). Estudiante inexistente: 422. | Sí (`Calificaciones.tsx`) |
 | PUT | `/calificaciones/{id}` | Asignación | **Actualiza solo los campos enviados**: si no se envían `periodo` u `observacion`, se conservan (H-31, H-33). `entregado` se guarda si la columna existe. No evalúa alertas. 404 si no existe. | Sí |
 | DELETE | `/calificaciones/{id}` | Asignación | Elimina una calificación. | No |
 
@@ -110,6 +110,7 @@ La API REST de ClassKids está implementada en `backend/main.py` con FastAPI y e
 | `POST /auth/login` con contraseña incorrecta o correo inexistente | 401 con el mismo mensaje genérico |
 | `PUT /alertas/999999/estado` con estado «xyz» | 422 «Estado de alerta inválido» |
 | `POST /calificaciones` con nota 7 | 20/11: 500. **24/11: 422** con la causa (`nota` debe estar entre 0 y 5; H-05) |
+| `POST` o `PUT /calificaciones` con nota 80, 100, 5.1, -0.1, 2.96, `"4.0"` o `true` | **24/11: 422** sin guardar (H-44). Se aceptan 0.0, 0.1, 2.5, 3.0, 4.0, 4.9 y 5.0 |
 | `POST /estudiantes` con documento duplicado | 20/11: 500. **24/11: 409** «Ya existe un registro con ese valor» (H-05) |
 | `POST /calificaciones` con un estudiante inexistente (administrador) | **24/11: 422** «El registro relacionado no existe» (H-05) |
 | Token de una cuenta desactivada o con el rol cambiado | **24/11: 401** «Tu cuenta ya no está activa» / «Tu rol cambió» (H-09) |

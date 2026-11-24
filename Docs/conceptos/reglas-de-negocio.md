@@ -11,12 +11,27 @@ Las reglas de este capítulo describen el comportamiento **implementado** en el 
 | Etapa | Qué ocurre | Escala | Dónde |
 |---|---|---|---|
 | 1. Registro | El docente digita la calificación en la tabla de la pantalla Calificaciones. El campo acepta valores de 0 a 100 y la interfaz limita cualquier valor fuera de ese rango. Un estudiante sin calificación aparece con el campo vacío. | 0 a 100 (porcentaje) | `Calificaciones.tsx` (`updateCalificacion`) |
-| 2. Conversión | Al pulsar «Guardar cambios», la interfaz toma **solo las filas modificadas**, divide el porcentaje entre 20 y lo redondea a un decimal: `nota = (porcentaje ÷ 20)` con un decimal. Ejemplos: 70 → 3.5; 86 → 4.3; 100 → 5.0. | 0 a 100 → 0.0 a 5.0 | `Calificaciones.tsx` (`handleSave`) |
-| 3. Envío | La nota convertida se envía a la API en el campo `nota`, junto con `entregado`. Una calificación nueva usa `POST` (periodo 1); una existente usa `PUT`, que actualiza solo los campos enviados y conserva el periodo y la observación. El backend no valida el rango; lo recibe como número decimal. | 0.0 a 5.0 | `CalificacionSchema` (`backend/main.py`) |
-| 4. Almacenamiento | PostgreSQL guarda la nota en `calificaciones.nota NUMERIC(3,1)`, con la restricción `CHECK (nota >= 0 AND nota <= 5)`. Un valor fuera de rango enviado directamente a la API es rechazado por la base de datos (el servidor responde con error 500). | 0.0 a 5.0 | `backend/init.sql` |
+| 2. Conversión | Al pulsar «Guardar cambios», la interfaz toma **solo las filas modificadas**, divide el porcentaje entre 20 y lo redondea a un decimal, la mitad hacia arriba: `nota = round(porcentaje ÷ 2) ÷ 10`. Ejemplos: 70 → 3.5; 86 → 4.3; 87 → 4.4; 100 → 5.0. Lo digitado fuera de 0–100 se limita antes (150 → 100). | 0 a 100 → 0.0 a 5.0 | `aEscala5` y `normalizarEntradaNota` (`frontend/src/lib/notas.ts`), usadas en `Calificaciones.tsx` (`handleSave`) |
+| 3. Envío | La nota convertida se envía a la API en el campo `nota`, junto con `entregado`. Una calificación nueva usa `POST` (periodo 1); una existente usa `PUT`, que actualiza solo los campos enviados y conserva el periodo y la observación. El backend valida la nota antes de guardarla: debe ser un número (no texto ni booleano), estar entre 0 y 5 y tener un solo decimal. Si no, responde 422 sin guardar (por ejemplo, 80, 100, 5.1, -0.1 o 2.96). | 0.0 a 5.0 | `CalificacionSchema.nota` y `nota_con_un_decimal` (`backend/main.py`) |
+| 4. Almacenamiento | PostgreSQL guarda la nota en `calificaciones.nota NUMERIC(3,1)`, con la restricción `CHECK (nota >= 0 AND nota <= 5)`. Es la última barrera: aunque se escriba directamente en la base, -0.1, 5.1 y 80 violan el CHECK, y 100 ni siquiera cabe en `NUMERIC(3,1)` (máximo 99.9). | 0.0 a 5.0 | `backend/init.sql` |
 | 5. Evaluación de alerta | Al crear la calificación, el backend calcula el promedio acumulado del estudiante **en escala 0.0–5.0, sin redondear**, y genera una alerta si es menor a 3.0. El mensaje muestra el promedio con dos decimales (por ejemplo, «Promedio académico bajo: 2.85»). | 0.0 a 5.0 | `registrar_calificacion` (`backend/main.py`) |
 | 6. Consulta | La API devuelve la nota tal como está almacenada (por ejemplo, `4.3`). | 0.0 a 5.0 | `GET /calificaciones` |
 | 7. Visualización | Cada pantalla multiplica la nota por 20 para mostrarla en porcentaje y redondea los promedios a números enteros (el promedio general de Análisis se muestra con un decimal). Ejemplo: 4.3 → 86 %. | 0.0 a 5.0 → 0 a 100 | Calificaciones, Estudiantes, Grupos, Actividades, Análisis, Dashboard |
+
+### Conversiones entre escalas
+
+| Escala oficial (0.0–5.0) | Sobre 100 (nota × 20) | Sobre 20 (nota × 4) |
+|---|---|---|
+| 0.0 | 0 | 0 |
+| 2.5 | 50 | 10 |
+| 3.0 | 60 | 12 |
+| 4.0 | 80 | 16 |
+| 5.0 | 100 | 20 |
+
+- La interfaz usa solo la escala sobre 100: digita y muestra porcentajes (`aPorcentaje` = nota × 20; `aEscala5` = porcentaje ÷ 20 con un decimal).
+- La escala sobre 20 no se usa en ninguna pantalla ni en la API. Se documenta como equivalencia.
+- Un número como 80 o 100 nunca se guarda como nota oficial: en la interfaz es un porcentaje que se convierte a 4.0 o 5.0, y la API y la base lo rechazan si llega sin convertir.
+- Con un decimal, cada décima equivale a 2 puntos porcentuales. Un porcentaje impar queda a mitad de camino y se redondea hacia arriba: 59 % se guarda como 3.0, igual que lo haría PostgreSQL. El umbral de alerta no cambia (promedio menor que 3.0).
 
 ### Equivalencias entre la escala oficial y la visualización
 
@@ -34,8 +49,8 @@ Las reglas de este capítulo describen el comportamiento **implementado** en el 
 
 | ID | Regla | Dónde se aplica |
 |---|---|---|
-| RN-01 | La escala oficial es de 0.0 a 5.0 con un decimal. La base de datos rechaza valores fuera de ese rango. | `calificaciones.nota NUMERIC(3,1)` con `CHECK (nota >= 0 AND nota <= 5)` (`backend/init.sql`). |
-| RN-02 | La interfaz registra y muestra las calificaciones en porcentaje (nota × 20). Al guardar, convierte el porcentaje a la escala oficial dividiéndolo entre 20 y redondeando a un decimal. | `Calificaciones.tsx` y las pantallas que muestran promedios. |
+| RN-01 | La escala oficial es de 0.0 a 5.0 con un decimal. La API rechaza con 422 los valores fuera de ese rango o con más de un decimal, y la base de datos rechaza los valores fuera de rango. | `CalificacionSchema` (`backend/main.py`); `calificaciones.nota NUMERIC(3,1)` con `CHECK (nota >= 0 AND nota <= 5)` (`backend/init.sql`). |
+| RN-02 | La interfaz registra y muestra las calificaciones en porcentaje (nota × 20). Al guardar, convierte el porcentaje a la escala oficial dividiéndolo entre 20 y redondeando a un decimal, la mitad hacia arriba. | `lib/notas.ts` (`aEscala5`, `aPorcentaje`), `Calificaciones.tsx` y las pantallas que muestran promedios. |
 | RN-03 | En la interfaz, una calificación se considera **aprobada** cuando es mayor o igual a 70 %, es decir, 3.5 en la escala oficial. | `Calificaciones.tsx` (indicador «Aprobados (≥70)»). |
 | RN-04 | El nivel de rendimiento que muestra la interfaz se clasifica así: Excelente ≥ 90 % (4.5), Bueno ≥ 80 % (4.0), Regular ≥ 70 % (3.5) y En riesgo < 70 % (< 3.5). En la tabla de estudiantes en riesgo de Análisis, un promedio menor a 60 % (3.0) se marca como Crítico. | `Grupos.tsx`, `Analisis.tsx`, `PerformanceChart.tsx`, `RecentStudents.tsx`. |
 | RN-05 | Estado del estudiante en la pantalla Estudiantes: **Crítico** si tiene alertas abiertas y promedio menor a 60 % (3.0); **En riesgo** si tiene alertas abiertas o promedio menor a 70 % (3.5); **Activo** en los demás casos. Una alerta está abierta si no está resuelta. | `Estudiantes.tsx`. |

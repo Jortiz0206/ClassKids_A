@@ -122,18 +122,19 @@ La API expone **49 operaciones** REST, verificadas contra el `openapi.json` del 
 
 ## Pruebas
 
-El proyecto tiene **170 pruebas automatizadas**:
+El proyecto tiene **231 pruebas automatizadas**:
 
 | Suite | Pruebas |
 |---|---:|
 | pytest: integración de la API con PostgreSQL | 24 |
 | pytest: seguridad de la API (permisos H-08 y H-18) | 19 |
 | pytest: hallazgos del cierre (H-05, H-09, H-17, CORS) | 11 |
+| pytest: escala de calificaciones 0.0–5.0 (H-44) | 56 |
 | pytest: unitarias del backend, sin base de datos | 18 (11 funciones) |
-| Vitest: unitarias del frontend | 55 |
-| Playwright: interfaz de extremo a extremo | 43 |
+| Vitest: unitarias del frontend | 59 |
+| Playwright: interfaz de extremo a extremo | 44 |
 
-Última ejecución completa: **170 de 170** (24/11/2026), después de corregir H-01, H-05, H-08, H-09, H-17, H-18 y H-43.
+Última ejecución completa: **231 de 231** (24/11/2026), después de corregir H-01, H-05, H-08, H-09, H-17, H-18, H-43 y H-44.
 
 Se ejecutan en un **entorno aislado** con su propia base de datos (`classkids_test`, puerto 5433), backend en 8001 y frontend en 8081, sin tocar la base real.
 - Plan de pruebas: [`Docs/pruebas/plan-de-pruebas.md`](Docs/pruebas/plan-de-pruebas.md).

@@ -27,12 +27,13 @@ Comprobar que ClassKids cumple sus reglas académicas y funcionales, y que las c
 
 | Nivel | Herramienta | Qué comprueba | Ubicación | Casos |
 |---|---|---|---|---:|
-| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 55 |
+| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 59 |
 | Unitarias (backend) | pytest | Funciones y esquemas puros sin base de datos: estados de alerta, hash PBKDF2, JWT, esquemas Pydantic, caché de columnas | `backend/tests/test_unitarias.py` | 11 funciones (18 ejecuciones con parámetros) |
 | Integración (API + PostgreSQL) | pytest + TestClient | Endpoints contra `classkids_test` dentro de una transacción que se deshace | `backend/tests/test_alertas.py`, `test_calificaciones.py`, `test_grupos.py`, `test_entorno.py` | 24 |
 | Seguridad de la API (permisos) | pytest + TestClient | H-18 y H-08 con casos permitidos y denegados, llamando a la API directamente con tres sesiones | `backend/tests/test_permisos.py` | 19 |
 | Hallazgos del cierre | pytest + TestClient | H-05 (validación y errores), H-09 (cuenta revalidada), H-17 (`.env`) y CORS en 401/403 | `backend/tests/test_hallazgos_cierre.py` | 11 |
-| Interfaz de extremo a extremo | Playwright (Chromium) | Flujos completos en el navegador: frontend 8081 → API 8001 → `classkids_test` (incluye modo claro y oscuro, landing, confirmaciones, celular y permisos por rol) | `e2e/tests/` | 43 |
+| Escala de calificaciones | pytest + TestClient + SQL | Límites válidos (0.0, 0.1, 2.5, 3.0, 4.0, 4.9, 5.0) e inválidos (-0.1, 5.1, 80, 100, más de un decimal, texto, booleano) en POST y PUT; CHECK y `NUMERIC(3,1)` en PostgreSQL; alerta con 2.9 sí y con 3.0 no | `backend/tests/test_escala_notas.py` | 56 |
+| Interfaz de extremo a extremo | Playwright (Chromium) | Flujos completos en el navegador: frontend 8081 → API 8001 → `classkids_test` (incluye modo claro y oscuro, landing, confirmaciones, celular y permisos por rol) | `e2e/tests/` | 44 |
 | Estáticas | TypeScript (`tsc`), ESLint, `vite build` | Tipos, estilo y compilación de producción | `frontend/` | — |
 | Accesibilidad | Script de contraste WCAG | 32 pares de color por tema (claro y oscuro) de `index.css` | `Docs/evidencias/scripts/contraste-wcag.py` | 64 |
 | Visuales | Script de capturas | Todas las vistas de la plataforma por módulo, en claro y oscuro, de escritorio y celular, con verificación del tema y del desborde | `Docs/evidencias/scripts/capturas-plataforma.cjs` | 142 |

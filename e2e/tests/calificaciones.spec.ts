@@ -108,3 +108,36 @@ test("H-02: calificar a un estudiante sin nota crea solo su calificación en el 
     if (creada) await request.delete(`${API}/calificaciones/${creada.id}`, { headers: h });
   }
 });
+
+test("escala 0.0 – 5.0: lo digitado se guarda dividido entre 20, con un decimal y sin salir de 0 – 5", async ({ guardedPage: page, request }) => {
+  const h = await headers(request);
+  const isabella = (await calificacionesActividad1(request, h)).find((c) => c.estudiante_id === 5)!;
+  const notaGuardada = async () => (await calificacionesActividad1(request, h)).find((c) => c.id === isabella.id)!.nota;
+  try {
+    await loginDocente(page);
+    await abrirActividad1(page);
+    const campo = page.getByLabel("Calificación de Isabella Díaz");
+
+    await campo.fill("150"); // fuera de 0 – 100: se limita a 100
+    await expect(campo).toHaveValue("100");
+    await expect(page.locator("#equiv-5")).toContainText("5.0");
+    await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
+    await expect(page.getByText("Calificaciones guardadas correctamente (1)")).toBeVisible();
+    await expect.poll(notaGuardada).toBe(5.0);
+
+    await campo.fill("87"); // 4.35 → 4.4 (mitad hacia arriba, como NUMERIC(3,1))
+    await expect(page.locator("#equiv-5")).toContainText("4.4");
+    await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
+    // El aviso del primer guardado puede seguir visible: se espera el valor guardado.
+    await expect.poll(notaGuardada).toBe(4.4);
+
+    // Ni la API acepta un porcentaje ni más de un decimal como nota oficial.
+    for (const nota of [80, 100, 5.1, -0.1, 2.96]) {
+      const r = await request.put(`${API}/calificaciones/${isabella.id}`, { headers: h, data: { estudiante_id: 5, materia_id: 1, actividad_id: 1, nota } });
+      expect(r.status(), `nota ${nota}`).toBe(422);
+    }
+    expect(await notaGuardada()).toBe(4.4);
+  } finally {
+    await request.put(`${API}/calificaciones/${isabella.id}`, { headers: h, data: { estudiante_id: 5, materia_id: 1, actividad_id: 1, nota: isabella.nota } });
+  }
+});
