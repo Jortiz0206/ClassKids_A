@@ -1,0 +1,4 @@
+# Dependencias solo para pruebas (no se necesitan para ejecutar la aplicación).
+-r requirements.txt
+pytest>=8.0
+httpx>=0.27

@@ -1,0 +1,36 @@
+# Entorno de PRUEBAS aislado de ClassKids.
+# - Proyecto Docker propio ("classkids-test"): sus contenedores y volúmenes son
+#   independientes de la base real (proyecto "backend", contenedor classkids_db).
+# - Base classkids_test en el puerto 5433, publicado solo en 127.0.0.1.
+# - Se inicializa con el mismo init.sql (esquema + datos demo) y luego aplica las
+#   migraciones de backend/migrations/, que aún NO se han aplicado a la base real.
+#
+# Uso (desde backend/):
+#   docker compose -f docker-compose.test.yml up -d       # crear / iniciar
+#   docker compose -f docker-compose.test.yml down -v     # borrar SOLO la base de pruebas
+name: classkids-test
+
+services:
+  db_test:
+    image: postgres:15-alpine
+    container_name: classkids_test_db
+    # Se reinicia con Docker (por ejemplo, tras reiniciar el equipo), como la base real.
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: classkids_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - classkids_test_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./migrations/001_calificaciones_entregado.sql:/docker-entrypoint-initdb.d/02_001_calificaciones_entregado.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d classkids_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  classkids_test_data:
