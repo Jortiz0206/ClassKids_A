@@ -15,6 +15,20 @@ export const UMBRAL_OBSERVAR_HASTA = 80;
 export const UMBRAL_ALERTA_NOTA = 3.0;
 /** Aprobación en la escala oficial. */
 export const UMBRAL_APROBACION_NOTA = 3.5;
+/** Umbral de alerta expresado en porcentaje (3.0 × 20 = 60 %). */
+export const UMBRAL_ALERTA_PORCENTAJE = UMBRAL_ALERTA_NOTA * 20;
+
+/**
+ * H-01: promedio en porcentaje SIN redondear (nota × 20). Las clasificaciones («En riesgo»,
+ * «Crítico», niveles) se hacen con este valor, igual que el backend compara el promedio sin
+ * redondear para crear la alerta; el redondeo a entero es solo para mostrarlo. Así, un
+ * promedio de 2.99 (59.8 %) se muestra como 60 % pero se clasifica bajo el umbral de alerta.
+ * `null` si no hay notas.
+ */
+export function promedioExacto(notas: number[]): number | null {
+  if (notas.length === 0) return null;
+  return (notas.reduce((s, n) => s + n, 0) / notas.length) * 20;
+}
 
 export type EstadoNota = "excelente" | "aprobado" | "reprobado" | "sin";
 

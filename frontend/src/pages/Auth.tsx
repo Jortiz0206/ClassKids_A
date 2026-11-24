@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Mascota, { SelloMascota } from "@/components/common/Mascota";
-import { api } from "@/api/client";
+import { api, CLAVE_SESION_CERRADA } from "@/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { noClipboardProps } from "@/lib/passwordField";
 import { mensajeDeError } from "@/lib/utils";
@@ -94,7 +94,12 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [verPassword, setVerPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // H-09: si la sesión se cerró porque la cuenta cambió, se explica el motivo una sola vez.
+  const [error, setError] = useState(() => {
+    const motivo = sessionStorage.getItem(CLAVE_SESION_CERRADA) || "";
+    sessionStorage.removeItem(CLAVE_SESION_CERRADA);
+    return motivo;
+  });
   const [showReset, setShowReset] = useState(false);
   const [resetEnviado, setResetEnviado] = useState(false);
 

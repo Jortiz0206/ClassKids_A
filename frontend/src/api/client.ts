@@ -24,6 +24,18 @@ export function formatApiErrorDetail(detail: unknown): string | null {
   return String(detail);
 }
 
+/** Clave con la que el inicio de sesión muestra por qué se cerró la sesión (H-09). */
+export const CLAVE_SESION_CERRADA = 'classkids_sesion_cerrada';
+
+function cerrarSesionLocal(motivo: string) {
+  localStorage.removeItem('classkids_token');
+  localStorage.removeItem('classkids_user');
+  // Varias peticiones pueden recibir el 401 a la vez; se conserva el primer motivo (el de la API),
+  // no el genérico de las peticiones que se interrumpen al navegar.
+  if (!sessionStorage.getItem(CLAVE_SESION_CERRADA)) sessionStorage.setItem(CLAVE_SESION_CERRADA, motivo);
+  if (!window.location.pathname.startsWith('/auth')) window.location.assign('/auth');
+}
+
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem("classkids_token");
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -37,7 +49,13 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(formatApiErrorDetail(errorData.detail) || `Error ${response.status}: ${response.statusText}`);
+    const mensaje = formatApiErrorDetail(errorData.detail) || `Error ${response.status}: ${response.statusText}`;
+    // H-09: si la API rechaza un token que se envió (cuenta desactivada, rol cambiado o sesión
+    // vencida), se cierra la sesión local y se vuelve al inicio de sesión con el motivo.
+    if (response.status === 401 && token && !endpoint.startsWith('/auth/')) {
+      cerrarSesionLocal(mensaje);
+    }
+    throw new Error(mensaje);
   }
 
   if (response.status === 204) return undefined as T;

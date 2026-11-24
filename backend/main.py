@@ -3,9 +3,10 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError
 from pydantic import BaseModel, Field, AliasChoices
-from typing import NamedTuple, Optional
+from datetime import date
+from typing import Literal, NamedTuple, Optional
 from secrets import token_urlsafe
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
@@ -35,70 +36,94 @@ ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
     "http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173",
 ).split(",")]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# H-05: los errores de integridad de PostgreSQL responden con un código y un mensaje claros
+# (antes: 500 genérico). Los códigos SQLSTATE son los estándar de PostgreSQL.
+_MENSAJES_INTEGRIDAD = {
+    "23505": (409, "Ya existe un registro con ese valor (por ejemplo, el documento o el correo)."),
+    "23503": (422, "El registro relacionado no existe (por ejemplo, el estudiante, el grupo, la materia o la actividad)."),
+    "23514": (422, "Un valor está fuera del rango permitido."),
+    "23502": (422, "Falta un dato obligatorio."),
+}
+
+
+@app.exception_handler(IntegrityError)
+async def manejar_error_integridad(request: Request, error: IntegrityError):
+    codigo = getattr(getattr(error, "orig", None), "sqlstate", None)
+    estado, mensaje = _MENSAJES_INTEGRIDAD.get(codigo, (409, "La operación no es compatible con los datos existentes."))
+    return JSONResponse({"detail": mensaje}, status_code=estado)
+
+
+@app.exception_handler(DataError)
+async def manejar_error_datos(request: Request, error: DataError):
+    return JSONResponse({"detail": "Un dato tiene un formato o una longitud no válidos."}, status_code=422)
+
+
+@app.exception_handler(Exception)
+async def manejar_error_inesperado(request: Request, error: Exception):
+    # Manejador global: no expone detalles internos al cliente; el detalle queda en el registro.
+    print(f"[ERROR] {request.method} {request.url.path}: {type(error).__name__}: {error}")
+    return JSONResponse({"detail": "Ocurrió un error interno. Inténtalo de nuevo."}, status_code=500)
+
 
 # =================================================================
 # 📋 MODELOS PYDANTIC
 # =================================================================
 
+# H-05: los esquemas limitan rangos y longitudes según las columnas de PostgreSQL, para responder
+# 422 con la causa en lugar de un error 500 de la base de datos.
 class GrupoSchema(BaseModel):
-    nombre: str
-    grado: Optional[str] = "1°"
-    turno: Optional[str] = "Matutino"
+    nombre: str = Field(min_length=1, max_length=120)
+    grado: Optional[str] = Field(default="1°", max_length=30)
+    turno: Optional[str] = Field(default="Matutino", max_length=30)
     # H-27: la columna y la respuesta de GET /grupos usan `ano_lectivo`. Se acepta también
     # el nombre anterior `año_lectivo` para no romper clientes existentes.
-    ano_lectivo: Optional[int] = Field(default=2026, validation_alias=AliasChoices("ano_lectivo", "año_lectivo"))
+    ano_lectivo: Optional[int] = Field(default=2026, ge=2000, le=2100, validation_alias=AliasChoices("ano_lectivo", "año_lectivo"))
 
 class EstudianteSchema(BaseModel):
-    documento: str
-    nombre: str
-    apellido: str
-    grupo_id: Optional[int] = None
+    documento: str = Field(min_length=1, max_length=50)
+    nombre: str = Field(min_length=1, max_length=120)
+    apellido: str = Field(min_length=1, max_length=120)
+    grupo_id: Optional[int] = Field(default=None, gt=0)
     activo: Optional[bool] = True
 
 class MateriaSchema(BaseModel):
-    nombre: str
-    codigo: Optional[str] = None
+    nombre: str = Field(min_length=1, max_length=120)
+    codigo: Optional[str] = Field(default=None, max_length=30)
 
 class ActividadSchema(BaseModel):
-    materia_id: int
-    grupo_id: int
-    titulo: str
-    tipo: str = "tarea"
+    materia_id: int = Field(gt=0)
+    grupo_id: int = Field(gt=0)
+    titulo: str = Field(min_length=1, max_length=200)
+    tipo: str = Field(default="tarea", min_length=1, max_length=30)
     descripcion: Optional[str] = None
-    fecha_entrega: Optional[str] = None
+    fecha_entrega: Optional[date] = None  # AAAA-MM-DD; una fecha inválida responde 422
 
 class CalificacionSchema(BaseModel):
-    estudiante_id: int
-    materia_id: int
-    actividad_id: Optional[int] = None
-    nota: float
-    periodo: Optional[int] = 1
+    estudiante_id: int = Field(gt=0)
+    materia_id: int = Field(gt=0)
+    actividad_id: Optional[int] = Field(default=None, gt=0)
+    nota: float = Field(ge=0, le=5)  # escala oficial 0.0 – 5.0 (sin cambios)
+    periodo: Optional[int] = Field(default=1, ge=1)
     observacion: Optional[str] = None
     # Estado «Entregado» (H-31). Se guarda en calificaciones.entregado solo si la
     # migración 001 está aplicada en la base; si no, se acepta y se ignora.
     entregado: Optional[bool] = None
 
 class ObservacionSchema(BaseModel):
-    estudiante_id: int
-    tipo: Optional[str] = "Convivencial"
-    descripcion: str
+    estudiante_id: int = Field(gt=0)
+    tipo: Optional[str] = Field(default="Convivencial", max_length=50)
+    descripcion: str = Field(min_length=1)
 
 class AlertaSchema(BaseModel):
-    estudiante_id: int
-    tipo: str
-    mensaje: str
+    estudiante_id: int = Field(gt=0)
+    tipo: str = Field(min_length=1, max_length=80)
+    mensaje: str = Field(min_length=1)
     estado: Optional[str] = "active"
 
 class LoginSchema(BaseModel):
-    email: str
-    password: str
+    email: str = Field(max_length=255)
+    password: str = Field(max_length=200)
 
 class ForgotPasswordSchema(BaseModel):
     email: str
@@ -109,8 +134,8 @@ class ResetPasswordSchema(BaseModel):
     token: Optional[str] = None
 
 class InvitationSchema(BaseModel):
-    email: str
-    role: str = "docente"
+    email: str = Field(max_length=255, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    role: Literal["docente", "admin"] = "docente"
 
 class AcceptInvitationSchema(BaseModel):
     password: str
@@ -118,15 +143,15 @@ class AcceptInvitationSchema(BaseModel):
     apellido: Optional[str] = None
 
 class RoleUpdateSchema(BaseModel):
-    role: str
+    role: Literal["docente", "admin"]
 
 class AlertStatusSchema(BaseModel):
     estado: str
 
 class AsignacionSchema(BaseModel):
-    docente_id: int
-    materia_id: int
-    grupo_id: int
+    docente_id: int = Field(gt=0)
+    materia_id: int = Field(gt=0)
+    grupo_id: int = Field(gt=0)
 
 
 def normalize_alert_status(value: str) -> str:
@@ -171,6 +196,30 @@ def create_access_token(user_id: int, role: str) -> str:
     return jwt.encode({"sub": str(user_id), "role": role, "exp": expires}, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
+class _EstadoCuenta(NamedTuple):
+    activo: bool
+    rol: str
+
+
+def _estado_cuenta(user_id: int) -> Optional["_EstadoCuenta"]:
+    """Estado actual de la cuenta en PostgreSQL (H-09). Usa la misma fuente de sesiones que los
+    endpoints, incluida la que las pruebas sustituyen con dependency_overrides."""
+    proveedor = app.dependency_overrides.get(get_db, get_db)
+    recurso = proveedor()
+    es_generador = hasattr(recurso, "__next__")
+    db = next(recurso) if es_generador else recurso
+    try:
+        fila = db.execute(text("""
+            SELECT u.activo, r.nombre AS rol FROM usuarios u LEFT JOIN user_roles r ON r.id = u.rol_id WHERE u.id = :id
+        """), {"id": user_id}).first()
+    finally:
+        if es_generador:
+            recurso.close()
+    if fila is None:
+        return None
+    return _EstadoCuenta(activo=bool(fila.activo), rol="admin" if (fila.rol or "").lower() == "administrador" else "docente")
+
+
 @app.middleware("http")
 async def require_authentication(request: Request, call_next):
     if request.method == "OPTIONS":
@@ -183,11 +232,29 @@ async def require_authentication(request: Request, call_next):
             claims = jwt.decode(authorization[7:], JWT_SECRET, algorithms=[JWT_ALGORITHM])
             if request.url.path.startswith(ADMIN_PREFIXES) and claims.get("role") != "admin":
                 return JSONResponse({"detail": "Permisos insuficientes"}, status_code=403)
+            # H-09: el token solo no basta. Se comprueba en la base que la cuenta siga activa y con el
+            # mismo rol; si se desactivó o cambió de rol, el token deja de servir de inmediato.
+            cuenta = _estado_cuenta(int(claims["sub"]))
+            if cuenta is None or not cuenta.activo:
+                return JSONResponse({"detail": "Tu cuenta ya no está activa. Inicia sesión de nuevo."}, status_code=401)
+            if cuenta.rol != claims.get("role"):
+                return JSONResponse({"detail": "Tu rol cambió. Inicia sesión de nuevo."}, status_code=401)
             # Identidad autenticada para los permisos por asignación (H-08) y la autoprotección (H-18).
-            request.state.usuario = Sesion(id=int(claims["sub"]), rol=str(claims.get("role", "docente")))
+            request.state.usuario = Sesion(id=int(claims["sub"]), rol=cuenta.rol)
         except (JWTError, ValueError):
             return JSONResponse({"detail": "Token inválido o expirado"}, status_code=401)
     return await call_next(request)
+
+# CORS se registra DESPUÉS del middleware de autenticación para que sea el más externo: así las
+# respuestas 401 y 403 que ese middleware devuelve también llevan las cabeceras CORS y el
+# navegador las entrega al frontend (antes las bloqueaba y la interfaz no veía el motivo).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 RESET_TOKEN_TTL_MINUTES = 30
 
@@ -819,8 +886,16 @@ def registrar_calificacion(c: CalificacionSchema, db: Session = Depends(get_db),
     else:
         query = text("INSERT INTO calificaciones (estudiante_id, materia_id, actividad_id, nota, periodo, observacion) VALUES (:e_id, :m_id, :a_id, :nota, :per, :obs) RETURNING *")
     res = db.execute(query, params).fetchone()
-    # Regla RN-09 (sin cambios): promedio acumulado de todas las notas del estudiante < 3.0.
-    average = db.execute(text("SELECT AVG(nota) AS promedio FROM calificaciones WHERE estudiante_id = :id"), {"id": c.estudiante_id}).scalar()
+    evaluar_alerta_bajo_rendimiento(db, c.estudiante_id)
+    db.commit()
+    return dict(res._mapping)
+
+
+def evaluar_alerta_bajo_rendimiento(db: Session, estudiante_id: int) -> None:
+    """Regla RN-09 (sin cambios en fórmula ni umbral): si el promedio acumulado de todas las notas
+    del estudiante es menor que 3.0, se crea una alerta de bajo rendimiento, salvo que ya tenga una
+    abierta (H-32, D3). Se evalúa solo al registrar una nota: RN-10 (aprobada) excluye las ediciones."""
+    average = db.execute(text("SELECT AVG(nota) AS promedio FROM calificaciones WHERE estudiante_id = :id"), {"id": estudiante_id}).scalar()
     if average is not None and float(average) < 3:
         # Decisión D3 (H-32): no se crea otra alerta si el estudiante ya tiene una alerta
         # de bajo rendimiento ABIERTA. Se consideran equivalentes la alerta automática
@@ -831,14 +906,12 @@ def registrar_calificacion(c: CalificacionSchema, db: Session = Depends(get_db),
             WHERE estudiante_id = :id
               AND (tipo = 'low_grade' OR lower(tipo) = 'bajo rendimiento')
               AND estado IN ('active', 'reviewed', 'Pendiente', 'Activa', 'En revisión', 'Revisada')
-        """), {"id": c.estudiante_id}).first()
+        """), {"id": estudiante_id}).first()
         if not active_alert:
             db.execute(text("""
                 INSERT INTO alertas (estudiante_id, tipo, mensaje, estado)
                 VALUES (:id, 'low_grade', :mensaje, 'active')
-            """), {"id": c.estudiante_id, "mensaje": f"Promedio académico bajo: {float(average):.2f}"})
-    db.commit()
-    return dict(res._mapping)
+            """), {"id": estudiante_id, "mensaje": f"Promedio académico bajo: {float(average):.2f}"})
 
 @app.put("/calificaciones/{id}", tags=["Calificaciones"])
 def actualizar_calificacion(id: int, c: CalificacionSchema, db: Session = Depends(get_db), yo: Sesion = Depends(sesion_actual)):

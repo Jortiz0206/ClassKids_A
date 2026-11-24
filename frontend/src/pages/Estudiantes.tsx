@@ -6,7 +6,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import EstadoBadge from "@/components/common/EstadoBadge";
 import { EstadoCargando, EstadoVacio } from "@/components/common/Estados";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { clasePromedio, formatoEscala5, iniciales } from "@/lib/notas";
+import { clasePromedio, formatoEscala5, iniciales, promedioExacto, UMBRAL_ALERTA_PORCENTAJE, UMBRAL_APROBADO } from "@/lib/notas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,9 +102,9 @@ const Estudiantes = () => {
 
       const enriched: EstudianteView[] = ests.map((e) => {
         const estCals = cals.filter((c) => String(c.estudiante_id) === String(e.id));
-        const promedio = estCals.length > 0
-          ? Math.round(estCals.reduce((s: number, c) => s + Number(c.nota || 0) * 20, 0) / estCals.length)
-          : 0;
+        // H-01: se clasifica con el promedio exacto; el entero redondeado es solo para mostrar.
+        const exacto = promedioExacto(estCals.map((c) => Number(c.nota || 0))) ?? 0;
+        const promedio = Math.round(exacto);
 
         const estAlertas = alertas.filter((a) => String(a.estudiante_id) === String(e.id) && String(a.estado || "").toLowerCase() !== "resolved" && String(a.estado || "") !== "Resuelta");
 
@@ -134,8 +134,8 @@ const Estudiantes = () => {
         }
 
         let estado = "activo";
-        if (estAlertas.length > 0 && promedio < 60) estado = "crítico";
-        else if (estAlertas.length > 0 || promedio < 70) estado = "en riesgo";
+        if (estAlertas.length > 0 && exacto < UMBRAL_ALERTA_PORCENTAJE) estado = "crítico";
+        else if (estAlertas.length > 0 || exacto < UMBRAL_APROBADO) estado = "en riesgo";
 
         return {
           id: String(e.id),

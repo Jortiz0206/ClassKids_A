@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   estadoNota, aEscala5, aPorcentaje, formatoEscala5, normalizarEntradaNota, nivelPromedio,
   nivelSeguimiento, filaModificada, promedioActividad, iniciales, ETIQUETA_ESTADO,
-  UMBRAL_APROBADO, UMBRAL_EXCELENTE, UMBRAL_ALERTA_NOTA, UMBRAL_APROBACION_NOTA,
+  UMBRAL_APROBADO, UMBRAL_EXCELENTE, UMBRAL_ALERTA_NOTA, UMBRAL_APROBACION_NOTA, promedioExacto, UMBRAL_ALERTA_PORCENTAJE,
 } from "@/lib/notas";
 
 // Pruebas unitarias de las reglas de presentación de notas (sin red ni base de datos).
@@ -122,5 +122,25 @@ describe("clasePromedio", () => {
     expect(clasePromedio(79)).toBe("text-nivel-observar-fg");
     expect(clasePromedio(70)).toBe("text-nivel-observar-fg");
     expect(clasePromedio(69)).toBe("text-nivel-reprobado-fg");
+  });
+});
+
+describe("H-01: clasificación con el promedio exacto", () => {
+  it("promedioExacto no redondea y devuelve null sin notas", () => {
+    expect(promedioExacto([])).toBeNull();
+    expect(promedioExacto([2.99])).toBeCloseTo(59.8);
+    expect(promedioExacto([3, 3.5])).toBeCloseTo(65);
+  });
+
+  it("un 2.99 se muestra como 60 % pero queda bajo el umbral de alerta, como en el backend", () => {
+    const exacto = promedioExacto([2.99])!;
+    expect(Math.round(exacto)).toBe(60);
+    expect(exacto < UMBRAL_ALERTA_PORCENTAJE).toBe(true);
+    expect(UMBRAL_ALERTA_PORCENTAJE).toBe(60);
+  });
+
+  it("los niveles se calculan con el valor exacto: 69.9 % sigue en riesgo aunque redondeado sea 70 %", () => {
+    expect(nivelSeguimiento(69.9)).toBe("risk");
+    expect(nivelSeguimiento(70)).toBe("watch");
   });
 });

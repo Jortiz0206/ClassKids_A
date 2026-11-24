@@ -23,6 +23,8 @@ interface FilaAsignacion {
   notas: number;
   /** Promedio de ESTA materia en ESTE grupo, en % (nota × 20); null si aún no hay notas. */
   promedio: number | null;
+  /** Promedio sin redondear: con él se clasifica el nivel (H-01). */
+  exacto: number | null;
 }
 
 // Mismos cortes que el resto del panel: < 70 % en riesgo, 70 – 79 % observar, el resto buen nivel.
@@ -58,6 +60,7 @@ const MisAsignaciones = () => {
         estudiantes: estudiantes.filter((e) => String(e.grupo_id) === String(a.grupo_id) && e.activo !== false).length,
         notas: notas.length,
         promedio: notas.length ? Math.round(notas.reduce((s, v) => s + v, 0) / notas.length) : null,
+        exacto: notas.length ? notas.reduce((s, v) => s + v, 0) / notas.length : null,
       };
     });
   }, [qAsig.data, qEst.data, qCal.data]);
@@ -83,7 +86,7 @@ const MisAsignaciones = () => {
       ) : (
         <ul className="mt-4 divide-y divide-border" aria-label="Materias y grupos asignados">
           {filas.map((f) => {
-            const nivel = f.promedio === null ? null : NIVEL[nivelSeguimiento(f.promedio)];
+            const nivel = f.exacto === null ? null : NIVEL[nivelSeguimiento(f.exacto)];
             return (
               <li key={f.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_4.5rem_12rem]">
                 <p className="min-w-0">

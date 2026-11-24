@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useRecurso } from "@/hooks/useRecurso";
 import { Estudiante, Grupo, Calificacion } from "../../types";
 import { ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { nivelSeguimiento, formatoEscala5, iniciales } from "@/lib/notas";
+import { nivelSeguimiento, formatoEscala5, iniciales, promedioExacto } from "@/lib/notas";
 import EstadoBadge, { type Tono } from "@/components/common/EstadoBadge";
 import { FilasCargando, EstadoVacio } from "@/components/common/Estados";
 
@@ -61,12 +61,11 @@ export const RecentStudents = () => {
 
     const enriched: StudentView[] = recent.map((e) => {
       const calsList = calMap.get(e.id) || [];
-      const avg =
-        calsList.length > 0
-          ? Math.round((calsList.reduce((s, c) => s + c.nota, 0) / calsList.length) * 20)
-          : 0;
+      // H-01: nivel con el promedio exacto; el entero redondeado es solo para mostrar.
+      const exacto = promedioExacto(calsList.map((c) => Number(c.nota))) ?? 0;
+      const avg = Math.round(exacto);
 
-      const status = nivelSeguimiento(avg);
+      const status = nivelSeguimiento(exacto);
 
       // No existe columna `tendencia` en el backend: se calcula comparando el
       // promedio del primer y el último periodo con calificaciones reales.

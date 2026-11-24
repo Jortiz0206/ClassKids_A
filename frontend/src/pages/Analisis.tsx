@@ -4,7 +4,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import { colorBarra, LeyendaPromedios } from "@/components/dashboard/PerformanceChart";
 import EstadoBadge from "@/components/common/EstadoBadge";
 import { EstadoCargando, EstadoVacio } from "@/components/common/Estados";
-import { formatoEscala5, nivelPromedio } from "@/lib/notas";
+import { formatoEscala5, nivelPromedio, UMBRAL_ALERTA_PORCENTAJE, UMBRAL_APROBADO } from "@/lib/notas";
 import { ReferenceLine, LabelList } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,8 @@ interface TendenciaItem { mes: string; promedio: number; }
 interface DistribucionItem { name: string; value: number; color: string; }
 interface EstudianteRiesgo {
   nombre: string; apellido: string; grupo: string; promedio: number;
+  /** Promedio exacto bajo el umbral de alerta (3.0), aunque redondeado se muestre como 60 %. */
+  critico: boolean;
   tendencia: string;
 }
 interface TipoRendimiento { tipo: string; promedio: number; }
@@ -150,13 +152,16 @@ const Analisis = () => {
       const riesgoList: EstudianteRiesgo[] = [];
       estudiantes.forEach((e) => {
         const cals = (estCalMap.get(String(e.id)) || []).map((c) => c.valor);
-        const prom = cals.length > 0 ? Math.round(cals.reduce((s, v) => s + v, 0) / cals.length) : -1;
-        if (prom >= 0 && prom < 70) {
+        // H-01: se clasifica con el promedio exacto; el entero redondeado es solo para mostrar.
+        const exacto = cals.length > 0 ? cals.reduce((s, v) => s + v, 0) / cals.length : -1;
+        const prom = Math.round(exacto);
+        if (exacto >= 0 && exacto < UMBRAL_APROBADO) {
           riesgoList.push({
             nombre: String(e.nombre || ""),
             apellido: String(e.apellido || ""),
             grupo: grupoNameMap.get(String(e.grupo_id)) || "",
             promedio: prom,
+            critico: exacto < UMBRAL_ALERTA_PORCENTAJE,
             tendencia: tendenciaEstudiante(String(e.id)),
           });
         }
@@ -404,7 +409,7 @@ const Analisis = () => {
                         )}
                       </td>
                       <td className="py-3 px-3">
-                        <EstadoBadge tono={est.promedio < 60 ? "alerta" : "reprobado"}>{est.promedio < 60 ? "Crítico" : "En riesgo"}</EstadoBadge>
+                        <EstadoBadge tono={est.critico ? "alerta" : "reprobado"}>{est.critico ? "Crítico" : "En riesgo"}</EstadoBadge>
                       </td>
                     </tr>
                   ))}
