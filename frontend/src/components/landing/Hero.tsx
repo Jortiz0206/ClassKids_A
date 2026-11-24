@@ -58,7 +58,6 @@ const Hero = () => (
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-menta text-nivel-excelente-fg"><BarChart3 className="h-5 w-5" aria-hidden="true" /></span>
           <p className="mt-2.5 font-display text-base font-bold leading-tight">Seguimiento académico</p>
         </div>
-        <figcaption className="relative mt-6 text-center text-xs text-muted-foreground">Captura real del panel del docente con datos de demostración.</figcaption>
       </figure>
     </div>
 

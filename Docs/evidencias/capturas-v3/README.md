@@ -128,7 +128,7 @@
 
 | Vista | Escritorio · claro | Escritorio · oscuro | Celular · claro | Celular · oscuro |
 |---|---|---|---|---|
-| Video del recorrido con música, en reproducción (segundo 6.4), con sus controles de audio | [ver](vigente/video/2026-11-24_reproduciendo_escritorio_claro.png) | [ver](vigente/video/2026-11-24_reproduciendo_escritorio_oscuro.png) | [ver](vigente/video/2026-11-24_reproduciendo_celular_claro.png) | [ver](vigente/video/2026-11-24_reproduciendo_celular_oscuro.png) |
+| Video del recorrido con música, en reproducción (segundo 6.6), con sus controles de audio | [ver](vigente/video/2026-11-24_reproduciendo_escritorio_claro.png) | [ver](vigente/video/2026-11-24_reproduciendo_escritorio_oscuro.png) | [ver](vigente/video/2026-11-24_reproduciendo_celular_claro.png) | [ver](vigente/video/2026-11-24_reproduciendo_celular_oscuro.png) |
 
 ## Depuración de evidencias (23/11/2026)
 

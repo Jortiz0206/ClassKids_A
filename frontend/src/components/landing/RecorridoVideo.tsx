@@ -105,7 +105,6 @@ const RecorridoVideo = () => {
           <ul className="mt-8 flex flex-wrap gap-1.5" aria-label="Módulos que muestra el video">
             {MODULOS_DEL_VIDEO.map((m) => <li key={m} className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">{m}</li>)}
           </ul>
-          <p className="mt-4 text-xs text-muted-foreground">Con música instrumental original. Muestra la plataforma con los datos de demostración.</p>
         </div>
       </div>
     </section>
