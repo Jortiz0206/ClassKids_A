@@ -65,6 +65,8 @@ eliminar_<entidad>()   → DELETE /<entidad>/{id}
 
 Esta uniformidad facilita la lectura del backend y el consumo desde el frontend, a costa de duplicar código entre entidades al carecer de una capa CRUD genérica.
 
+Excepciones verificadas: `observaciones` no tiene operación de actualización (`PUT`), y en `alertas` la actualización solo cambia el estado (`PUT /alertas/{id}` y `PUT /alertas/{id}/estado`). Además, que la API ofrezca las cuatro operaciones no significa que la interfaz las use: la edición y eliminación de grupos, actividades y materias, y la eliminación de estudiantes, existen solo en la API (ver el capítulo de hallazgos).
+
 ---
 
 ### 6. Frontend: Context API para estado transversal
@@ -112,4 +114,4 @@ Sin embargo, en el código actual la mayoría de vistas obtienen datos combinand
 
 El sistema separa vistas de **Administrador** (`/admin`) y **Docente** (`/app`), pero opera sobre una única base de datos compartida, sin aislamiento por colegio o institución (no existe el concepto de "tenant").
 
-Tampoco existe segmentación de datos por docente: cualquier usuario autenticado puede ver y registrar sobre grupos, estudiantes, calificaciones y alertas de todo el sistema académico local.
+Dentro de la institución sí existe segmentación por docente desde el 24/11/2026: cada consulta del docente se filtra por sus asignaciones (docente + materia + grupo) y las operaciones fuera de su ámbito responden 403 (RF-26). El administrador conserva la visión general.

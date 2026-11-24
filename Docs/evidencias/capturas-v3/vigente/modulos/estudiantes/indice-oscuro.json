@@ -1,0 +1,68 @@
+[
+  {
+    "archivo": "2026-11-24_lista_escritorio_oscuro.png",
+    "vista": "lista",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Lista de estudiantes de los grupos del docente (página 1)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_detalle-observaciones_escritorio_oscuro.png",
+    "vista": "detalle-observaciones",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Detalle del estudiante y observaciones",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_formulario-nuevo_escritorio_oscuro.png",
+    "vista": "formulario-nuevo",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Formulario de nuevo estudiante",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_busqueda-sin-resultados_escritorio_oscuro.png",
+    "vista": "busqueda-sin-resultados",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Búsqueda sin resultados",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_lista_celular_oscuro.png",
+    "vista": "lista",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Estudiantes en tarjetas",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_detalle-observaciones_celular_oscuro.png",
+    "vista": "detalle-observaciones",
+    "modulo": "modulos/estudiantes",
+    "descripcion": "Detalle del estudiante",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

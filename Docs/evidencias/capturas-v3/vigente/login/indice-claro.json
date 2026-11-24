@@ -1,0 +1,68 @@
+[
+  {
+    "archivo": "2026-11-24_inicio-sesion_escritorio_claro.png",
+    "vista": "inicio-sesion",
+    "modulo": "login",
+    "descripcion": "Inicio de sesión",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_error-credenciales_escritorio_claro.png",
+    "vista": "error-credenciales",
+    "modulo": "login",
+    "descripcion": "Mensaje de error: credenciales incorrectas",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_recuperar-contrasena_escritorio_claro.png",
+    "vista": "recuperar-contrasena",
+    "modulo": "login",
+    "descripcion": "Formulario de recuperación de contraseña",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_pagina-404_escritorio_claro.png",
+    "vista": "pagina-404",
+    "modulo": "login",
+    "descripcion": "Ruta inexistente",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_inicio-sesion_celular_claro.png",
+    "vista": "inicio-sesion",
+    "modulo": "login",
+    "descripcion": "Inicio de sesión",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_error-credenciales_celular_claro.png",
+    "vista": "error-credenciales",
+    "modulo": "login",
+    "descripcion": "Mensaje de error: credenciales incorrectas",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

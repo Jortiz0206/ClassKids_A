@@ -1,0 +1,24 @@
+[
+  {
+    "archivo": "2026-11-24_reproduciendo_escritorio_oscuro.png",
+    "vista": "reproduciendo",
+    "modulo": "video",
+    "descripcion": "Video del recorrido con música, en reproducción (segundo 6.4), con sus controles de audio",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_reproduciendo_celular_oscuro.png",
+    "vista": "reproduciendo",
+    "modulo": "video",
+    "descripcion": "Video del recorrido con música, en reproducción (segundo 6.4), con sus controles de audio",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

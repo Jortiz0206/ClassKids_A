@@ -1,0 +1,90 @@
+[
+  {
+    "archivo": "2026-11-24_panel-administracion_escritorio_claro.png",
+    "vista": "panel-administracion",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Panel de administración",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_usuarios-roles_escritorio_claro.png",
+    "vista": "usuarios-roles",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Usuarios y roles",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_invitar-docente_escritorio_claro.png",
+    "vista": "invitar-docente",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Formulario de invitación",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_confirmar-desactivar_escritorio_claro.png",
+    "vista": "confirmar-desactivar",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Confirmación antes de desactivar (se canceló)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_datos-globales_escritorio_claro.png",
+    "vista": "datos-globales",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Datos globales",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-administracion_celular_claro.png",
+    "vista": "panel-administracion",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Panel de administración con barra inferior",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_usuarios-roles_celular_claro.png",
+    "vista": "usuarios-roles",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Usuarios",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_menu-mas-administrador_celular_claro.png",
+    "vista": "menu-mas-administrador",
+    "modulo": "modulos/usuarios",
+    "descripcion": "Menú «Más» del administrador (incluye Usuarios)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

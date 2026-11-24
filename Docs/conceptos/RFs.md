@@ -1,86 +1,98 @@
-# Requisitos funcionales — ClassKids
+# Requisitos funcionales
 
-Matriz consolidada de los requisitos funcionales del sistema **ClassKids**, estructurada por módulos y contrastada directamente contra el código fuente (`backend/main.py`, `backend/init.sql` y el frontend). La numeración `RF-01` a `RF-15` proviene del diseño original del proyecto (SENA ADSO), y se incorporan los requisitos adicionales `RF-16` a `RF-23` para cubrir la funcionalidad administrativa y de autenticación descubierta en el repositorio.
+Los requisitos RF-01 a RF-15 provienen del documento original del proyecto; en esta versión se corrigió el caso de uso asociado a cada uno y su estado. Los requisitos RF-16 a RF-25 se agregaron para documentar funcionalidades que ya existían en el sistema pero no estaban registradas. RF-26 se agregó el 24/11/2026 con el control de acceso por asignación (H-08). El estado se verificó contra el código del frontend, el backend y la base de datos el 20/11/2026.
 
----
+**Convenciones de estado.** *Implementado*: disponible en la interfaz y persistido en la base de datos. *Parcial*: parte de la funcionalidad existe solo en la API o falta una operación. *Con observaciones*: funciona, pero tiene un hallazgo registrado.
 
-### Módulo 1 — Seguridad y acceso al sistema
+## Módulo 1. Seguridad y acceso
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-01** | `CU-01` | Iniciar sesión | Autenticación mediante correo y contraseña. Valida usuario activo y credenciales, otorgando un token de acceso según el rol. | Docente, Administrador | ✅ **Implementado** (`POST /auth/login`). Cifrado PBKDF2 y emisión de JWT con validez de 8 horas. |
-| **RF-02** | `CU-03` | Cerrar sesión | Finalizar la sesión activa del usuario de forma segura. | Docente, Administrador | ⚠️ **Parcial** (`signOut()`). Destruye la sesión en `localStorage` del cliente; el backend apátrida no revoca el JWT activo. |
-| **RF-16** | — | Recuperar contraseña | Solicitud de token de restablecimiento por correo e ingreso de nueva contraseña. | Docente, Administrador | ✅ **Implementado** (`POST /auth/forgot-password`, `POST /auth/reset-password`). |
-| **RF-17** | `CU-02` | Invitar usuarios | El administrador invita docentes o administradores por correo para que ellos configuren su clave. | Administrador | ✅ **Implementado** (`POST /usuarios/invitar`, `GET/POST /invitaciones/{token}`). |
-| **RF-18** | `CU-02` | Modificar rol | Cambio de rol (docente / administrador) a un usuario ya registrado. | Administrador | ✅ **Implementado** (`PUT /usuarios/{id}/rol`, restringido a `admin`). |
-| **RF-19** | `CU-02` | Desactivar usuario | Inactivación lógica de cuentas de usuario en el sistema. | Administrador | ✅ **Implementado** (`DELETE /usuarios/{id}`, baja lógica protegida). |
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-01 | CU-01 | Iniciar sesión | Autenticar al usuario con correo y contraseña, verificar que esté activo y emitir un token de sesión con su rol. | Docente, Administrador | Implementado (`POST /auth/login`, JWT de 8 h, contraseñas PBKDF2). |
+| RF-02 | CU-03 | Cerrar sesión | Finalizar la sesión del usuario. | Docente, Administrador | Parcial: elimina la sesión del navegador; el token no se revoca en el servidor. |
+| RF-16 | CU-14 | Recuperar contraseña | Solicitar un enlace de restablecimiento por correo y definir una nueva contraseña. | Docente, Administrador | Implementado (`POST /auth/forgot-password`, `POST /auth/reset-password`); requiere SMTP para que el enlace llegue. |
+| RF-26 | CU-01, CU-04 a CU-13 | Control de acceso por rol y por asignación | El administrador consulta y gestiona toda la información. Cada docente consulta y modifica solo lo que corresponde a sus asignaciones (docente + materia + grupo): sus materias, los grupos donde las dicta, los estudiantes de esos grupos, las actividades y calificaciones de su materia en ese grupo, las observaciones de sus estudiantes y las alertas de su ámbito. Las restricciones se aplican en la API con la identidad del token, también ante peticiones directas que cambien identificadores. | Docente, Administrador | Implementado (24/11/2026). Pruebas: `backend/tests/test_permisos.py` (19), `e2e/tests/permisos.spec.ts` (2); evidencia `evidencias/permisos/verificacion-api-permisos.md`. |
+| RF-17 | CU-02, CU-15 | Invitar y activar usuarios | El administrador invita por correo a docentes o administradores; el invitado activa su cuenta definiendo sus datos y contraseña. | Administrador, Usuario invitado | Implementado (`POST /usuarios/invitar`, `GET` y `POST /invitaciones/{token}`). |
 
----
+## Módulo 2. Administración de usuarios
 
-### Módulo 2 — Gestión de grupos
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-18 | CU-02 | Modificar rol | Cambiar el rol de un usuario entre Docente y Administrador. El administrador no puede cambiar su propio rol. | Administrador | Implementado (`PUT /usuarios/{id}/rol`; responde 403 sobre la propia cuenta, H-18 corregido en interfaz y API). |
+| RF-19 | CU-02 | Desactivar usuario | Inactivar la cuenta de un usuario sin borrarla. El administrador no puede desactivar su propia cuenta. | Administrador | Implementado (`DELETE /usuarios/{id}`, baja lógica; responde 403 sobre la propia cuenta, H-18). |
+| RF-22 | CU-16 | Métricas globales | Consultar el número de docentes, administradores, grupos, estudiantes, actividades y alertas activas. | Administrador | Implementado (seis endpoints `/…/count`). |
+| RF-23 | CU-16 | Datos globales | Consultar en modo lectura los grupos, estudiantes y alertas de toda la plataforma. | Administrador | Implementado (`AdminDatos.tsx`; H-26 corregido: muestra el año lectivo). |
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-03** | `CU-04` | Gestionar grupos | Creación, actualización, lectura y eliminación de grupos académicos (nombre, grado y jornada). | Docente, Administrador | ✅ **Implementado** (CRUD completo en `GET/POST/PUT/DELETE /grupos`). |
+## Módulo 3. Grupos
 
----
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-03 | CU-04 | Gestionar grupos | Crear, consultar, editar y eliminar grupos académicos (nombre, grado, turno y año lectivo). El administrador gestiona todos los grupos; el docente solo consulta los grupos donde tiene materias asignadas. | Administrador (gestión), Docente (consulta) | Parcial: la interfaz permite crear (administrador), consultar y filtrar; editar y eliminar solo existen en la API, reservadas al administrador. |
 
-### Módulo 3 — Gestión de estudiantes
+## Módulo 4. Estudiantes
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-04** | `CU-05` | Gestionar estudiantes | Alta, edición, desvinculación y asignación de estudiantes a grupos. | Docente, Administrador | ✅ **Implementado** (CRUD completo en `/estudiantes`; al borrar un grupo, el alumno pasa a estado sin grupo asignado). |
-| **RF-05** | `CU-05` | Consultar estudiantes | Listado estructurado de estudiantes registrados asociando el nombre de su grupo. | Docente, Administrador | ✅ **Implementado** (`GET /estudiantes` con `JOIN` a grupos y filtro opcional `?grupo_id=`). |
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-04 | CU-05 | Gestionar estudiantes | Registrar, editar y eliminar estudiantes y asociarlos a un grupo. El docente registra y edita estudiantes solo en sus grupos; eliminar es del administrador. | Docente, Administrador | Parcial: la interfaz permite registrar y editar; eliminar solo existe en la API (borrado físico, solo administrador). |
+| RF-05 | CU-05 | Consultar estudiantes | Listar los estudiantes con su grupo, promedio, tendencia, estado y alertas, con búsqueda y filtros. El docente ve solo los estudiantes de sus grupos, con promedios calculados con las notas de sus materias. | Docente, Administrador | Implementado (el filtro por grupo se corrigió: H-29; alcance por asignación: RF-26). |
+| RF-09 | CU-05 | Consultar historial académico | Consultar el detalle académico de un estudiante. | Docente | Parcial: el detalle muestra promedio, estado, tendencia, alertas activas y observaciones, pero no el listado de sus calificaciones individuales. |
 
----
+## Módulo 5. Materias y asignaciones
 
-### Módulo 4 — Gestión académica
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-20 | CU-06 | Gestionar materias | Crear, consultar, editar y eliminar materias. El administrador gestiona el catálogo; el docente consulta solo sus materias asignadas. | Administrador (gestión), Docente (consulta) | Parcial: la interfaz permite crear, buscar y eliminar (administrador); editar solo existe en la API. |
+| RF-21 | CU-07 | Asignar docente a materia y grupo | Registrar y eliminar la asignación de un docente por materia en cada grupo. El docente solo consulta sus propias asignaciones. | Administrador | Implementado (H-08 corregido: crear y eliminar responden 403 al docente). |
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-20** | `CU-06` | Gestionar materias | Administrar asignaturas del plan de estudios (crear, editar y eliminar). | Docente, Administrador | ✅ **Implementado** (Endpoints CRUD en `/materias`; la UI expone creación y eliminación en `Materias.tsx`). |
-| **RF-21** | `CU-07` | Carga docente | Asignar docentes específicos a materias y grupos determinados. | Administrador | ✅ **Implementado** (`GET/POST/DELETE /asignaciones` relacionando `usuarios.id`, materia y grupo). |
-| **RF-06** | `CU-08` | Registrar actividad | Creación de tareas, exámenes o proyectos con fecha límite, materia, grupo y descripción. | Docente | ✅ **Implementado** (CRUD completo de actividades; calcula estado pendiente/vencida). |
-| **RF-07** | `CU-09` | Registrar calificación | Asignación de notas cuantitativas a estudiantes. | Docente | ⚠️ **Parcial** (`POST /calificaciones`). Permite asociar nota a estudiante, materia y opcionalmente actividad; dispara alerta si el promedio cae de 3.0. |
-| **RF-08** | `CU-09` | Calcular promedio | Recálculo automático de promedios individuales y grupales. | Sistema | ⚠️ **Parcial**. El backend calcula el promedio individual al registrar notas para generar alertas; los consolidados grupales los procesa la UI. |
-| **RF-09** | `CU-09` | Consultar historial | Visualización del registro histórico de notas por estudiante. | Docente | ✅ **Implementado** (`GET /calificaciones`, filtrable por actividad o estudiante). |
+## Módulo 6. Actividades
 
----
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-06 | CU-08 | Registrar actividad | Crear actividades (tarea, examen, proyecto o participación) con materia, grupo, fecha de entrega y descripción, y consultarlas con su estado. El docente solo crea y consulta actividades de una materia que tiene asignada en ese grupo. | Docente, Administrador | Parcial: crear y consultar en la interfaz (el formulario ofrece solo las materias del docente en el grupo elegido); editar y eliminar solo en la API. |
 
-### Módulo 5 — Análisis de rendimiento
+## Módulo 7. Calificaciones
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-10** | `CU-11` | Tablero analítico | Métricas de rendimiento mediante gráficos interactivos (distribución, promedios y tendencias). | Docente | ✅ **Implementado** (`Analisis.tsx` procesa datos de la API mediante gráficos de Recharts). |
-| **RF-14** | `CU-10` | Registrar observación | Bitácora cualitativa (anotaciones conductuales o logros) de un estudiante. | Docente | ✅ **Implementado** (`POST /observaciones`). Omite autoría explícita y campo opcional de recomendaciones pedagógicas. |
-| **RF-15** | `CU-10` | Consultar observaciones | Historial cronológico de observaciones por alumno. | Docente | ✅ **Implementado** (`GET /observaciones`). Sin endpoint para edición posterior (`PUT`). |
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-07 | CU-09 | Registrar calificación | Registrar y actualizar la calificación de cada estudiante en una actividad. El docente solo califica a estudiantes de un grupo donde tiene asignada esa materia. | Docente | Implementado con observaciones. Corregidos: H-02 (solo se guardan las filas modificadas), H-31 y H-33 (se conservan observación y periodo; «Entregado» en su propia columna). Pendientes: H-03, H-05 y H-19. En la base real, «Entregado» persiste solo tras la migración 001. |
+| RF-08 | CU-09, CU-11 | Calcular promedio académico | Calcular los promedios por estudiante, grupo, materia, actividad y tipo de actividad. | Sistema | Implementado: el frontend calcula los promedios de visualización y el backend calcula el promedio acumulado para la regla de alerta. |
 
----
+## Módulo 8. Observaciones
 
-### Módulo 6 — Alertas
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-14 | CU-10 | Registrar observación | Registrar observaciones académicas, convivenciales o de reconocimiento sobre un estudiante de sus grupos. | Docente | Implementado (sin registro del autor). |
+| RF-15 | CU-10 | Consultar observaciones | Consultar el historial de observaciones de un estudiante y eliminarlas. | Docente | Implementado (sin edición). |
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-11** | `CU-12` | Generar alertas | Disparo automático o registro manual de alertas académicas ante situaciones de riesgo. | Sistema / Docente | ⚠️ **Parcial**. Generación manual y regla automática `low_grade` (promedio < 3.0) operativas; no evalúa asistencias ni restringe tipos por `ENUM`. |
-| **RF-12** | `CU-12` | Consultar alertas | Bandeja general y filtrada de alertas registradas. | Docente | ✅ **Implementado** (`GET /alertas`). |
-| **RF-13** | `CU-13` | Actualizar alerta | Modificar el estado de seguimiento de una alerta (p. ej., "resuelta" o "en revisión"). | Docente | ✅ **Implementado** (`PUT /alertas/{id}/estado` con body JSON `{ estado }`). |
+## Módulo 9. Análisis de rendimiento
 
----
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-10 | CU-11 | Analizar desempeño académico | Visualizar indicadores y gráficas de rendimiento: por grupo, distribución, tendencia mensual, por tipo de actividad y estudiantes en riesgo, para todas las materias o filtrados por una materia. El docente ve solo los datos de sus asignaciones. | Docente, Administrador | Implementado con observaciones: filtro por materia agregado el 24/11/2026; etiqueta del mes (H-07). |
+| RF-24 | CU-11 | Resumen al ingresar (Dashboard) | Mostrar al ingresar un resumen con totales, rendimiento por materia, alertas recientes, estudiantes y buscador. Para el docente, todo se calcula con sus asignaciones e incluye «Mis asignaciones»: cada materia en cada grupo con su promedio, sin mezclar materias. El administrador ve los totales del colegio. | Docente, Administrador | Implementado con observaciones (H-14). |
 
-### Módulo 7 — Panel de administración
+## Módulo 10. Alertas académicas
 
-| RF | Caso de uso | Nombre | Descripción | Actor | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **RF-22** | — | Métricas globales | Indicadores consolidados de usuarios, grupos, alumnos, actividades y alertas. | Administrador | ✅ **Implementado** (Consume los 6 servicios `/docentes/count`, `/admins/count`, `/grupos/count`, `/estudiantes/count`, `/actividades/count`, `/alertas/activas/count` protegidos). |
-| **RF-23** | — | Modo lectura global | Supervisión general de grupos, estudiantes y alertas de la plataforma. | Administrador | ✅ **Implementado** (`AdminDatos.tsx` reutilizando endpoints de lectura general). |
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-11 | CU-12 | Generar alerta académica | Generar alertas automáticamente ante bajo rendimiento, o registrarlas manualmente. | Sistema, Docente | Parcial: la regla automática (promedio < 3.0) funciona y ya no crea duplicados si existe una alerta de bajo rendimiento activa o en revisión (H-32, decisión D3); la creación manual solo existe en la API. |
+| RF-12 | CU-13 | Consultar alertas | Consultar las alertas con filtros por tipo y estado. El docente ve las alertas de los estudiantes de sus grupos; si el mensaje de la alerta nombra una materia, solo la ve el docente de esa materia en ese grupo. | Docente, Administrador | Implementado (alcance por asignación: RF-26). |
+| RF-13 | CU-13 | Actualizar estado de alerta | Cambiar el estado de una alerta visible para el usuario a En revisión o Resuelta. | Docente, Administrador | Implementado (403 sobre alertas fuera del ámbito del docente). |
 
----
+## Módulo 11. Información pública
 
-## Cuadro de resumen de implementación
+| RF | CU | Nombre | Descripción | Actor | Estado |
+|---|---|---|---|---|---|
+| RF-25 | — | Consultar información pública | Mostrar la página de inicio del producto y las políticas de términos, privacidad, cookies y protección de datos sin necesidad de iniciar sesión. | Visitante | Implementado (`/`, `/legal/*`). |
 
-| Estado | Cantidad | Porcentaje |
-| :--- | :---: | :---: |
-| ✅ **Implementados totalmente** | **19** | **82.6%** |
-| ⚠️ **Parciales** | **4** | **17.4%** |
-| ❌ **No implementados** | **0** | **0.0%** |
-| **Total de Requisitos Funcionales** | **23** | **100%** |
+## Resumen
+
+| Estado | Cantidad | Requisitos |
+|---|---|---|
+| Implementado | 16 | RF-01, RF-05, RF-08, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19, RF-21, RF-22, RF-23, RF-25, RF-26 |
+| Implementado con observaciones | 3 | RF-07, RF-10, RF-24 |
+| Parcial | 7 | RF-02, RF-03, RF-04, RF-06, RF-09, RF-11, RF-20 |
+| No implementado | 0 | — |
+| **Total** | **26** | |
+
+> Nota: el correo de contacto publicado en la landing y en las políticas (`contacto@classkids.edu.co`) es un valor de ejemplo definido en `frontend/src/lib/contact.ts` y debe reemplazarse por el correo real de la institución.

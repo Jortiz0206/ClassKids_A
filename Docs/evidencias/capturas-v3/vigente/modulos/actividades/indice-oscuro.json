@@ -1,0 +1,35 @@
+[
+  {
+    "archivo": "2026-11-24_lista_escritorio_oscuro.png",
+    "vista": "lista",
+    "modulo": "modulos/actividades",
+    "descripcion": "Actividades",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_formulario-nueva_escritorio_oscuro.png",
+    "vista": "formulario-nueva",
+    "modulo": "modulos/actividades",
+    "descripcion": "Formulario de nueva actividad",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_lista_celular_oscuro.png",
+    "vista": "lista",
+    "modulo": "modulos/actividades",
+    "descripcion": "Actividades",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "archivo": "2026-11-24_mis-materias-docente_escritorio_claro.png",
+    "vista": "mis-materias-docente",
+    "modulo": "modulos/materias",
+    "descripcion": "Materias asignadas al docente (solo consulta)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_mis-asignaciones-docente_escritorio_claro.png",
+    "vista": "mis-asignaciones-docente",
+    "modulo": "modulos/materias",
+    "descripcion": "Asignaciones del docente por grupo",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_mis-materias-docente_celular_claro.png",
+    "vista": "mis-materias-docente",
+    "modulo": "modulos/materias",
+    "descripcion": "Materias asignadas al docente",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_catalogo_escritorio_claro.png",
+    "vista": "catalogo",
+    "modulo": "modulos/materias",
+    "descripcion": "Catálogo de materias (administrador)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_confirmar-eliminar_escritorio_claro.png",
+    "vista": "confirmar-eliminar",
+    "modulo": "modulos/materias",
+    "descripcion": "Confirmación antes de eliminar (se canceló)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_vista-por-grupos_escritorio_claro.png",
+    "vista": "vista-por-grupos",
+    "modulo": "modulos/materias",
+    "descripcion": "Materias asignadas en cada grupo, con su docente",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_formulario-vincular_escritorio_claro.png",
+    "vista": "formulario-vincular",
+    "modulo": "modulos/materias",
+    "descripcion": "Formulario para vincular una materia a un grupo",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

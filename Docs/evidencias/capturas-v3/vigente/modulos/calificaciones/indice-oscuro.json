@@ -1,0 +1,57 @@
+[
+  {
+    "archivo": "2026-11-24_sin-seleccion_escritorio_oscuro.png",
+    "vista": "sin-seleccion",
+    "modulo": "modulos/calificaciones",
+    "descripcion": "Calificaciones antes de elegir grupo (estado vacío)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_tabla-actividad_escritorio_oscuro.png",
+    "vista": "tabla-actividad",
+    "modulo": "modulos/calificaciones",
+    "descripcion": "Calificaciones de Grado 1A · Taller de Sumas y Restas",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_fila-editada-equivalencia_escritorio_oscuro.png",
+    "vista": "fila-editada-equivalencia",
+    "modulo": "modulos/calificaciones",
+    "descripcion": "Fila editada sin guardar con su equivalencia",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_guardado-exito_escritorio_oscuro.png",
+    "vista": "guardado-exito",
+    "modulo": "modulos/calificaciones",
+    "descripcion": "Mensaje de éxito al guardar",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_tabla-actividad_celular_oscuro.png",
+    "vista": "tabla-actividad",
+    "modulo": "modulos/calificaciones",
+    "descripcion": "Calificaciones con barra de guardado",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo oscuro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

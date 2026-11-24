@@ -1,48 +1,36 @@
-# Requisitos no funcionales — ClassKids
+# Requisitos no funcionales
 
-Análisis técnico y evaluación de cumplimiento de los requisitos no funcionales (RNF) de la plataforma **ClassKids**, contrastados contra la implementación en código, la arquitectura de ejecución y el escenario de base de datos relacional PostgreSQL.
+Los requisitos RNF-01 a RNF-13 provienen del documento original. Los requisitos RNF-14 a RNF-17 se agregaron para cubrir aspectos de seguridad, mantenibilidad y confiabilidad presentes en la implementación. RNF-18 se agregó el 24/11/2026 con la confidencialidad por asignación (H-08); RNF-14 y RNF-16 se actualizaron ese día. El estado se verificó el 20/11/2026 contra el código y el entorno local en ejecución.
 
----
+**Convenciones de estado.** *Cumplido*, *Parcial*, *No implementado* y *No verificado* (no existe evidencia medible en el proyecto).
 
-### Tabla de evaluación de Requisitos No Funcionales (RNF-01 a RNF-13)
+| RNF | Categoría | Descripción | CU relacionados | Estado y evidencia |
+|---|---|---|---|---|
+| RNF-01 | Seguridad | La autenticación y el cierre de sesión deben ser seguros, con cifrado de contraseñas. | CU-01, CU-03 | Parcial. Las contraseñas se almacenan con hash PBKDF2 (`passlib`) y el login solo acepta coincidencias con el hash. El cierre de sesión elimina el token del navegador, pero no lo revoca en el servidor. |
+| RNF-02 | Rendimiento | Responder en menos de 3 segundos al 95 % de las consultas con hasta 50 usuarios concurrentes. | Todos | No verificado. No existen pruebas de carga. Con los datos demo (200 estudiantes) las pantallas cargan sin demoras perceptibles en el entorno local, pero la pantalla Actividades realiza alrededor de 107 peticiones al cargar (hallazgo H-16). |
+| RNF-03 | Persistencia | Guardar la información en una base de datos relacional. | CU-04 a CU-13 | Cumplido. PostgreSQL 15 con 12 tablas, claves primarias, claves foráneas, restricciones UNIQUE y CHECK. |
+| RNF-04 | Usabilidad | La interfaz debe ser intuitiva, clara y consistente. | CU-04 a CU-11 | Cumplido. Componentes uniformes (shadcn/ui), formularios en ventanas modales, mensajes de confirmación y error (Sonner) y navegación lateral fija. |
+| RNF-05 | Usabilidad | Exportar reportes y tableros a PDF y Excel. | CU-11 | No implementado. |
+| RNF-06 | Auditoría | Registrar fecha, usuario y cambios de observaciones y alertas. | CU-10, CU-12, CU-13 | Parcial. Se registra la fecha (`fecha`, `fecha_creacion`), pero no el usuario que crea o modifica, ni el historial de cambios. |
+| RNF-07 | Portabilidad | Funcionar en navegadores modernos y en dispositivos móviles. | Todos | Parcial. Aplicación web estándar (React/Vite) con diseño adaptable: en pantallas pequeñas la barra lateral se reduce a íconos. Verificado en Chromium a 1366 px y 390 px de ancho; no se probó en Firefox, Edge ni Safari. |
+| RNF-08 | Disponibilidad | Notificar las alertas en tiempo real. | CU-12 | No implementado. Las alertas se ven al abrir o recargar la pantalla. |
+| RNF-09 | Disponibilidad | Respaldo diario y recuperación ante fallos. | CU-02, CU-04, CU-05 | No implementado. Los datos persisten en el volumen Docker `postgres_data`; no hay respaldos automáticos. |
+| RNF-10 | Usabilidad | Interfaz y mensajes en español. | Todos | Cumplido. |
+| RNF-11 | Integridad de datos | Notas numéricas entre 0.0 y 5.0 con decimales; fechas de entrega válidas y no anteriores a la creación. | CU-08, CU-09 | Parcial. La escala oficial 0.0–5.0 se cumple: la base de datos restringe la nota con `CHECK (nota >= 0 AND nota <= 5)` y un decimal (`NUMERIC(3,1)`); la interfaz la presenta en porcentaje y convierte al guardar. El backend no valida el rango antes de llegar a la base de datos (H-05) y no se valida que la fecha de entrega sea futura. |
+| RNF-12 | Seguridad | Cerrar la sesión tras 15 minutos de inactividad. | CU-01 | No implementado. El token vence a las 8 horas, sin control de inactividad. |
+| RNF-13 | Disponibilidad | Disponibilidad del 99 % en la jornada escolar (7:00 a. m. – 3:00 p. m.). | Todos | No aplica en la versión actual: el sistema se ejecuta en un entorno local de desarrollo, sin servidor de producción ni monitoreo. |
+| RNF-14 | Seguridad | Controlar el acceso a la API por autenticación y rol. Criterio verificable: sin token toda ruta privada responde 401; las rutas de usuarios, métricas de usuarios y catálogo de docentes responden 403 a un docente; crear, editar o eliminar grupos, materias y asignaciones, y eliminar estudiantes, responden 403 a un docente; el administrador no puede cambiar su propio rol ni desactivarse (403). | Todos | Cumplido (24/11/2026). Verificado con `backend/tests/test_permisos.py` y `Docs/evidencias/permisos/verificacion-api-permisos.md` (18 de 18 casos). |
+| RNF-18 | Confidencialidad | Un docente solo accede a la información académica de sus asignaciones (docente + materia + grupo). Criterio verificable: las listas que recibe excluyen grupos, materias, estudiantes, actividades, calificaciones, observaciones y alertas fuera de su ámbito, y toda petición que apunte a un registro ajeno (por ejemplo, cambiando `grupo_id`, `actividad_id`, `estudiante_id` o `materia_id`) responde 403 sin modificar datos. La identidad se toma del token, nunca del cliente. | CU-04 a CU-13 | Cumplido (24/11/2026). 19 pruebas de API con casos permitidos y denegados, 2 pruebas de interfaz y evidencia de 18 peticiones reales. Limitación: la tabla `alertas` no guarda la materia (ver RN-37). |
+| RNF-15 | Seguridad | Restringir los orígenes permitidos (CORS). | Todos | Cumplido. Configurable con `CORS_ORIGINS`; por defecto solo se permiten los puertos locales del frontend (8080 y 5173). |
+| RNF-16 | Mantenibilidad | Contar con pruebas automatizadas. | Todos | Parcial. Suite ejecutada el 24/11/2026 en el entorno de pruebas aislado: 61 pruebas de API (pytest), 49 de lógica (Vitest) y 42 de interfaz (Playwright), todas aprobadas. No hay medición de cobertura. |
+| RNF-17 | Confiabilidad | Los tokens de recuperación deben persistir y expirar. | CU-14 | Cumplido. Se guardan en `password_reset_tokens` con vencimiento de 30 minutos y uso único. Limitación operativa: sin SMTP configurado el enlace no llega al usuario. |
 
-| RNF | Categoría | Descripción (según diseño) | Actor impactado | Estado de desarrollo |
-| :--- | :--- | :--- | :--- | :--- |
-| **RNF-01** | Seguridad | La autenticación y el cierre de sesión deben ser seguros, garantizando el cifrado de contraseñas. | Docente, Administrador | ⚠️ **Parcial**<br>Las contraseñas se cifran con algoritmo PBKDF2 mediante `passlib` y el login valida exclusivamente la coincidencia de hash (ya no existe compatibilidad con texto plano). El cierre de sesión destruye el token en cliente pero no revoca el JWT activo en el backend. |
-| **RNF-02** | Rendimiento | Tiempo de respuesta inferior a 3 segundos para el 95% de las peticiones, soportando hasta 50 usuarios concurrentes. | Todos los usuarios | ⚠️ **No verificado**<br>No existen suites de pruebas de carga o estrés en el repositorio. Aunque las consultas relacionales simples responden ágilmente con el volumen actual de datos de prueba, no hay evidencia empírica de comportamiento bajo carga concurrente real. |
-| **RNF-03** | Persistencia | La información de grupos, estudiantes y evaluaciones debe almacenarse en un motor de base de datos relacional. | Docente, Administrador | ✅ **Cumplido**<br>Implementado sobre **PostgreSQL 15**, definiendo llaves primarias, llaves foráneas y reglas formales de integridad referencial entre todas las entidades del dominio. |
-| **RNF-04** | Usabilidad | La interfaz debe ser intuitiva, ágil y consistente para el registro de actividades, notas y observaciones. | Docente | ✅ **Cumplido**<br>Diseño de formularios estructurado con validaciones en cliente, retroalimentación visual estandarizada mediante `sonner` y componentes de UI uniformes (`shadcn/ui`). |
-| **RNF-05** | Usabilidad / Funcionalidad | Los informes y tableros analíticos de rendimiento deben ser exportables a formatos PDF y Excel. | Docente, Administrador | ❌ **No implementado**<br>No existen librerías de generación o endpoints dedicados a la exportación de documentos (PDF/Excel) ni en la capa de UI ni en el API. |
-| **RNF-06** | Auditoría / Seguridad | El sistema debe auditorar anotaciones y alertas, registrando fecha, usuario responsable y modificaciones. | Docente, Administrador | ⚠️ **Parcial**<br>Se capturan las marcas de tiempo (`fecha`/`fecha_creacion`), pero omite la autoría explícita del usuario que ejecuta la acción (carece de `id_docente` en observaciones y no posee tablas dedicadas a logs de auditoría). |
-| **RNF-07** | Portabilidad | Compatibilidad con navegadores modernos (Chrome, Edge, Firefox) y adaptación responsiva a dispositivos móviles. | Todos los usuarios | ✅ **Cumplido**<br>Arquitectura SPA en React/Vite sin dependencias propietarias de motor. Incorpora clases responsivas de Tailwind CSS y utilidades contextuales para pantallas móviles (`use-mobile`). |
-| **RNF-08** | Rendimiento / Disponibilidad | Notificación e integración de alertas en tiempo real para docentes y administradores. | Docente, Administrador | ❌ **No implementado**<br>El sistema no integra WebSockets, Server-Sent Events ni mecanización por polling. La actualización de la bandeja de alertas requiere la recarga o navegación explícita del usuario. |
-| **RNF-09** | Disponibilidad / Seguridad | Copias de respaldo automáticas diarias y mecanismos definidos de recuperación ante desastres. | Administrador | ❌ **No implementado**<br>La persistencia se limita al volumen persistente de contenedor Docker (`postgres_data`). No existen rutinas automatizadas de dump, copias fuera de sitio ni planes de contingencia documentados. |
-| **RNF-10** | Usabilidad | Interfaz de usuario, mensajes de error y notificaciones presentados en idioma español con terminología clara. | Todos los usuarios | ✅ **Cumplido**<br>Toda la capa de presentación, componentes interactivos, modales y respuestas de notificación (`toast`) están localizados completamente al español. |
-| **RNF-11** | Integridad de datos | Calificaciones delimitadas en la escala `0.0` a `5.0`. Las fechas límite de actividades no deben ser anteriores a su fecha de creación. | Docente | ⚠️ **Parcial**<br>El rango numérico de notas está protegido a nivel de esquema en base de datos (`CHECK (nota >= 0 AND nota <= 5)`). No obstante, la validación de fechas límite pasadas no está restringida ni en esquemas Pydantic ni en BD. |
-| **RNF-12** | Seguridad / Rendimiento | Expiración e inactivación automática de la sesión del usuario tras 15 minutos de inactividad. | Docente, Administrador | ❌ **No implementado**<br>El token JWT se almacena indefinidamente en `localStorage` sin temporizadores de inactividad o destrucción automática en cliente, permaneciendo válido hasta el cierre manual. |
-| **RNF-13** | Disponibilidad | Garantía de disponibilidad del 99% durante la jornada académica (7:00 a.m. – 3:00 p.m.). | Todos los usuarios | ⚠️ **No aplicable**<br>Actualmente la plataforma opera en ambiente de desarrollo local (`uvicorn --reload`, `docker-compose`), sin infraestructura productiva, balanceadores ni métricas de monitoreo de uptime. |
+## Resumen
 
----
-
-### Requisitos adicionales de arquitectura y calidad (RNF-14 a RNF-17)
-
-| RNF | Categoría | Descripción técnica | Estado de desarrollo |
-| :--- | :--- | :--- | :--- |
-| **RNF-14** | Seguridad | Control de acceso y autorización a nivel de endpoints en la API. | ⚠️ **Parcial**<br>Validación de tokens JWT en rutas privadas y restricción por rol `admin` en `/usuarios` y métricas. Omite controles de autorización por propiedad de datos (un docente puede consultar asignaciones de otro). |
-| **RNF-15** | Seguridad | Configuración e implementación de políticas CORS. | ✅ **Cumplido**<br>Parametrizable mediante la variable `CORS_ORIGINS`. En desarrollo restringe el acceso al puerto real del frontend Vite (`localhost:8080`, ver `frontend/vite.config.ts`; también se permite `5173` por compatibilidad). |
-| **RNF-16** | Mantenibilidad | Cobertura de pruebas unitarias e integración automatizadas. | ❌ **No implementado**<br>Frontend cuenta con la librería Vitest sin suites de pruebas operativas (`example.test.ts`). El backend carece de framework de pruebas configurado (`pytest`). |
-| **RNF-17** | Confiabilidad | Persistencia e integridad de tokens para la recuperación de claves. | ⚠️ **Parcial**<br>Los tokens de `/auth/forgot-password` se persisten en la tabla `password_reset_tokens` con expiración, así que sobreviven a un reinicio del servidor. La limitación real es operativa: sin `SMTP_HOST` configurado, el enlace nunca llega al usuario (el endpoint nunca lo devuelve en la respuesta HTTP), dejando el flujo de recuperación inutilizable en desarrollo local sin SMTP. |
-
----
-
-## Cuadro de resumen de cumplimiento
-
-| Estado | Cantidad | Porcentaje | Requisitos asociados |
-| :--- | :---: | :---: | :--- |
-| ✅ **Cumplidos** | **5** | **29.4%** | RNF-03, RNF-04, RNF-07, RNF-10, RNF-15 |
-| ⚠️ **Parciales** | **5** | **29.4%** | RNF-01, RNF-06, RNF-11, RNF-14, RNF-17 |
-| ❌ **No implementados** | **5** | **29.4%** | RNF-05, RNF-08, RNF-09, RNF-12, RNF-16 |
-| 🔍 **No verificados / No aplicables** | **2** | **11.8%** | RNF-02, RNF-13 |
-| **Total evaluados** | **17** | **100%** | RNF-01 al RNF-17 |
-
-> *Nota de evolución:* Las acciones para mitigar los requisitos no cumplidos o parciales están documentadas en [`restricciones.md`](restricciones.md) y priorizadas en el [`../backlog.md`](../backlog.md).
+| Estado | Cantidad | Requisitos |
+|---|---|---|
+| Cumplido | 7 | RNF-03, RNF-04, RNF-10, RNF-14, RNF-15, RNF-17, RNF-18 |
+| Parcial | 5 | RNF-01, RNF-06, RNF-07, RNF-11, RNF-16 |
+| No implementado | 4 | RNF-05, RNF-08, RNF-09, RNF-12 |
+| No verificado o no aplica | 2 | RNF-02, RNF-13 |
+| **Total** | **18** | |

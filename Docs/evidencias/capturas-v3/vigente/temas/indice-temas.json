@@ -1,0 +1,92 @@
+[
+  {
+    "archivo": "2026-11-24_landing-claro-y-oscuro_escritorio_ambos.png",
+    "vista": "portada-temas",
+    "modulo": "temas",
+    "descripcion": "Portada de la landing: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_landing-claro-y-oscuro_celular_ambos.png",
+    "vista": "portada-temas",
+    "modulo": "temas",
+    "descripcion": "Portada de la landing: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_login-claro-y-oscuro_escritorio_ambos.png",
+    "vista": "inicio-sesion-temas",
+    "modulo": "temas",
+    "descripcion": "Inicio de sesión: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_login-claro-y-oscuro_celular_ambos.png",
+    "vista": "inicio-sesion-temas",
+    "modulo": "temas",
+    "descripcion": "Inicio de sesión: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_dashboard-claro-y-oscuro_escritorio_ambos.png",
+    "vista": "panel-docente-temas",
+    "modulo": "temas",
+    "descripcion": "Dashboard del docente: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_dashboard-claro-y-oscuro_celular_ambos.png",
+    "vista": "panel-docente-temas",
+    "modulo": "temas",
+    "descripcion": "Dashboard del docente: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_calificaciones-claro-y-oscuro_escritorio_ambos.png",
+    "vista": "tabla-actividad-temas",
+    "modulo": "temas",
+    "descripcion": "Calificaciones: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_calificaciones-claro-y-oscuro_celular_ambos.png",
+    "vista": "tabla-actividad-temas",
+    "modulo": "temas",
+    "descripcion": "Calificaciones: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_analisis-claro-y-oscuro_escritorio_ambos.png",
+    "vista": "rendimiento-temas",
+    "modulo": "temas",
+    "descripcion": "Análisis: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_analisis-claro-y-oscuro_celular_ambos.png",
+    "vista": "rendimiento-temas",
+    "modulo": "temas",
+    "descripcion": "Análisis: modo claro y oscuro (selector persistente)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro y oscuro",
+    "fecha": "2026-11-24"
+  }
+]

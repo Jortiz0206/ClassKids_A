@@ -1,0 +1,46 @@
+[
+  {
+    "archivo": "2026-11-24_lista_escritorio_claro.png",
+    "vista": "lista",
+    "modulo": "modulos/alertas",
+    "descripcion": "Alertas tempranas",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_detalle_escritorio_claro.png",
+    "vista": "detalle",
+    "modulo": "modulos/alertas",
+    "descripcion": "Detalle de una alerta",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_error-conexion_escritorio_claro.png",
+    "vista": "error-conexion",
+    "modulo": "modulos/alertas",
+    "descripcion": "Estado de error de conexión (petición cortada a propósito)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_lista_celular_claro.png",
+    "vista": "lista",
+    "modulo": "modulos/alertas",
+    "descripcion": "Alertas",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

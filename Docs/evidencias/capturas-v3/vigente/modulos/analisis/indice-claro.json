@@ -1,0 +1,46 @@
+[
+  {
+    "archivo": "2026-11-24_rendimiento_escritorio_claro.png",
+    "vista": "rendimiento",
+    "modulo": "modulos/analisis",
+    "descripcion": "Análisis de rendimiento",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_rendimiento-docente-una-materia_escritorio_claro.png",
+    "vista": "rendimiento-docente-una-materia",
+    "modulo": "modulos/analisis",
+    "descripcion": "Análisis del docente de Matemáticas: solo su materia y sus grupos",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_rendimiento_celular_claro.png",
+    "vista": "rendimiento",
+    "modulo": "modulos/analisis",
+    "descripcion": "Análisis",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_filtro-por-materia_escritorio_claro.png",
+    "vista": "filtro-por-materia",
+    "modulo": "modulos/analisis",
+    "descripcion": "Análisis filtrado por una materia (Matemáticas), sin mezclar otras",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

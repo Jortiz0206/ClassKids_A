@@ -1,0 +1,68 @@
+[
+  {
+    "archivo": "2026-11-24_estado-carga_escritorio_claro.png",
+    "vista": "estado-carga",
+    "modulo": "dashboard",
+    "descripcion": "Estado de carga del Dashboard",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-docente_escritorio_claro.png",
+    "vista": "panel-docente",
+    "modulo": "dashboard",
+    "descripcion": "Dashboard del docente",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-docente-una-materia_escritorio_claro.png",
+    "vista": "panel-docente-una-materia",
+    "modulo": "dashboard",
+    "descripcion": "Dashboard de un docente con una materia: solo sus grupos, sus notas y sus alertas",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-docente_celular_claro.png",
+    "vista": "panel-docente",
+    "modulo": "dashboard",
+    "descripcion": "Dashboard con navegación inferior",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_menu-mas-docente_celular_claro.png",
+    "vista": "menu-mas-docente",
+    "modulo": "dashboard",
+    "descripcion": "Menú «Más» del docente (sin módulos de administración)",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-administrador-general_escritorio_claro.png",
+    "vista": "panel-administrador-general",
+    "modulo": "dashboard",
+    "descripcion": "Dashboard del administrador: visión general del colegio",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

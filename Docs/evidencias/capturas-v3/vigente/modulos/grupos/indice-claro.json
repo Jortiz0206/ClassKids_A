@@ -1,0 +1,35 @@
+[
+  {
+    "archivo": "2026-11-24_lista_escritorio_claro.png",
+    "vista": "lista",
+    "modulo": "modulos/grupos",
+    "descripcion": "Grupos",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_lista_celular_claro.png",
+    "vista": "lista",
+    "modulo": "modulos/grupos",
+    "descripcion": "Grupos",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_formulario-nuevo_escritorio_claro.png",
+    "vista": "formulario-nuevo",
+    "modulo": "modulos/grupos",
+    "descripcion": "Formulario de nuevo grupo (administrador)",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

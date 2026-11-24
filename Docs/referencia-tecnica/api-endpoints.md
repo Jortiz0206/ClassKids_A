@@ -1,187 +1,130 @@
-# Referencia de la API — ClassKids
+# Referencia de la API
 
-Documentación de referencia para la API REST del backend de **ClassKids** desarrollada en **FastAPI** (URL base por defecto `http://127.0.0.1:8000`). La interfaz interactiva de Swagger UI se encuentra disponible en `/docs` y la especificación ReDoc en `/redoc`.
+La API REST de ClassKids está implementada en `backend/main.py` con FastAPI y expone **49 operaciones**. La lista se verificó contra el documento `openapi.json` del backend en ejecución el 20/11/2026. La documentación interactiva está disponible en `http://127.0.0.1:8000/docs`.
 
-> **Especificaciones generales:**  
-> - **Formato de datos:** `application/json` en todas las respuestas y payloads de entrada.  
-> - **Autenticación:** Rutas privadas protegidas mediante `Authorization: Bearer <JWT>`.  
-> - **Autorización:** Endpoints de administración restringen la ejecución exigiendo el rol `admin`.
+**Acceso.** *Público*: no requiere token. *Sesión*: requiere el encabezado `Authorization: Bearer <token>` de cualquier usuario activo (docente o administrador). *Admin*: requiere token con rol administrador. *Asignación* (24/11/2026): requiere sesión; el administrador ve y modifica todo, y al docente la API le filtra la respuesta o le valida el registro destino según sus asignaciones (RF-26, RN-33 a RN-38). Sin token o con token inválido la API responde 401; con rol insuficiente o fuera de su ámbito, 403.
 
----
+**Uso desde la interfaz.** Indica si alguna pantalla del frontend llama al endpoint.
 
-## Índice de módulos de la API
+## Inicio y autenticación
 
-1. [Módulo de Inicio](#inicio)
-2. [Módulo de Autenticación](#autenticación)
-3. [Módulo de Usuarios e Invitaciones](#usuarios-e-invitaciones)
-4. [Módulo de Grupos Académicos](#grupos)
-5. [Módulo de Estudiantes](#estudiantes)
-6. [Módulo de Materias](#materias)
-7. [Módulo de Actividades Evaluativas](#actividades)
-8. [Módulo de Calificaciones](#calificaciones)
-9. [Módulo de Observaciones Pedagógicas](#observaciones)
-10. [Módulo de Alertas Académicas](#alertas)
-11. [Módulo de Roles y Asignaciones Docentes](#roles-y-asignaciones)
-12. [Módulo de Métricas y Conteo Administrativo](#métricas-administrativas)
-13. [Matriz de integración Frontend-Backend](#estado-de-integración-frontend-backend)
-
----
-
-## Inicio
-
-| Método | Ruta | Payload Requerido | Descripción y Respuesta |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/` | — | Verifica el estado de salud de la API. Devuelve `{ "proyecto": "ClassKids", "estado": "Operativo - PostgreSQL Docker", "autor": "Johanna Ortiz" }`. |
-
----
-
-## Autenticación
-
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/auth/login` | `{ email, password }` | Autentica contra la tabla `usuarios` usando cifrado PBKDF2. Exige `activo = TRUE`, actualiza `last_sign_in_at` y emite un token JWT conteniendo `{ id, email, nombre, rol }`. |
-| `POST` | `/auth/forgot-password` | `{ email, redirect_to? }` | Genera un token de recuperación y lo persiste en la tabla `password_reset_tokens` (con expiración). El token **nunca** se incluye en la respuesta HTTP: solo viaja por correo (requiere `SMTP_HOST` configurado). Responde HTTP `200` con `{ mensaje, email_sent }` para prevenir enumeración de usuarios. |
-| `POST` | `/auth/reset-password` | `{ password, token? }` | Valida contraseñas de mínimo 6 caracteres, consume el `reset_token` (de un solo uso) y actualiza el campo `password_hash`. |
-
-> **Nota sobre la sesión JWT:**  
-> El token `access_token` está firmado mediante **HS256** con una vigencia de 8 horas. El servidor valida la firma y vigencia en cada petición privada.
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/` | Público | Estado del servicio. | No |
+| POST | `/auth/login` | Público | Recibe `{email, password}`; devuelve `access_token` (JWT de 8 h) y los datos del usuario con su rol. 401 si las credenciales son incorrectas, 403 si la cuenta está desactivada. | Sí (`Auth.tsx`) |
+| POST | `/auth/forgot-password` | Público | Recibe `{email, redirect_to?}`; si el usuario existe y está activo crea un token de 30 min y envía el enlace por SMTP. Respuesta siempre genérica. `redirect_to` solo se acepta si su origen está en `CORS_ORIGINS`. | Sí (`Auth.tsx`) |
+| POST | `/auth/reset-password` | Público | Recibe `{token, password}` (mín. 6 caracteres); actualiza la contraseña y marca el token como usado. | Sí (`ResetPassword.tsx`) |
 
 ## Usuarios e invitaciones
 
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/usuarios` | — | Retorna la lista de usuarios activos (`activo = TRUE`), mapeando sus roles a `admin` o `docente`. Exige rol administrativo. |
-| `POST` | `/usuarios/invitar` | `{ email, role }` | Registra una invitación con token válido por 48 horas. Si no hay servicio SMTP activo, retorna la URL completa en `invitation_url` para copia manual. Responde `409 Conflict` si el correo ya existe. |
-| `GET` | `/invitaciones/{token}` | — | Consulta el estado de una invitación pendiente y verifica su validez temporal. Devuelve el correo y rol asignado. |
-| `POST` | `/invitaciones/{token}/aceptar` | `{ password, nombre }` | Completa la vinculación del usuario activando la cuenta y definiendo sus credenciales de acceso iniciales. |
-| `PUT` | `/usuarios/{id}/rol` | `{ role }` | Modifica el rol de un usuario existente (`admin` o `docente`). Requiere permisos de administrador. |
-| `DELETE` | `/usuarios/{id}` | — | Desactiva lógicamente la cuenta (`activo = FALSE`). Protegido para rol administrador. |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/usuarios` | Admin | Lista los usuarios activos con su rol, fecha de creación y último ingreso. | Sí (`AdminUsuarios.tsx`) |
+| POST | `/usuarios/invitar` | Admin | Recibe `{email, role}`; crea una invitación de 48 h y devuelve `invitation_url` y `email_sent`. 409 si el correo ya pertenece a un usuario activo. | Sí |
+| PUT | `/usuarios/{user_id}/rol` | Admin | Recibe `{role}` (`admin` o `docente`). 403 si es la propia cuenta (H-18). | Sí |
+| DELETE | `/usuarios/{user_id}` | Admin | Desactiva el usuario (baja lógica). 403 si es la propia cuenta (H-18). | Sí |
+| GET | `/docentes/count` | Admin | Número de docentes activos. | Sí (`AdminDashboard.tsx`) |
+| GET | `/admins/count` | Admin | Número de administradores activos. | Sí |
+| GET | `/catalogo/docentes` | Admin | Docentes activos para el formulario de asignaciones. | Sí (`Materias.tsx`) |
+| GET | `/invitaciones/{token}` | Público | Valida una invitación vigente y devuelve el correo y el rol. | Sí (`Invitation.tsx`) |
+| POST | `/invitaciones/{token}/aceptar` | Público | Recibe `{nombre, apellido?, password}`; crea o reactiva el usuario. | Sí |
+| GET | `/roles` | Sesión | Catálogo de roles. | No |
 
 ## Grupos
 
-Operaciones CRUD completas para la entidad `grupos`.
-
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/grupos` | — | Devuelve el listado de todos los grupos académicos ordenados por `id` ascendente. |
-| `POST` | `/grupos` | `GrupoSchema` (`nombre`, `grado?`, `turno?`, `año_lectivo?`) | Registra un nuevo grupo institucional. Responde `201 Created`. |
-| `PUT` | `/grupos/{id}` | `GrupoSchema` | Actualiza los datos de un grupo existente. Devuelve `404 Not Found` si el registro no existe. |
-| `DELETE` | `/grupos/{id}` | — | Remueve el grupo. Los estudiantes inscritos mantienen sus registros y se desvinculan mediante `grupo_id = NULL` (`ON DELETE SET NULL`). |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/grupos` | Asignación | Lista todos los grupos. | Sí |
+| POST | `/grupos` | Admin | Recibe `{nombre, grado?, turno?, ano_lectivo?}` (también acepta el nombre anterior `año_lectivo`; por defecto 2026). | Sí (`Grupos.tsx`) |
+| PUT | `/grupos/{id}` | Admin | Actualiza un grupo. Acepta `ano_lectivo` o `año_lectivo`, por lo que reenviar el objeto recibido en `GET` conserva el año (H-27). | No |
+| DELETE | `/grupos/{id}` | Admin | Elimina un grupo; 409 si tiene actividades o asignaciones. | No |
+| GET | `/grupos/count` | Asignación | Número de grupos. | Sí (`AdminDashboard.tsx`) |
 
 ## Estudiantes
 
-Operaciones CRUD para la entidad `estudiantes`, integrando `LEFT JOIN` con la tabla `grupos` para resolver el nombre del curso.
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/estudiantes?grupo_id=` | Asignación | Lista los estudiantes con el nombre del grupo; filtro opcional por grupo. | Sí |
+| POST | `/estudiantes` | Asignación | Recibe `{documento, nombre, apellido, grupo_id?, activo?}`. Documento duplicado: error 500. | Sí (`Estudiantes.tsx`) |
+| PUT | `/estudiantes/{id}` | Asignación | Actualiza un estudiante. | Sí |
+| DELETE | `/estudiantes/{id}` | Admin | Elimina el estudiante y, en cascada, sus calificaciones, observaciones y alertas. | No |
+| GET | `/estudiantes/count` | Asignación | Número de estudiantes activos. | Sí (`AdminDashboard.tsx`) |
 
-| Método | Ruta | Query / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/estudiantes` | Query `grupo_id?` | Consulta el listado de alumnos. Permite aplicar un filtro opcional por `grupo_id`. |
-| `POST` | `/estudiantes` | `EstudianteSchema` (`documento`, `nombre`, `apellido`, `grupo_id?`, `activo?`) | Da de alta un estudiante en la base de datos. Responde `201 Created`. |
-| `PUT` | `/estudiantes/{id}` | `EstudianteSchema` | Modifica la información del alumno. Responde `404 Not Found` en caso de ID inexistente. |
-| `DELETE` | `/estudiantes/{id}` | — | Elimina al estudiante y borra en cascada (`ON DELETE CASCADE`) sus calificaciones, observaciones y alertas. |
+## Materias y asignaciones
 
----
-
-## Materias
-
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/materias` | — | Obtiene la lista completa de asignaturas del plan académico. |
-| `POST` | `/materias` | `MateriaSchema` (`nombre`, `codigo?`) | Registra una nueva asignatura. Responde `201 Created`. |
-| `PUT` | `/materias/{id}` | `MateriaSchema` | Actualiza el nombre o el código de la materia. |
-| `DELETE` | `/materias/{id}` | — | Elimina la asignatura del catálogo. |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/materias` | Asignación | Lista las materias. | Sí |
+| POST | `/materias` | Admin | Recibe `{nombre, codigo?}`. | Sí (`Materias.tsx`) |
+| PUT | `/materias/{id}` | Admin | Actualiza una materia. | No |
+| DELETE | `/materias/{id}` | Admin | Elimina una materia; 409 si tiene registros asociados. | Sí |
+| GET | `/asignaciones` | Asignación | Lista las asignaciones con nombres de docente, materia y grupo. | Sí |
+| POST | `/asignaciones` | Admin | Recibe `{docente_id, materia_id, grupo_id}`; 404 si el docente no existe o no está activo, 409 si la materia ya tiene docente en ese grupo. | Sí |
+| DELETE | `/asignaciones/{id}` | Admin | Elimina una asignación. | Sí |
 
 ## Actividades
 
-| Método | Ruta | Query / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/actividades` | Query `grupo_id?` | Obtiene evaluaciones con `JOIN` a materias y grupos, ordenadas por `fecha_entrega`. Admite filtro por `grupo_id`. |
-| `POST` | `/actividades` | `ActividadSchema` (`materia_id`, `grupo_id`, `titulo`, `tipo?`, `descripcion?`, `fecha_entrega?`) | Registra una actividad calculando de forma computada su estado (`pendiente` o `vencida`). `201 Created`. |
-| `PUT` | `/actividades/{id}` | `ActividadSchema` | Edita el título, tipo, descripción o fecha de entrega de una evaluación. |
-| `DELETE` | `/actividades/{id}` | — | Elimina una actividad del calendario académico. |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/actividades?grupo_id=` | Asignación | Lista las actividades con materia, grupo y estado calculado (`vencida` o `pendiente`). | Sí |
+| POST | `/actividades` | Asignación | Recibe `{materia_id, grupo_id, titulo, tipo, descripcion?, fecha_entrega?}`. | Sí (`Actividades.tsx`) |
+| PUT | `/actividades/{id}` | Asignación | Actualiza una actividad. | No |
+| DELETE | `/actividades/{id}` | Asignación | Elimina una actividad. | No |
+| GET | `/actividades/count` | Asignación | Número de actividades. | Sí (`AdminDashboard.tsx`) |
 
 ## Calificaciones
 
-| Método | Ruta | Query / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/calificaciones` | Query `actividad_id?` | Retorna el listado de notas registradas con nombres de estudiante y materia. Filtrable por `actividad_id`. |
-| `POST` | `/calificaciones` | `CalificacionSchema` (`estudiante_id`, `materia_id`, `actividad_id?`, `nota`, `periodo?`, `observacion?`) | Registra la nota (escala 0.0 - 5.0). Si el promedio del alumno cae por debajo de 3.0, dispara automáticamente una alerta `low_grade`. `201 Created`. |
-| `PUT` | `/calificaciones/{id}` | `CalificacionSchema` | Modifica el valor cuantitativo o la observación de una nota registrada. |
-| `DELETE` | `/calificaciones/{id}` | — | Elimina un registro de calificación. |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/calificaciones?actividad_id=` | Asignación | Lista las calificaciones con nombre del estudiante y de la materia. | Sí |
+| POST | `/calificaciones` | Asignación | Recibe `{estudiante_id, materia_id, actividad_id?, nota, periodo?, observacion?, entregado?}` (periodo 1 por defecto). Guarda `entregado` si la base tiene la columna (migración 001). Evalúa la regla de alerta automática sin crear duplicados (D3). Nota fuera de 0–5 o estudiante inexistente: error 500. | Sí (`Calificaciones.tsx`) |
+| PUT | `/calificaciones/{id}` | Asignación | **Actualiza solo los campos enviados**: si no se envían `periodo` u `observacion`, se conservan (H-31, H-33). `entregado` se guarda si la columna existe. No evalúa alertas. 404 si no existe. | Sí |
+| DELETE | `/calificaciones/{id}` | Asignación | Elimina una calificación. | No |
 
 ## Observaciones
 
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/observaciones` | — | Consulta la bitácora de anotaciones cualitativas con el nombre del estudiante, ordenadas por fecha descendente. |
-| `POST` | `/observaciones` | `ObservacionSchema` (`estudiante_id`, `tipo?`, `descripcion`) | Registra una nueva anotación cualitativa (convivencial, académica, reconocimiento). `201 Created`. |
-| `DELETE` | `/observaciones/{id}` | — | Elimina una entrada del historial de observaciones. |
-
----
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/observaciones` | Asignación | Lista todas las observaciones (la interfaz filtra por estudiante). | Sí |
+| POST | `/observaciones` | Asignación | Recibe `{estudiante_id, tipo?, descripcion}`. | Sí (`ObservacionesEstudiante.tsx`) |
+| DELETE | `/observaciones/{id}` | Asignación | Elimina una observación. | Sí |
 
 ## Alertas
 
-| Método | Ruta | Payload / Parameters | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/alertas` | — | Lista la totalidad de alertas académicas ordenadas cronológicamente por su fecha de creación. |
-| `POST` | `/alertas` | `AlertaSchema` (`estudiante_id`, `tipo`, `mensaje`, `estado?`) | Genera una alerta manual normalizando el estado a `active`, `reviewed` o `resolved`. `201 Created`. |
-| `PUT` | `/alertas/{id}` | Query parameter `estado: str` | Actualiza el estado de la alerta (variante por query param). |
-| `PUT` | `/alertas/{id}/estado` | Body `{ estado }` | Endpoint principal para actualizar el estado de una alerta (`active`, `reviewed`, `resolved`). |
-| `DELETE` | `/alertas/{id}` | — | Remueve la alerta del tablero. |
+| Método | Ruta | Acceso | Descripción | Uso desde la interfaz |
+|---|---|---|---|---|
+| GET | `/alertas` | Asignación | Lista las alertas con el nombre del estudiante. | Sí |
+| POST | `/alertas` | Asignación | Crea una alerta manual `{estudiante_id, tipo, mensaje, estado?}`. | No |
+| PUT | `/alertas/{id}?estado=` | Asignación | Cambia el estado (parámetro en la URL). | No |
+| PUT | `/alertas/{id}/estado` | Asignación | Cambia el estado con cuerpo `{estado}`; 422 si el estado no es válido. | Sí (`Alertas.tsx`) |
+| DELETE | `/alertas/{id}` | Asignación | Elimina una alerta. | No |
+| GET | `/alertas/activas/count` | Asignación | Número de alertas en estado `active`. | Sí (`AdminDashboard.tsx`) |
 
----
+## Comportamiento verificado
 
-## Roles y asignaciones
+| Prueba (20/11/2026) | Resultado |
+|---|---|
+| `GET /estudiantes` sin token | 401 «Autenticación requerida» |
+| `GET /estudiantes` con token falso | 401 «Token inválido o expirado» |
+| `GET /usuarios` con token de docente | 403 «Permisos insuficientes» |
+| `POST /auth/login` con contraseña incorrecta o correo inexistente | 401 con el mismo mensaje genérico |
+| `PUT /alertas/999999/estado` con estado «xyz» | 422 «Estado de alerta inválido» |
+| `POST /calificaciones` con nota 7 | 500 (la restricción CHECK de la base de datos rechaza el valor) |
+| `POST /estudiantes` con documento duplicado | 500 (la restricción UNIQUE rechaza el valor) |
+| `DELETE /estudiantes/999999` (inexistente) | 200 «Estudiante eliminado» |
+| `POST /calificaciones` con `nota: "abc"` | 422 con `detail` en forma de lista (la interfaz lo muestra como «nota: Input should be a valid number» desde la corrección de H-24) |
 
-| Método | Ruta | Payload / Body | Descripción técnica |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/roles` | — | Consulta el catálogo completo de roles del sistema (`Administrador`, `Docente`, `Acudiente`). |
-| `GET` | `/catalogo/docentes` | — | Devuelve únicamente los usuarios activos que poseen el rol `Docente`. |
-| `GET` | `/asignaciones` | — | Retorna la matriz de distribución docente vinculando profesor, materia y grupo. |
-| `POST` | `/asignaciones` | `AsignacionSchema` (`docente_id`, `materia_id`, `grupo_id`) | Asigna la carga académica. Si ya existe la combinación materia/grupo, responde `409 Conflict`. `201 Created`. |
-| `DELETE` | `/asignaciones/{id}` | — | Elimina la carga académica asignada a un docente. |
+Los resultados 500 y el 200 sobre un registro inexistente se documentan como hallazgos.
 
----
+### Permisos verificados el 24/11/2026 (H-08 y H-18)
 
-## Métricas administrativas
+| Petición | Sesión | Resultado |
+|---|---|---|
+| `PUT /usuarios/{propio id}/rol`, `DELETE /usuarios/{propio id}` | Administrador | 403 «No puedes cambiar tu propio rol» / «No puedes desactivar tu propia cuenta» |
+| `GET /grupos`, `/materias`, `/calificaciones`, `/alertas` | Docente de Matemáticas | 200 solo con sus 7 grupos, su materia, sus 28 notas y sus 3 alertas |
+| `GET /estudiantes?grupo_id={ajeno}`, `GET /calificaciones?actividad_id={ajena}` | Docente | 403 |
+| `POST /calificaciones` de otra materia o de un estudiante de otro grupo | Docente | 403 «No tienes asignada esta materia en el grupo del estudiante» |
+| `PUT /actividades/{ajena}`, `PUT /alertas/{ajena}/estado` | Docente | 403 |
+| `POST /grupos`, `POST /materias`, `GET /catalogo/docentes` | Docente | 403 |
 
-Endpoints protegidos para el rol `admin` que alimentan el panel de control (`AdminDashboard.tsx`):
-
-| Método | Ruta | Descripción técnica |
-| :--- | :--- | :--- |
-| `GET` | `/docentes/count` | Retorna el total de docentes activos (`{ "count": N }`). |
-| `GET` | `/admins/count` | Retorna el total de administradores activos (`{ "count": N }`). |
-| `GET` | `/grupos/count` | Retorna el total de grupos registrados (`{ "count": N }`). |
-| `GET` | `/estudiantes/count` | Retorna el total de estudiantes activos (`{ "count": N }`). |
-| `GET` | `/actividades/count` | Retorna el total de actividades programadas (`{ "count": N }`). |
-| `GET` | `/alertas/activas/count` | Retorna el total de alertas en estado activo o pendiente (`{ "count": N }`). |
-
----
-
-## Estado de integración frontend-backend
-
-Trazabilidad entre las vistas desarrolladas en React y los servicios expuestos por la API REST:
-
-| Módulo Frontend | Consumo de API REST | Estado en Servidor FastAPI |
-| :--- | :--- | :--- |
-| `admin/AdminDashboard.tsx` | `GET /docentes/count`, `/admins/count`, `/grupos/count`, `/estudiantes/count`, `/actividades/count`, `/alertas/activas/count` | ✅ **Implementados:** 6 servicios de conteo protegidos para rol `admin`. |
-| `admin/AdminUsuarios.tsx` | `PUT /usuarios/{id}/rol`, `DELETE /usuarios/{id}`, `POST /usuarios/invitar` | ✅ **Implementados:** Gestión completa de usuarios y roles. |
-| `admin/AdminDatos.tsx` | `GET /grupos`, `GET /estudiantes`, `GET /alertas` | ✅ **Implementados:** Supervisión global en modo lectura. |
-| `Materias.tsx` | `POST /asignaciones`, `DELETE /asignaciones/{id}`, `GET /catalogo/docentes` | ✅ **Implementados:** Asignaciones y catálogo docente. |
-| `Alertas.tsx` | `PUT /alertas/{id}/estado` | ✅ **Implementado:** Procesamiento de estado vía body JSON. |
-| `Actividades.tsx`, `Calificaciones.tsx` | `GET /estudiantes?grupo_id=X`, `GET /actividades?grupo_id=X`, `GET /calificaciones?actividad_id=X` | ✅ **Implementados:** Filtrado por query params en PostgreSQL. |
-
----
-
-> *Información complementaria:* Los detalles técnicos relativos a las brechas y limitaciones encontradas se detallan en el documento [`../conceptos/restricciones.md`](../conceptos/restricciones.md).
+Detalle y script reproducible: [`../evidencias/permisos/verificacion-api-permisos.md`](../evidencias/permisos/verificacion-api-permisos.md).

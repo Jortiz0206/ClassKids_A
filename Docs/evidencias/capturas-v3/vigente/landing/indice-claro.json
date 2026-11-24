@@ -1,0 +1,134 @@
+[
+  {
+    "archivo": "2026-11-24_politica-privacidad_escritorio_claro.png",
+    "vista": "politica-privacidad",
+    "modulo": "landing",
+    "descripcion": "Política de privacidad",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_pagina-completa_escritorio_claro.png",
+    "vista": "pagina-completa",
+    "modulo": "landing",
+    "descripcion": "Landing completa",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_portada_escritorio_claro.png",
+    "vista": "portada",
+    "modulo": "landing",
+    "descripcion": "Portada: mensaje, acciones y panel real integrado",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_funcionalidades_escritorio_claro.png",
+    "vista": "funcionalidades",
+    "modulo": "landing",
+    "descripcion": "Franja de funcionalidades",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_panel-en-portada_escritorio_claro.png",
+    "vista": "panel-en-portada",
+    "modulo": "landing",
+    "descripcion": "Panel real integrado en la portada",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_presentacion-modulos_escritorio_claro.png",
+    "vista": "presentacion-modulos",
+    "modulo": "landing",
+    "descripcion": "Presentación de los módulos reales",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_flujo-acompanamiento_escritorio_claro.png",
+    "vista": "flujo-acompanamiento",
+    "modulo": "landing",
+    "descripcion": "Flujo de acompañamiento con pantallas reales en el celular",
+    "dispositivo": "Escritorio 1366 px",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_pagina-completa_celular_claro.png",
+    "vista": "pagina-completa",
+    "modulo": "landing",
+    "descripcion": "Landing completa",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_portada_celular_claro.png",
+    "vista": "portada",
+    "modulo": "landing",
+    "descripcion": "Portada: mensaje, acciones y panel real integrado",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_funcionalidades_celular_claro.png",
+    "vista": "funcionalidades",
+    "modulo": "landing",
+    "descripcion": "Franja de funcionalidades",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_presentacion-modulos_celular_claro.png",
+    "vista": "presentacion-modulos",
+    "modulo": "landing",
+    "descripcion": "Presentación de los módulos reales",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  },
+  {
+    "archivo": "2026-11-24_flujo-acompanamiento_celular_claro.png",
+    "vista": "flujo-acompanamiento",
+    "modulo": "landing",
+    "descripcion": "Flujo de acompañamiento con pantallas reales en el celular",
+    "dispositivo": "Celular 390 × 844",
+    "tema": "Modo claro",
+    "temaVerificado": true,
+    "desborde": 0,
+    "fecha": "2026-11-24"
+  }
+]

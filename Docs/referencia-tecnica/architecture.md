@@ -1,163 +1,174 @@
-# Arquitectura del sistema — ClassKids
+# Arquitectura del sistema
 
-Documentación técnica de la arquitectura del sistema **ClassKids**, detallando sus componentes, estructura de archivos, flujo de datos y especificaciones de despliegue.
+## Visión general
 
----
+ClassKids sigue una arquitectura **cliente-servidor desacoplada en tres capas**:
 
-### 1. Visión general de la arquitectura
+1. **Capa de presentación:** aplicación de una sola página (SPA) en React que se ejecuta en el navegador.
+2. **Capa de lógica:** API REST en FastAPI (Python) que valida la sesión, aplica las reglas de negocio y accede a los datos.
+3. **Capa de datos:** base de datos PostgreSQL 15 que se ejecuta en un contenedor Docker.
 
-ClassKids utiliza una arquitectura distribuida de **tres capas desacopladas** orquestadas localmente mediante Docker Compose para el motor relacional de base de datos:
+Las capas se comunican por HTTP con mensajes JSON. Cada petición a una ruta privada incluye el encabezado `Authorization: Bearer <token>`.
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│              Navegador Web / Cliente                    │
-└────────────────────────────┬────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│     Frontend SPA (React 18 + TypeScript + Vite)         │
-│     Puerto: 8080 (definido en frontend/vite.config.ts)  │
-└────────────────────────────┬────────────────────────────┘
-                             │
-                             │ HTTP Async (fetch) + Payload JSON
-                             │ Header -> Authorization: Bearer <token>
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│     Backend API REST (FastAPI + Uvicorn)                │
-│     Puerto: 8000                                        │
-└────────────────────────────┬────────────────────────────┘
-                             │
-                             │ Session SQLAlchemy
-                             │ Consultas SQL Parametrizadas (sqlalchemy.text)
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│     Base de Datos Relacional (PostgreSQL 15 Docker)     │
-│     Puerto: 5432                                        │
-└─────────────────────────────────────────────────────────┘
-```
+![Arquitectura de ClassKids](../diagramas/arquitectura.png)
 
-> **Nota:** La aplicación opera de forma directa sin servidores intermediarios (BFF - Backend-For-Frontend). La SPA consume los endpoints de la API directamente.
+## Tecnologías
 
----
+| Capa | Tecnología | Uso en el proyecto |
+|---|---|---|
+| Presentación | React 18 + TypeScript | Construcción de la interfaz por componentes. |
+| Presentación | Vite 5 | Servidor de desarrollo (puerto 8080) y empaquetado. |
+| Presentación | Tailwind CSS 3 + shadcn/ui (Radix UI) | Estilos y componentes accesibles (diálogos, selectores, tablas, pestañas). |
+| Presentación | React Router 6 | Rutas públicas, protegidas y de administración. |
+| Presentación | Recharts 2 | Gráficas del Dashboard y de Análisis. |
+| Presentación | Sonner | Mensajes de éxito y error. |
+| Lógica | Python + FastAPI + Uvicorn | API REST (puerto 8000) con documentación automática en `/docs`. |
+| Lógica | Pydantic 2 | Esquemas de los datos de entrada. |
+| Lógica | python-jose | Emisión y validación de tokens JWT (HS256). |
+| Lógica | passlib (PBKDF2-SHA256) | Hash de contraseñas. |
+| Lógica | SQLAlchemy 2 (Core) + psycopg 3 | Conexión a PostgreSQL y consultas SQL parametrizadas con `text()`; no se usan modelos ORM. |
+| Datos | PostgreSQL 15 (imagen `postgres:15-alpine`) | Persistencia. |
+| Infraestructura | Docker Compose | Ejecución de la base de datos con volumen persistente. |
+| Pruebas | pytest + httpx (TestClient) | 24 pruebas de la API contra la base de pruebas. |
+| Pruebas | Vitest + Testing Library | 15 pruebas de lógica del frontend. |
+| Pruebas | Playwright | 15 pruebas de interfaz contra el entorno de pruebas. |
+| Herramientas | pnpm, ESLint, Git | Gestión de paquetes, análisis estático y control de versiones. |
 
-### 2. Estructura del repositorio
+## Estructura del repositorio
+
+Actualizada el 23/11/2026 con el código entregado.
 
 ```text
 ClassKids_A/
 ├── backend/
-│   ├── database.py         # Configuración de sesión y motor SQLAlchemy
-│   ├── docker-compose.yml  # Orquestador del contenedor PostgreSQL 15-alpine
-│   ├── init.sql            # Script DDL e insumos de datos iniciales
-│   ├── main.py             # Definición de esquemas Pydantic y endpoints de la API
-│   └── requirements.txt    # Dependencias de Python (FastAPI, Uvicorn, Passlib, etc.)
+│   ├── main.py                  API completa: esquemas Pydantic, middleware JWT y 49 operaciones
+│   ├── database.py              Conexión a PostgreSQL (engine y sesión)
+│   ├── init.sql                 Esquema de la base de datos y datos de demostración
+│   ├── migrations/              001_calificaciones_entregado.sql (aplicada solo en pruebas)
+│   ├── tests/                   pytest: conftest (salvaguardas), integración y unitarias
+│   ├── docker-compose.yml       PostgreSQL real (5432)
+│   ├── docker-compose.test.yml  PostgreSQL de pruebas (5433)
+│   ├── requirements.txt         Dependencias (y requirements-dev.txt para pruebas)
+│   └── .env.example             Variables de entorno de referencia
 ├── frontend/
 │   ├── src/
-│   │   ├── api/client.ts   # Fachada cliente HTTP con interceptor para Bearer Tokens
-│   │   ├── assets/         # Recursos gráficos estáticos
-│   │   ├── components/
-│   │   │   ├── dashboard/  # Componentes visuales del panel docente
-│   │   │   ├── layout/     # Estructuras base (AppLayout, AdminLayout, Sidebar, Navbar)
-│   │   │   ├── students/   # Modales e historiales de estudiantes
-│   │   │   └── ui/         # Sistema de diseño local basado en componentes shadcn/ui
-│   │   ├── contexts/       # Contextos globales de React (AuthContext, SidebarContext)
-│   │   ├── hooks/          # Hooks personalizados (useUserRole, use-mobile, use-toast)
-│   │   ├── lib/            # Utilidades de estilo y configuración (cn)
-│   │   ├── pages/          # Vistas modulares por dominio funcional
-│   │   │   └── admin/      # Vistas exclusivas para el rol Administrador
-│   │   ├── test/           # Configuración de entornos de pruebas con Vitest
-│   │   ├── types/index.ts  # Definiciones de tipos e interfaces de TypeScript
-│   │   ├── App.tsx         # Configuración de enrutador y componentes Guards
-│   │   └── main.tsx        # Punto de entrada de la aplicación React
+│   │   ├── api/client.ts                Cliente HTTP con el token de sesión y errores legibles
+│   │   ├── contexts/                    AuthContext (sesión) y SidebarContext
+│   │   ├── hooks/                       useUserRole, use-mobile, useRecurso (listas compartidas), useAlertasActivas
+│   │   ├── lib/                         notas (escala y umbrales), fechas, conteos, listas, tema, utils
+│   │   ├── pages/                       Una página por módulo, admin/* y legal/*
+│   │   ├── components/common/           Mascota, EstadoBadge, estados (vacío, carga, error), ThemeToggle
+│   │   ├── components/layout/           Menú lateral, barra inferior móvil, layouts, navegación (navegacion.ts)
+│   │   ├── components/dashboard/        Indicadores, gráfica por materia, alertas, seguimiento
+│   │   ├── components/students/         Observaciones del estudiante
+│   │   ├── components/ui/               Componentes base de shadcn/ui en uso (19)
+│   │   ├── test/                        Pruebas unitarias (Vitest)
+│   │   ├── types/                       Tipos TypeScript de las entidades
+│   │   ├── index.css                    Tokens de diseño: temas claro y oscuro
+│   │   └── App.tsx                      Rutas, protección por rol y proveedor de tema
+│   ├── vite.config.ts                   Puerto 8080 y alias @
 │   └── package.json
-└── Docs/                   # Documentación técnica del proyecto
+├── e2e/                         Pruebas de interfaz (Playwright) y guía del entorno de pruebas
+├── Docs/                        Documentación, diagramas, evidencias, pruebas, Scrum y Word
+├── ENTREGA_FINAL_CLASSKIDS/     Índice de evaluación de los 14 criterios
+└── README.md
 ```
 
----
+## Capa de presentación
 
-### 3. Frontend
+### Rutas
 
-- **Stack técnico:** React 18, TypeScript, compilado mediante Vite con SWC.
-- **Enrutamiento:** `react-router-dom` v6 estructurado en tres árboles principales:
-  - *Público:* `/`, `/auth`, `/reset-password`, `/invitacion`.
-  - *Administrador:* `/admin/*`.
-  - *Docente:* `/app/*`.
-- **Estilos y componentes:** Tailwind CSS, `tailwindcss-animate`, primitivas de Radix UI y ~35 componentes locales de **shadcn/ui** en `src/components/ui/`.
-- **Visualización de datos:** Librería Recharts (`BarChart`, `LineChart`, `PieChart`) para tableros analíticos.
-- **Notificaciones:** Integración de la librería `sonner` para mensajes emergentes (`toast`).
-- **Pruebas:** Vitest y React Testing Library configurados.
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/` | Landing (página de inicio del producto) | Público |
+| `/auth` | Inicio de sesión y solicitud de recuperación | Público (redirige a `/app` si ya hay sesión) |
+| `/reset-password` | Nueva contraseña | Público (con token) |
+| `/invitacion` | Activación de cuenta | Público (con token) |
+| `/legal/terminos`, `/legal/privacidad`, `/legal/cookies`, `/legal/proteccion-datos` | Políticas legales | Público |
+| `/app` | Dashboard del docente | Sesión iniciada |
+| `/app/grupos`, `/app/estudiantes`, `/app/materias`, `/app/actividades`, `/app/calificaciones`, `/app/analisis`, `/app/alertas` | Módulos académicos | Sesión iniciada |
+| `/admin`, `/admin/usuarios`, `/admin/datos` | Panel de administración | Rol Administrador |
 
-#### A. Autenticación y sesión en el cliente
-`AuthContext` gestiona la persistencia de la sesión en el navegador mediante `localStorage` bajo las llaves `classkids_token` y `classkids_user`. El rol del usuario es derivado con el hook `useUserRole`.
+La protección se implementa con tres componentes en `App.tsx`: `ProtectedRoute` (exige sesión), `AdminRoute` (exige rol administrador) y `AuthRoute` (evita volver al login con sesión activa).
 
-#### B. Protección de rutas (Route Guards)
+### Manejo de la sesión
 
-| Componente Guard | Condición de acceso | Redirección en fallo |
-| :--- | :--- | :--- |
-| **`ProtectedRoute`** | Exige usuario autenticado (`user != null`) | `/auth` |
-| **`AdminRoute`** | Exige usuario autenticado y rol `admin` | `/auth` (sin sesión) / `/app` (si no es admin) |
-| **`AuthRoute`** | Bloquea acceso a login a usuarios autenticados | `/app` |
+1. Al iniciar sesión, `AuthContext` guarda el token y los datos del usuario (incluido el rol) en `localStorage`.
+2. `api/client.ts` lee el token y lo agrega a cada petición. Si la API responde con error, convierte el campo `detail` en un mensaje legible, tanto si es texto (401, 403, 404, 409) como si es la lista de errores de validación de Pydantic (422).
+3. `useUserRole` deriva el rol del usuario guardado para mostrar u ocultar «Panel Admin» y proteger `/admin`.
+4. Al cerrar sesión se borran el token y el usuario del navegador.
 
----
+### Procesamiento en el cliente
 
-### 4. Backend
+El backend entrega listas completas (grupos, estudiantes, calificaciones, alertas) y cada pantalla calcula sus indicadores en el navegador: promedios, porcentajes, clasificación de rendimiento, estado del estudiante y tendencia. Las reglas de ese cálculo están en el capítulo de reglas de negocio.
 
-- **Stack técnico:** FastAPI 0.110+ con servidor ASGI Uvicorn.
-- **Estrategia de datos:** SQLAlchemy 2.x operando como ejecutor de SQL parametrizado (`sqlalchemy.text()`), sin modelos ORM declarativos.
-- **Validación de esquemas:** Modelos Pydantic v2 para validación de Payloads de entrada/salida (`GrupoSchema`, `EstudianteSchema`, etc.).
-- **Documentación autogenerada:** OpenAPI expuesto en `/docs` (Swagger UI) y `/redoc`.
-- **Servicio de correo:** Integración con `smtplib`. Si `SMTP_HOST` no se encuentra parametrizado, las URLs de invitación se devuelven en el cuerpo de la respuesta HTTP para uso manual.
+## Capa de lógica (API)
 
----
+- **Archivo único:** toda la API está en `backend/main.py`, organizada por secciones (autenticación, usuarios, grupos, estudiantes, materias, actividades, calificaciones, observaciones, alertas, roles y asignaciones).
+- **Middleware de autenticación:** `require_authentication` intercepta cada petición. Si la ruta empieza por uno de los prefijos privados (`/usuarios`, `/catalogo`, `/grupos`, `/estudiantes`, `/materias`, `/actividades`, `/calificaciones`, `/observaciones`, `/alertas`, `/roles`, `/asignaciones`, `/docentes`, `/admins`), exige un token válido. Si además empieza por `/usuarios`, `/docentes` o `/admins`, exige rol administrador.
+- **Rutas públicas:** `/`, `/auth/*`, `/invitaciones/*` y la documentación `/docs`.
+- **Identidad y permisos (24/11/2026):** el middleware guarda en `request.state.usuario` el id (`sub`) y el rol (`role`) del token. Cada endpoint de datos recibe esa identidad con `Depends(sesion_actual)` y aplica dos niveles:
+  - **Rol:** `solo_admin()` reserva al administrador la creación, edición y eliminación de grupos, materias y asignaciones, y la eliminación de estudiantes; `/catalogo` se suma a los prefijos de administración. El administrador no puede cambiarse el rol ni desactivarse (H-18, 403).
+  - **Asignación:** para el docente, las consultas se filtran con la tabla `asignaciones` (docente + materia + grupo): grupos y estudiantes de los grupos donde tiene alguna asignación, sus materias, y actividades y calificaciones solo de la materia que dicta en ese grupo. Las alertas se filtran por los estudiantes de sus grupos y, si el mensaje nombra una materia, por esa materia (RN-37). Las escrituras validan el registro destino con `tiene_asignacion`, `exigir_calificar`, `exigir_estudiante`, `_exigir_actividad`, `_exigir_calificacion` y `_exigir_alerta`; fuera de ámbito responden 403 sin modificar datos.
+  - Los fragmentos SQL de los filtros son fijos y el id del docente siempre viaja como parámetro (`:uid`); nunca se usa un id de docente enviado por el cliente.
+- **Indicadores por materia:** como la API ya entrega al docente solo sus datos, los indicadores del navegador quedan acotados. El Dashboard del docente muestra «Mis asignaciones» (promedio de cada materia en cada grupo) y Análisis permite filtrar por materia; las fórmulas no cambian.
+- **Acceso a datos:** cada endpoint ejecuta SQL parametrizado con `text()` y parámetros con nombre, lo que evita la inyección SQL.
+- **Correo:** si `SMTP_HOST` está definido, se envían los correos de invitación y de recuperación de contraseña.
 
-### 5. Base de datos
+El detalle de cada endpoint está en el anexo de referencia de la API.
 
-- **Motor:** PostgreSQL 15 en contenedor Docker (`postgres:15-alpine`).
-- **Inicialización:** Despliegue automático de tablas y datos semilla mediante el archivo `init.sql` montado en `/docker-entrypoint-initdb.d/`.
-- **Persistencia:** Gestionada por el volumen de Docker `postgres_data`.
+## Capa de datos
 
----
+PostgreSQL 15 en el contenedor `classkids_db`, con la base `classkids` y el volumen persistente `postgres_data`. El script `init.sql` se ejecuta la primera vez que se crea el contenedor: crea las 12 tablas y carga los datos de demostración. El modelo completo está en el capítulo de modelo de datos.
 
-### 6. Flujo de ejecución de una petición (Ejemplo: Registro de calificación)
+## Ejemplo de flujo: registrar una calificación
 
-```text
-[Docente]
-   │
-   ▼ Completa formulario en Calificaciones.tsx
-[Frontend]
-   │
-   ▼ api.post("/calificaciones", payload)
-   │ Header: Authorization: Bearer <token>
-[FastAPI]
-   │
-   ▼ Valida Payload con CalificacionSchema
-   │ Ejecuta INSERT INTO calificaciones ... RETURNING *
-   │ vía SQLAlchemy Session con SQL Parametrizado
-[PostgreSQL]
-   │
-   ▼ Evalúa restricción CHECK (nota >= 0 AND nota <= 5)
-[FastAPI]
-   │
-   ▼ Recalcula promedio del estudiante
-   │ Genera alerta de tipo 'low_grade' si promedio < 3.0
-   │ Efectúa db.commit() y retorna objeto creado
-[Frontend]
-   │
-   ▼ Notifica mediante Sonner (Toast) y actualiza lista de calificaciones
-```
+1. El docente pulsa «Guardar cambios» en la pantalla Calificaciones.
+2. `Calificaciones.tsx` convierte cada porcentaje digitado a la escala oficial 0.0–5.0 (÷ 20, un decimal) y llama a `api.post('/calificaciones', …)` o a `api.put(…)`.
+3. `client.ts` envía la petición con el token.
+4. El middleware valida el token y guarda la identidad; FastAPI valida el JSON con `CalificacionSchema` y el endpoint comprueba que el docente tenga asignada esa materia en el grupo del estudiante (si no, 403).
+5. El endpoint inserta la calificación, calcula el promedio del estudiante y, si es menor a 3.0, crea la alerta.
+6. PostgreSQL confirma la transacción y la API devuelve la calificación creada.
+7. La pantalla muestra el mensaje de éxito y recarga los datos.
 
----
+## Configuración del entorno
 
-### 7. Comandos de ejecución local
+| Variable | Uso | Valor por defecto en desarrollo |
+|---|---|---|
+| `DATABASE_URL` | Conexión a PostgreSQL | `postgresql+psycopg://postgres:postgrespassword@localhost:5432/classkids` |
+| `CORS_ORIGINS` | Orígenes permitidos | Puertos 8080 y 5173 de `localhost` y `127.0.0.1` |
+| `JWT_SECRET` | Firma de los tokens | Aleatorio en cada arranque (las sesiones se pierden al reiniciar). Obligatorio si `ENVIRONMENT=production`. |
+| `ENVIRONMENT` | `development` o `production` | `development` |
+| `FRONTEND_URL` | Base de los enlaces enviados por correo | `http://127.0.0.1:8080` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Envío de correos | Sin definir: no se envían correos |
+| `VITE_API_URL` (frontend) | URL de la API | `http://127.0.0.1:8000` |
 
-| Servicio | Entorno / Comando | Puerto asignado |
-| :--- | :--- | :--- |
-| **Base de Datos** | `cd backend && docker-compose up -d` | `5432` |
-| **Backend API** | `cd backend && py -m uvicorn main:app --reload` | `8000` |
-| **Frontend SPA** | `cd frontend && pnpm run dev` | `8080` |
+> Nota: `database.py` lee `DATABASE_URL` antes de que `main.py` cargue el archivo `.env`, por lo que hoy esa variable solo surte efecto si se define en el sistema operativo (hallazgo H-17).
 
-#### Variables de entorno principales (ver `backend/.env.example`):
-- `DATABASE_URL`: `postgresql+psycopg://postgres:postgrespassword@localhost:5432/classkids`
-- `VITE_API_URL`: `http://127.0.0.1:8000`
-- `CORS_ORIGINS`: `http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173`
-- `JWT_SECRET`, `ENVIRONMENT`, `FRONTEND_URL`
-- Configuración SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`
+## Entorno de pruebas aislado
+
+| Componente | Real | Pruebas |
+|---|---|---|
+| PostgreSQL | `classkids_db`, puerto 5432, base `classkids` | `classkids_test_db`, puerto 5433, base `classkids_test` (`backend/docker-compose.test.yml`) |
+| Backend | puerto 8000 | puerto 8001, con `DATABASE_URL` apuntando a `classkids_test` |
+| Frontend | puerto 8080 | puerto 8081, con `VITE_API_URL=http://127.0.0.1:8001` |
+
+Las pruebas de pytest se detienen si la conexión no apunta a `classkids_test`, y las de Playwright fallan si el navegador llama al backend real. Detalle en [`../../e2e/README.md`](../../e2e/README.md).
+
+## Migraciones
+
+El esquema inicial se crea con `init.sql`. Los cambios posteriores se guardan como scripts numerados en `backend/migrations/`. La migración 001 (columna `calificaciones.entregado`) está aplicada en la base de pruebas y pendiente de autorización en la real. El backend consulta una vez por proceso si las columnas opcionales existen (`columna_existe`) y funciona con ambos esquemas.
+
+## Patrones aplicados
+
+| Patrón | Aplicación |
+|---|---|
+| Cliente-servidor desacoplado | Frontend y backend independientes, comunicados por una API REST. |
+| Arquitectura en capas | Presentación, lógica y datos. Dentro del backend no hay capas separadas de servicios y repositorios: cada endpoint contiene su lógica y su SQL. |
+| DTO / esquema | Modelos Pydantic para los datos de entrada. |
+| Guardia de rutas | `ProtectedRoute` y `AdminRoute` en el frontend; middleware de autenticación en el backend. |
+| Fachada de acceso a la API | `api/client.ts` centraliza las peticiones HTTP. |
+| Contexto global | `AuthContext` y `SidebarContext` (Context API de React). |
+| Sistema de diseño por componentes | shadcn/ui + Radix + Tailwind. |
+
+Ver también [`../conceptos/patrones-arquitectonicos.md`](../conceptos/patrones-arquitectonicos.md).

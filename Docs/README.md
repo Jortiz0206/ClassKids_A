@@ -1,65 +1,86 @@
-# Documentación — ClassKids
+# Documentación de ClassKids
 
-ClassKids es una plataforma web para la gestión académica de un colegio pequeño. Permite a administradores y docentes gestionar grupos, estudiantes, materias, actividades, calificaciones, observaciones, asignaciones y alertas.
+ClassKids es una plataforma web de seguimiento académico con alertas tempranas para colegios, desarrollada en el programa Análisis y Desarrollo de Software (ADSO) del SENA por María Alejandra Guio, Faloon Johanna Ortiz y Jan Llanos.
 
-Proyecto desarrollado por Faloon Johanna Ortiz, Alejandra Guio y Yan (Jan) Llanos, como parte del programa Análisis y Desarrollo de Software (ADSO) del SENA.
+## Versión 2.0: la implementación como fuente de verdad
 
-## Cómo se construyó esta documentación
+Esta documentación se reescribió el 20/11/2026 a partir del sistema real: el código de `backend/` y `frontend/`, la base de datos PostgreSQL en ejecución y un recorrido por todas las pantallas. Parte del documento original versión 1.0 (noviembre de 2025): conserva lo que sigue vigente, corrige lo desactualizado e incorpora lo construido después.
 
-Esta carpeta se generó a partir de dos fuentes combinadas:
-
-1. **El código fuente real del proyecto** (`backend/` en FastAPI + PostgreSQL, `frontend/` en React + TypeScript), analizado endpoint por endpoint, tabla por tabla y pantalla por pantalla.
-2. **El documento de diseño original** *"Proyecto Class Kids — Sistema de apoyo a la atención y seguimiento académico con alertas tempranas"* (SENA, aprendices Guio / Ortiz / Llanos), que contiene la idea de negocio, los casos de uso, el modelo relacional y los anexos de requisitos.
-
-Donde el código implementado coincide con el diseño, se documenta como funcionalidad vigente. Donde el código difiere del diseño, se registra como limitación real en [`conceptos/restricciones.md`](conceptos/restricciones.md). La fuente de verdad es el código actual de `backend/`, `frontend/` y `backend/init.sql`.
+El **entregable académico principal** es el documento Word [`entregable/ClassKids_Documento_Proyecto_v3.docx`](entregable/ClassKids_Documento_Proyecto_v3.docx) (versión 3.0, 23/11/2026; la versión 2.0 se conserva como histórico en `entregable/ClassKids_Documento_Proyecto_v2.docx`). Ese documento se genera a partir de estos mismos archivos Markdown, de modo que el Word, esta carpeta y el README del repositorio contienen la misma información.
 
 ## Índice
 
-- [`backlog.md`](backlog.md) — Backlog actualizado: trabajo terminado y siguiente iteración.
-- [`pruebas.md`](pruebas.md) — Registro de pruebas, validaciones y resultados de Playwright.
-
-### Conceptos
-- [`conceptos/patrones-arquitectonicos.md`](conceptos/patrones-arquitectonicos.md) — Patrones de diseño y arquitectura aplicados (o parcialmente aplicados) en el proyecto.
-- [`conceptos/trazabilidad.md`](conceptos/trazabilidad.md) — Matriz de trazabilidad: cada RF/RNF/HU cruzado con su documento, frontend, endpoint, tabla de base de datos y estado real verificado.
-
-### Referencia técnica
-- [`referencia-tecnica/architecture.md`](referencia-tecnica/architecture.md) — Arquitectura general del sistema, capas, flujo de datos y stack tecnológico.
-- [`referencia-tecnica/database-schema.md`](referencia-tecnica/database-schema.md) — Modelo de datos, tablas, relaciones y diccionario de datos.
-- [`referencia-tecnica/api-endpoints.md`](referencia-tecnica/api-endpoints.md) — Referencia completa de los endpoints REST del backend.
-
-### Requisitos
-- [`conceptos/RFs.md`](conceptos/RFs.md) — Requisitos funcionales (RF) por módulo, con su estado de implementación.
-- [`conceptos/NFs.md`](conceptos/NFs.md) — Requisitos no funcionales (RNF): seguridad, rendimiento, usabilidad y disponibilidad.
-- [`conceptos/HUs.md`](conceptos/HUs.md) — Historias de usuario derivadas de los casos de uso del proyecto.
-- [`conceptos/restricciones.md`](conceptos/restricciones.md) — Restricciones técnicas, de negocio y brechas conocidas.
-
-### Políticas
-- [`politicas/terminos-y-condiciones.md`](politicas/terminos-y-condiciones.md) — Términos y condiciones de uso de la plataforma.
-- [`politicas/politica-de-privacidad.md`](politicas/politica-de-privacidad.md) — Qué datos se tratan y con qué finalidad.
-- [`politicas/politica-de-cookies.md`](politicas/politica-de-cookies.md) — Almacenamiento del navegador usado por la plataforma.
-- [`politicas/proteccion-de-datos.md`](politicas/proteccion-de-datos.md) — Tratamiento de datos personales (Ley 1581 de 2012 / Decreto 1377 de 2013) y medidas de seguridad.
-
-Estas cuatro políticas también están publicadas en la plataforma (`/legal/terminos`, `/legal/privacidad`, `/legal/cookies`, `/legal/proteccion-datos`), enlazadas desde el CTA final y el pie de página de la landing.
-
-## Datos demo verificados
-
-La base de datos local contiene 7 usuarios activos (1 administrador y 6 docentes, uno especializado por materia; la tabla `usuarios` separa `nombre`/`apellido` igual que `estudiantes`), 10 grupos (grados 1° a 5°, secciones A y B, 20 estudiantes cada uno), 200 estudiantes — todos con al menos una calificación —, 5 materias con al menos una actividad y un docente asignado en cada uno de los 10 grupos (52 actividades en total), 215 calificaciones, 10 observaciones, 32 alertas activas (todas por bajo rendimiento real, con la misma regla de promedio &lt; 3.0 que usa `POST /calificaciones`) y 50 asignaciones docente-materia-grupo. Ver el detalle de la ampliación en [`backend/init.sql`](../backend/init.sql).
-
-## Marco metodológico del proyecto
-
-- **Marco de trabajo:** Scrum, con organización en sprints y entregas incrementales.
-- **Gestión de requisitos:** historias de usuario derivadas de casos de uso (CU-01 a CU-13).
-- **Priorización:** metodología MoSCoW para definir el alcance del producto mínimo viable (MVP).
-
-## Stack tecnológico
-
-| Capa | Tecnología |
+| Capítulo del documento | Archivo |
 |---|---|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, Recharts |
-| Backend | FastAPI, Uvicorn, SQLAlchemy Core, Pydantic, JWT y passlib PBKDF2 |
-| Base de datos | PostgreSQL 15, ejecutada en contenedor Docker |
-| Empaquetado / tooling | pnpm (workspace), Docker Compose |
+| 1. Descripción general (idea, problema, objetivos, alcance, actores, módulos) | [`conceptos/descripcion-general.md`](conceptos/descripcion-general.md) |
+| 2. Casos de uso (CU-01 a CU-16) | [`conceptos/casos-de-uso.md`](conceptos/casos-de-uso.md) |
+| 3. Requisitos funcionales (RF-01 a RF-26) | [`conceptos/RFs.md`](conceptos/RFs.md) |
+| 4. Requisitos no funcionales (RNF-01 a RNF-18) | [`conceptos/NFs.md`](conceptos/NFs.md) |
+| 5. Reglas de negocio | [`conceptos/reglas-de-negocio.md`](conceptos/reglas-de-negocio.md) |
+| 6. Arquitectura | [`referencia-tecnica/architecture.md`](referencia-tecnica/architecture.md) |
+| 7. Modelo de datos, diccionario y verificación en DBeaver | [`referencia-tecnica/database-schema.md`](referencia-tecnica/database-schema.md) |
+| 8. Integración entre capas (frontend, backend y PostgreSQL) | [`referencia-tecnica/integracion.md`](referencia-tecnica/integracion.md) |
+| 9. Flujos del sistema | [`referencia-tecnica/flujos.md`](referencia-tecnica/flujos.md) |
+| 10. Interfaces | [`referencia-tecnica/interfaces.md`](referencia-tecnica/interfaces.md) |
+| 11. Pruebas y evidencias | [`pruebas.md`](pruebas.md) |
+| 12. Comparación con la documentación anterior | [`comparativa-documentacion.md`](comparativa-documentacion.md) |
+| 13. Hallazgos: errores y funcionalidades incompletas | [`hallazgos.md`](hallazgos.md) |
+| 14. Ejecución del proyecto por fases | [`conceptos/plan-ejecucion.md`](conceptos/plan-ejecucion.md) |
+| 15. Conclusiones | [`conclusiones.md`](conclusiones.md) |
+| Anexo A. Historias de usuario | [`conceptos/HUs.md`](conceptos/HUs.md) |
+| Anexo B. Matriz de trazabilidad | [`conceptos/trazabilidad.md`](conceptos/trazabilidad.md) |
+| Anexo C. Referencia de la API | [`referencia-tecnica/api-endpoints.md`](referencia-tecnica/api-endpoints.md) |
+| Anexo D. Manual de usuario | [`manual-usuario.md`](manual-usuario.md) |
+| Anexo E. Manual técnico | [`manual-tecnico.md`](manual-tecnico.md) |
 
-## Estado general del proyecto
+### Documentos de la evaluación (rúbrica de 14 criterios, 20/11/2026)
 
-ClassKids es un **MVP académico funcional**: el flujo principal funciona de extremo a extremo sobre PostgreSQL y datos de demostración. La API protege rutas privadas con JWT, aplica permisos administrativos, usa PBKDF2 para contraseñas, ofrece métricas y gestiona asignaciones. Permanecen limitaciones de alcance: no existe asistencia, las reglas automáticas solo cubren promedio bajo, no hay notificaciones en tiempo real y los tokens de recuperación se mantienen en memoria. Todo se detalla en [`conceptos/restricciones.md`](conceptos/restricciones.md).
+La carpeta [`../ENTREGA_FINAL_CLASSKIDS/`](../ENTREGA_FINAL_CLASSKIDS/00_INDICE_Y_ESTADO/README.md) organiza los criterios y enlaza a estos archivos oficiales:
+
+| Documento | Archivo |
+|---|---|
+| Modelo relacional verificado contra la base real (editable, PNG, PDF y diccionario de datos) | [`referencia-tecnica/modelo-relacional.md`](referencia-tecnica/modelo-relacional.md) |
+| Informe de diferencias del modelo relacional | [`referencia-tecnica/modelo-relacional-diferencias.md`](referencia-tecnica/modelo-relacional-diferencias.md) |
+| Diagramas UML (clases), componentes y despliegue | [`diagramas/uml-y-modelo-relacional.md`](diagramas/uml-y-modelo-relacional.md) |
+| Renovación visual del frontend | [`frontend/renovacion-visual.md`](frontend/renovacion-visual.md) |
+| Plan de pruebas | [`pruebas/plan-de-pruebas.md`](pruebas/plan-de-pruebas.md) |
+| Reporte de ejecución (antes y después) | [`pruebas/reporte-ejecucion-2026-11-20.md`](pruebas/reporte-ejecucion-2026-11-20.md) |
+| Registro de defectos | [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md) |
+| Auditoría del backend | [`backend/auditoria-backend.md`](backend/auditoria-backend.md) |
+| Despliegue | [`despliegue.md`](despliegue.md) |
+| Scrum (backlog, sprints, retrospectivas) | [`scrum/README.md`](scrum/README.md), [`scrum/etapas-retrospectivas.md`](scrum/etapas-retrospectivas.md), [`scrum/retrospectiva-cierre.md`](scrum/retrospectiva-cierre.md) |
+| Organización del código (diagnóstico y etapas) | [`frontend/organizacion-codigo.md`](frontend/organizacion-codigo.md) |
+| Trabajo en equipo y retroalimentación | [`equipo/README.md`](equipo/README.md) |
+| Comparativa de backends y deuda técnica | [`backends-comparativa.md`](backends-comparativa.md), [`deuda-tecnica.md`](deuda-tecnica.md) |
+| IoT (propuesta) | [`iot/propuesta-iot.md`](iot/propuesta-iot.md) |
+| Estado del repositorio Git | [`repositorio-git.md`](repositorio-git.md) |
+| Contraste WCAG y capturas vigentes | [`evidencias/contraste-wcag.md`](evidencias/contraste-wcag.md), [`evidencias/capturas-v3/README.md`](evidencias/capturas-v3/README.md) (142 capturas por módulo, claro y oscuro, escritorio y celular) |
+
+### Otros documentos
+
+- [`backlog.md`](backlog.md): trabajo terminado y pendiente, priorizado según los hallazgos.
+- [`conceptos/patrones-arquitectonicos.md`](conceptos/patrones-arquitectonicos.md): patrones de diseño aplicados.
+- [`conceptos/restricciones.md`](conceptos/restricciones.md): restricciones de alcance, técnicas y de negocio.
+- [`diagramas/`](diagramas/): diagramas PNG y sus versiones en Mermaid.
+- [`evidencias/`](evidencias/): capturas de pantalla y scripts de verificación.
+- [`migraciones/001-informe-preparacion.md`](migraciones/001-informe-preparacion.md): respaldo, ensayo y reversión de la migración 001 (pendiente de autorización).
+- [`../e2e/README.md`](../e2e/README.md): entorno de pruebas aislado y ejecución de las pruebas automatizadas.
+- [`politicas/`](politicas/): términos y condiciones, privacidad, cookies y protección de datos (también publicadas en `/legal/*`).
+
+## Estado del proyecto en una frase
+
+ClassKids es un MVP funcional de extremo a extremo sobre PostgreSQL, con 16 casos de uso construidos (7 completos y 9 parciales o con observaciones). Se documentaron 33 hallazgos; los de integración aprobados (H-02, H-24 a H-29, H-31, H-33, y en parte H-30 y H-32) ya están corregidos y respaldados por 54 pruebas automatizadas aprobadas. Siguen pendientes, entre otros, la diferencia de umbrales entre la interfaz y la alerta (H-01), la regla de alerta al editar (H-04) y el promedio con estudiantes sin nota (H-19). La migración 001 (columna `entregado`) está preparada y pendiente de autorización en la base real.
+
+## Base de datos
+
+La base de datos documentada es exactamente la que se consulta en DBeaver (`localhost:5432`, base `classkids`): el contenedor Docker `classkids_db`. Para comprobarlo, ejecute en DBeaver [`evidencias/scripts/verificacion-bd.sql`](evidencias/scripts/verificacion-bd.sql) y compare con la sección «Verificación en DBeaver» de [`referencia-tecnica/database-schema.md`](referencia-tecnica/database-schema.md).
+
+## Cómo regenerar el documento Word
+
+El Word se construye con el script [`entregable/build_docx.py`](entregable/build_docx.py), que lee los capítulos Markdown en el orden del índice:
+
+```bash
+pip install python-docx pillow
+node Docs/diagramas/renderizar_mermaid.cjs   # solo si cambian los diagramas Mermaid (genera los PNG)
+python Docs/entregable/build_docx.py          # genera entregable/ClassKids_Documento_Proyecto_v3.docx
+```

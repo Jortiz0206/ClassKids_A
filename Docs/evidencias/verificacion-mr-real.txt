@@ -1,0 +1,150 @@
+== 1. Columnas: tipo, nulos y valor por defecto
+         tabla         | n |     columna     |            tipo             | admite_nulo |                    por_defecto                    
+-----------------------+---+-----------------+-----------------------------+-------------+---------------------------------------------------
+ actividades           | 1 | id              | integer                     | NO          | nextval('actividades_id_seq'::regclass)
+ actividades           | 2 | materia_id      | integer                     | NO          | 
+ actividades           | 3 | grupo_id        | integer                     | NO          | 
+ actividades           | 4 | titulo          | varchar(200)                | NO          | 
+ actividades           | 5 | tipo            | varchar(30)                 | NO          | 'tarea'::character varying
+ actividades           | 6 | descripcion     | text                        | YES         | 
+ actividades           | 7 | fecha_entrega   | date                        | YES         | 
+ alertas               | 1 | id              | integer                     | NO          | nextval('alertas_id_seq'::regclass)
+ alertas               | 2 | estudiante_id   | integer                     | NO          | 
+ alertas               | 3 | tipo            | varchar(80)                 | NO          | 
+ alertas               | 4 | mensaje         | text                        | NO          | 
+ alertas               | 5 | estado          | varchar(30)                 | NO          | 'active'::character varying
+ alertas               | 6 | fecha_creacion  | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ asignaciones          | 1 | id              | integer                     | NO          | nextval('asignaciones_id_seq'::regclass)
+ asignaciones          | 2 | docente_id      | integer                     | NO          | 
+ asignaciones          | 3 | materia_id      | integer                     | NO          | 
+ asignaciones          | 4 | grupo_id        | integer                     | NO          | 
+ calificaciones        | 1 | id              | integer                     | NO          | nextval('calificaciones_id_seq'::regclass)
+ calificaciones        | 2 | estudiante_id   | integer                     | NO          | 
+ calificaciones        | 3 | materia_id      | integer                     | NO          | 
+ calificaciones        | 4 | actividad_id    | integer                     | YES         | 
+ calificaciones        | 5 | nota            | numeric(3,1)                | NO          | 
+ calificaciones        | 6 | periodo         | integer                     | NO          | 1
+ calificaciones        | 7 | observacion     | text                        | YES         | 
+ calificaciones        | 8 | fecha_registro  | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ estudiantes           | 1 | id              | integer                     | NO          | nextval('estudiantes_id_seq'::regclass)
+ estudiantes           | 2 | documento       | varchar(50)                 | NO          | 
+ estudiantes           | 3 | nombre          | varchar(120)                | NO          | 
+ estudiantes           | 4 | apellido        | varchar(120)                | NO          | 
+ estudiantes           | 5 | grupo_id        | integer                     | YES         | 
+ estudiantes           | 6 | activo          | boolean                     | NO          | true
+ grupos                | 1 | id              | integer                     | NO          | nextval('grupos_id_seq'::regclass)
+ grupos                | 2 | nombre          | varchar(120)                | NO          | 
+ grupos                | 3 | grado           | varchar(30)                 | YES         | 
+ grupos                | 4 | turno           | varchar(30)                 | YES         | 
+ grupos                | 5 | ano_lectivo     | integer                     | YES         | 2026
+ invitaciones          | 1 | id              | integer                     | NO          | nextval('invitaciones_id_seq'::regclass)
+ invitaciones          | 2 | email           | varchar(255)                | NO          | 
+ invitaciones          | 3 | rol_id          | integer                     | NO          | 
+ invitaciones          | 4 | token           | varchar(120)                | NO          | 
+ invitaciones          | 5 | expires_at      | timestamp without time zone | NO          | 
+ invitaciones          | 6 | accepted_at     | timestamp without time zone | YES         | 
+ invitaciones          | 7 | created_at      | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ materias              | 1 | id              | integer                     | NO          | nextval('materias_id_seq'::regclass)
+ materias              | 2 | nombre          | varchar(120)                | NO          | 
+ materias              | 3 | codigo          | varchar(30)                 | YES         | 
+ observaciones         | 1 | id              | integer                     | NO          | nextval('observaciones_id_seq'::regclass)
+ observaciones         | 2 | estudiante_id   | integer                     | NO          | 
+ observaciones         | 3 | tipo            | varchar(50)                 | YES         | 'Convivencial'::character varying
+ observaciones         | 4 | descripcion     | text                        | NO          | 
+ observaciones         | 5 | fecha           | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ password_reset_tokens | 1 | id              | integer                     | NO          | nextval('password_reset_tokens_id_seq'::regclass)
+ password_reset_tokens | 2 | email           | varchar(255)                | NO          | 
+ password_reset_tokens | 3 | token           | varchar(120)                | NO          | 
+ password_reset_tokens | 4 | expires_at      | timestamp without time zone | NO          | 
+ password_reset_tokens | 5 | used_at         | timestamp without time zone | YES         | 
+ password_reset_tokens | 6 | created_at      | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ user_roles            | 1 | id              | integer                     | NO          | nextval('user_roles_id_seq'::regclass)
+ user_roles            | 2 | nombre          | varchar(50)                 | NO          | 
+ user_roles            | 3 | descripcion     | text                        | YES         | 
+ usuarios              | 1 | id              | integer                     | NO          | nextval('usuarios_id_seq'::regclass)
+ usuarios              | 2 | email           | varchar(255)                | NO          | 
+ usuarios              | 3 | nombre          | varchar(120)                | NO          | 
+ usuarios              | 4 | apellido        | varchar(120)                | YES         | 
+ usuarios              | 5 | password_hash   | varchar(255)                | NO          | 
+ usuarios              | 6 | rol_id          | integer                     | YES         | 
+ usuarios              | 7 | activo          | boolean                     | NO          | true
+ usuarios              | 8 | created_at      | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ usuarios              | 9 | last_sign_in_at | timestamp without time zone | YES         | 
+(69 rows)
+
+== 2. Restricciones PK, UNIQUE y CHECK
+         tabla         |                   restriccion                   |    tipo     |                         definicion                          
+-----------------------+-------------------------------------------------+-------------+-------------------------------------------------------------
+ user_roles            | user_roles_pkey                                 | PRIMARY KEY | PRIMARY KEY (id)
+ user_roles            | user_roles_nombre_key                           | UNIQUE      | UNIQUE (nombre)
+ usuarios              | usuarios_pkey                                   | PRIMARY KEY | PRIMARY KEY (id)
+ usuarios              | usuarios_email_key                              | UNIQUE      | UNIQUE (email)
+ invitaciones          | invitaciones_pkey                               | PRIMARY KEY | PRIMARY KEY (id)
+ invitaciones          | invitaciones_token_key                          | UNIQUE      | UNIQUE (token)
+ password_reset_tokens | password_reset_tokens_pkey                      | PRIMARY KEY | PRIMARY KEY (id)
+ password_reset_tokens | password_reset_tokens_token_key                 | UNIQUE      | UNIQUE (token)
+ grupos                | grupos_pkey                                     | PRIMARY KEY | PRIMARY KEY (id)
+ estudiantes           | estudiantes_pkey                                | PRIMARY KEY | PRIMARY KEY (id)
+ estudiantes           | estudiantes_documento_key                       | UNIQUE      | UNIQUE (documento)
+ materias              | materias_pkey                                   | PRIMARY KEY | PRIMARY KEY (id)
+ actividades           | actividades_pkey                                | PRIMARY KEY | PRIMARY KEY (id)
+ calificaciones        | calificaciones_nota_check                       | CHECK       | CHECK (((nota >= (0)::numeric) AND (nota <= (5)::numeric)))
+ calificaciones        | calificaciones_pkey                             | PRIMARY KEY | PRIMARY KEY (id)
+ observaciones         | observaciones_pkey                              | PRIMARY KEY | PRIMARY KEY (id)
+ alertas               | alertas_pkey                                    | PRIMARY KEY | PRIMARY KEY (id)
+ asignaciones          | asignaciones_pkey                               | PRIMARY KEY | PRIMARY KEY (id)
+ asignaciones          | asignaciones_docente_id_materia_id_grupo_id_key | UNIQUE      | UNIQUE (docente_id, materia_id, grupo_id)
+(19 rows)
+
+== 3. Llaves foráneas con acciones ON DELETE / ON UPDATE
+     tabla      |            restriccion            |                                definicion                                | on_delete | on_update 
+----------------+-----------------------------------+--------------------------------------------------------------------------+-----------+-----------
+ usuarios       | usuarios_rol_id_fkey              | FOREIGN KEY (rol_id) REFERENCES user_roles(id)                           | NO ACTION | NO ACTION
+ invitaciones   | invitaciones_rol_id_fkey          | FOREIGN KEY (rol_id) REFERENCES user_roles(id)                           | NO ACTION | NO ACTION
+ estudiantes    | estudiantes_grupo_id_fkey         | FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE SET NULL          | SET NULL  | NO ACTION
+ actividades    | actividades_grupo_id_fkey         | FOREIGN KEY (grupo_id) REFERENCES grupos(id)                             | NO ACTION | NO ACTION
+ actividades    | actividades_materia_id_fkey       | FOREIGN KEY (materia_id) REFERENCES materias(id)                         | NO ACTION | NO ACTION
+ calificaciones | calificaciones_actividad_id_fkey  | FOREIGN KEY (actividad_id) REFERENCES actividades(id) ON DELETE SET NULL | SET NULL  | NO ACTION
+ calificaciones | calificaciones_estudiante_id_fkey | FOREIGN KEY (estudiante_id) REFERENCES estudiantes(id) ON DELETE CASCADE | CASCADE   | NO ACTION
+ calificaciones | calificaciones_materia_id_fkey    | FOREIGN KEY (materia_id) REFERENCES materias(id)                         | NO ACTION | NO ACTION
+ observaciones  | observaciones_estudiante_id_fkey  | FOREIGN KEY (estudiante_id) REFERENCES estudiantes(id) ON DELETE CASCADE | CASCADE   | NO ACTION
+ alertas        | alertas_estudiante_id_fkey        | FOREIGN KEY (estudiante_id) REFERENCES estudiantes(id) ON DELETE CASCADE | CASCADE   | NO ACTION
+ asignaciones   | asignaciones_docente_id_fkey      | FOREIGN KEY (docente_id) REFERENCES usuarios(id)                         | NO ACTION | NO ACTION
+ asignaciones   | asignaciones_grupo_id_fkey        | FOREIGN KEY (grupo_id) REFERENCES grupos(id)                             | NO ACTION | NO ACTION
+ asignaciones   | asignaciones_materia_id_fkey      | FOREIGN KEY (materia_id) REFERENCES materias(id)                         | NO ACTION | NO ACTION
+(13 rows)
+
+== 4. Índices
+         tabla         |                     indice                      |                                                                definicion                                                                 
+-----------------------+-------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------
+ actividades           | actividades_pkey                                | CREATE UNIQUE INDEX actividades_pkey ON public.actividades USING btree (id)
+ alertas               | alertas_pkey                                    | CREATE UNIQUE INDEX alertas_pkey ON public.alertas USING btree (id)
+ asignaciones          | asignaciones_docente_id_materia_id_grupo_id_key | CREATE UNIQUE INDEX asignaciones_docente_id_materia_id_grupo_id_key ON public.asignaciones USING btree (docente_id, materia_id, grupo_id)
+ asignaciones          | asignaciones_docente_materia_grupo_uidx         | CREATE UNIQUE INDEX asignaciones_docente_materia_grupo_uidx ON public.asignaciones USING btree (docente_id, materia_id, grupo_id)
+ asignaciones          | asignaciones_materia_grupo_uidx                 | CREATE UNIQUE INDEX asignaciones_materia_grupo_uidx ON public.asignaciones USING btree (materia_id, grupo_id)
+ asignaciones          | asignaciones_pkey                               | CREATE UNIQUE INDEX asignaciones_pkey ON public.asignaciones USING btree (id)
+ calificaciones        | calificaciones_pkey                             | CREATE UNIQUE INDEX calificaciones_pkey ON public.calificaciones USING btree (id)
+ estudiantes           | estudiantes_documento_key                       | CREATE UNIQUE INDEX estudiantes_documento_key ON public.estudiantes USING btree (documento)
+ estudiantes           | estudiantes_pkey                                | CREATE UNIQUE INDEX estudiantes_pkey ON public.estudiantes USING btree (id)
+ grupos                | grupos_pkey                                     | CREATE UNIQUE INDEX grupos_pkey ON public.grupos USING btree (id)
+ invitaciones          | invitaciones_pkey                               | CREATE UNIQUE INDEX invitaciones_pkey ON public.invitaciones USING btree (id)
+ invitaciones          | invitaciones_token_key                          | CREATE UNIQUE INDEX invitaciones_token_key ON public.invitaciones USING btree (token)
+ materias              | materias_pkey                                   | CREATE UNIQUE INDEX materias_pkey ON public.materias USING btree (id)
+ observaciones         | observaciones_pkey                              | CREATE UNIQUE INDEX observaciones_pkey ON public.observaciones USING btree (id)
+ password_reset_tokens | password_reset_tokens_pkey                      | CREATE UNIQUE INDEX password_reset_tokens_pkey ON public.password_reset_tokens USING btree (id)
+ password_reset_tokens | password_reset_tokens_token_key                 | CREATE UNIQUE INDEX password_reset_tokens_token_key ON public.password_reset_tokens USING btree (token)
+ user_roles            | user_roles_nombre_key                           | CREATE UNIQUE INDEX user_roles_nombre_key ON public.user_roles USING btree (nombre)
+ user_roles            | user_roles_pkey                                 | CREATE UNIQUE INDEX user_roles_pkey ON public.user_roles USING btree (id)
+ usuarios              | usuarios_email_key                              | CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)
+ usuarios              | usuarios_pkey                                   | CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)
+(20 rows)
+
+== 5. Puntos revisados
+                     punto                     | valor 
+-----------------------------------------------+-------
+ calificaciones.actividad_id admite nulos      | YES
+ password_reset_tokens tiene FK hacia usuarios | no
+ calificaciones.entregado existe               | no
+ tablas en public                              | 12
+(4 rows)
+
