@@ -10,7 +10,7 @@ const Terminos = () => (
     </p>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">1. Acceso a la plataforma</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">1. Acceso a la plataforma</h2>
       <p className="mt-2">
         El acceso es exclusivamente por invitación del colegio. No existe registro público: cada cuenta
         (administrador o docente) es creada por la coordinación de la institución, que define el rol y
@@ -20,7 +20,7 @@ const Terminos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">2. Uso adecuado</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">2. Uso adecuado</h2>
       <p className="mt-2">
         La información registrada en ClassKids (grupos, estudiantes, calificaciones, observaciones y
         alertas) debe usarse únicamente con fines de acompañamiento académico, dentro de las funciones
@@ -31,7 +31,7 @@ const Terminos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">3. Disponibilidad del servicio</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">3. Disponibilidad del servicio</h2>
       <p className="mt-2">
         ClassKids es un proyecto de formación desarrollado en el marco del programa Análisis y Desarrollo
         de Software (ADSO) del SENA. Al tratarse de un entorno académico/demostrativo, no se garantiza
@@ -40,7 +40,7 @@ const Terminos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">4. Modificaciones</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">4. Modificaciones</h2>
       <p className="mt-2">
         Estos términos pueden actualizarse para reflejar cambios en la plataforma. Los cambios relevantes
         se comunicarán a través de la institución educativa.
@@ -48,10 +48,10 @@ const Terminos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">5. Contacto</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">5. Contacto</h2>
       <p className="mt-2">
         Para preguntas sobre estos términos, escribe a{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#147d68] hover:underline">
+        <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
           {CONTACT_EMAIL}
         </a>
         .

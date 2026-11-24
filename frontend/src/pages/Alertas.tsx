@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, Clock, TrendingDown, CheckCircle, Filter, Bell, BellOff, Eye } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, Clock, TrendingDown, CheckCircle, Filter, Bell, Eye, CalendarDays, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { api } from "@/api/client";
 import PageHeader from "@/components/layout/PageHeader";
+import EstadoBadge, { type Tono } from "@/components/common/EstadoBadge";
+import { EstadoCargando, EstadoVacio, EstadoError } from "@/components/common/Estados";
+import { tiempoRelativo, fechaCorta } from "@/lib/fechas";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
+import { aLista, mapaGrupoPorEstudiante } from "@/lib/listas";
+import { mensajeDeError } from "@/lib/utils";
+import type { Alerta, Estudiante, Grupo } from "@/types";
 
 type AlertType = "declining" | "low_grade" | "attendance" | "critical";
 type AlertStatus = "active" | "reviewed" | "resolved";
@@ -19,21 +25,26 @@ interface AlertView {
   message: string;
   detail: string;
   date: string;
+  fecha: string;
   priority: string;
 }
 
-const typeConfig: Record<AlertType, { icon: typeof AlertTriangle; label: string; color: string; bg: string }> = {
-  critical: { icon: AlertTriangle, label: "Crítico", color: "text-destructive", bg: "bg-destructive/10" },
-  low_grade: { icon: TrendingDown, label: "Calificación baja", color: "text-destructive", bg: "bg-destructive/10" },
-  attendance: { icon: Clock, label: "Asistencia", color: "text-warning", bg: "bg-warning/10" },
-  declining: { icon: TrendingDown, label: "Tendencia", color: "text-warning", bg: "bg-warning/10" },
+// Un solo color de alerta (frambuesa) para el ícono; el resto de etiquetas usa tonos que no
+// compiten entre sí: antes cada tarjeta tenía tres rojos (ícono, estado y prioridad).
+const typeConfig: Record<AlertType, { icon: typeof AlertTriangle; label: string; fondo: string }> = {
+  critical: { icon: AlertTriangle, label: "Crítico", fondo: "bg-nivel-alerta text-nivel-alerta-fg" },
+  low_grade: { icon: TrendingDown, label: "Calificación baja", fondo: "bg-nivel-alerta text-nivel-alerta-fg" },
+  attendance: { icon: Clock, label: "Asistencia", fondo: "bg-mantequilla text-nivel-observar-fg" },
+  declining: { icon: TrendingDown, label: "Tendencia", fondo: "bg-durazno text-nivel-reprobado-fg" },
 };
 
-const statusConfig: Record<AlertStatus, { label: string; color: string; bg: string }> = {
-  active: { label: "Activa", color: "text-destructive", bg: "bg-destructive/10" },
-  reviewed: { label: "Revisada", color: "text-info", bg: "bg-info/10" },
-  resolved: { label: "Resuelta", color: "text-success", bg: "bg-success/10" },
+const statusConfig: Record<AlertStatus, { label: string; tono: Tono }> = {
+  active: { label: "Activa", tono: "alerta" },
+  reviewed: { label: "En revisión", tono: "observar" },
+  resolved: { label: "Resuelta", tono: "excelente" },
 };
+
+const prioridadTono: Record<string, Tono> = { alta: "reprobado", media: "observar", baja: "sin" };
 
 const normalizeStatus = (status: string): AlertStatus => {
   if (status === "Pendiente") return "active";
@@ -60,48 +71,56 @@ const priorityByType: Record<AlertType, string> = {
   declining: "baja",
 };
 
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return "N/A";
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Hoy";
-  if (diffDays === 1) return "Ayer";
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  return `Hace ${Math.floor(diffDays / 7)} semana(s)`;
-};
+const claseSelect =
+  "h-11 rounded-xl border border-input bg-card px-3 text-[15px] text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15";
 
 const Alertas = () => {
   const [alerts, setAlerts] = useState<AlertView[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  // El filtro de estado puede llegar en la URL (?estado=resolved), por ejemplo desde el
+  // enlace «Ver alertas resueltas» del Dashboard. Solo se aceptan los estados conocidos.
+  const [searchParams] = useSearchParams();
+  const estadoInicial = searchParams.get("estado");
+  const [filterStatus, setFilterStatus] = useState<string>(
+    estadoInicial && ["active", "reviewed", "resolved"].includes(estadoInicial) ? estadoInicial : "all"
+  );
   const [selectedAlert, setSelectedAlert] = useState<AlertView | null>(null);
+  const [actualizando, setActualizando] = useState(false);
 
   const fetchAlerts = async () => {
     setLoading(true);
+    setError(false);
     try {
-      const data = await api.get("/alertas");
-      const list = Array.isArray(data) ? data : (data as any)?.items || (data as any)?.data || [];
+      const [data, estudiantes, grupos] = await Promise.all([
+        api.get("/alertas"),
+        api.get("/estudiantes"),
+        api.get("/grupos"),
+      ]);
+      const list = aLista<Alerta>(data);
+      // Grupo del estudiante (antes no se mostraba; H-15).
+      const grupoDe = mapaGrupoPorEstudiante(aLista<Estudiante>(estudiantes), aLista<Grupo>(grupos));
 
-      const mapped: AlertView[] = list.map((a: any) => {
+      const mapped: AlertView[] = list.map((a) => {
         const type = inferType(a.tipo);
         return {
-          id: a.id,
+          id: String(a.id),
           student: [a.estudiante_nombre, a.estudiante_apellido].filter(Boolean).join(" ") || "Estudiante",
-          group: "",
+          group: grupoDe.get(String(a.estudiante_id)) || "",
           type,
           status: normalizeStatus(a.estado),
           message: a.mensaje,
           detail: a.tipo || "",
-          date: formatDate(a.fecha_creacion),
+          date: tiempoRelativo(a.fecha_creacion),
+          fecha: a.fecha_creacion || "",
           priority: priorityByType[type],
         };
       });
       setAlerts(mapped);
-    } catch (error: any) {
-      toast.error(error?.message || "Error cargando alertas");
+    } catch (err) {
+      toast.error("No pudimos cargar las alertas. Revisa tu conexión.");
+      setError(true);
       setAlerts([]);
     }
     setLoading(false);
@@ -110,13 +129,16 @@ const Alertas = () => {
   useEffect(() => { fetchAlerts(); }, []);
 
   const updateStatus = async (id: string, status: AlertStatus) => {
+    setActualizando(true);
     try {
       await api.put(`/alertas/${id}/estado`, { estado: status });
       setAlerts(prev => prev.map(a => a.id === id ? { ...a, status } : a));
       setSelectedAlert(null);
-      toast.success("Alerta actualizada");
-    } catch (error: any) {
-      toast.error(error?.message || "Error actualizando alerta");
+      toast.success(status === "resolved" ? "Alerta resuelta. Se conserva en el historial." : "Alerta marcada como en revisión");
+    } catch (err) {
+      toast.error(mensajeDeError(err, "No pudimos actualizar la alerta. Inténtalo de nuevo."));
+    } finally {
+      setActualizando(false);
     }
   };
 
@@ -131,104 +153,134 @@ const Alertas = () => {
   const resolvedCount = alerts.filter(a => a.status === "resolved").length;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando alertas...</p></div>;
+    return <EstadoCargando texto="Cargando alertas…" className="h-64" />;
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Seguimiento" title="Alertas tempranas" description="Revisa señales y registra el acompañamiento de cada caso" />
+      <PageHeader eyebrow="Seguimiento" title="Alertas tempranas" description="Revisa señales y registra el acompañamiento de cada caso" icon={Bell} tono="bg-nivel-alerta" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card><CardContent className="p-5 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><Bell className="w-5 h-5 text-destructive" /></div>
-          <div><p className="text-2xl font-bold text-card-foreground">{activeCount}</p><p className="text-xs text-muted-foreground">Alertas Activas</p></div>
-        </CardContent></Card>
-        <Card><CardContent className="p-5 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center"><Eye className="w-5 h-5 text-info" /></div>
-          <div><p className="text-2xl font-bold text-card-foreground">{reviewedCount}</p><p className="text-xs text-muted-foreground">En Revisión</p></div>
-        </CardContent></Card>
-        <Card><CardContent className="p-5 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-success" /></div>
-          <div><p className="text-2xl font-bold text-card-foreground">{resolvedCount}</p><p className="text-xs text-muted-foreground">Resueltas</p></div>
-        </CardContent></Card>
+      <div className="grid grid-cols-3 gap-3">
+        {([
+          [Bell, activeCount, "Alertas activas", "bg-nivel-alerta text-nivel-alerta-fg", "active"],
+          [Eye, reviewedCount, "En revisión", "bg-mantequilla", "reviewed"],
+          [CheckCircle, resolvedCount, "Resueltas", "bg-menta", "resolved"],
+        ] as const).map(([Icono, valor, rotulo, tono, estado]) => (
+          <button
+            key={rotulo}
+            type="button"
+            onClick={() => setFilterStatus(filterStatus === estado ? "all" : estado)}
+            aria-pressed={filterStatus === estado}
+            className={`flex flex-col items-start gap-2 rounded-2xl border bg-card p-3.5 text-left transition-colors hover:bg-secondary/60 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4 ${filterStatus === estado ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
+          >
+            <span className={`grid h-10 w-10 flex-none place-items-center rounded-xl sm:h-11 sm:w-11 ${tono}`}><Icono className="h-5 w-5" aria-hidden="true" /></span>
+            <span><span className="block font-display text-2xl font-bold leading-none tabular-nums text-card-foreground">{valor}</span><span className="mt-1 block text-[13px] text-muted-foreground">{rotulo}</span></span>
+          </button>
+        ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Filter className="w-4 h-4 text-muted-foreground" />
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="text-sm border border-border bg-card rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring/25">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Filter className="hidden h-4 w-4 text-muted-foreground sm:block" aria-hidden="true" />
+        <label className="sr-only" htmlFor="filtro-tipo">Tipo de alerta</label>
+        <select id="filtro-tipo" value={filterType} onChange={(e) => setFilterType(e.target.value)} className={claseSelect}>
           <option value="all">Todos los tipos</option>
           <option value="critical">Crítico</option>
           <option value="declining">Tendencia</option>
           <option value="low_grade">Calificación baja</option>
           <option value="attendance">Asistencia</option>
         </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="text-sm border border-border bg-card rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring/25">
+        <label className="sr-only" htmlFor="filtro-estado">Estado de la alerta</label>
+        <select id="filtro-estado" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={claseSelect}>
           <option value="all">Todos los estados</option>
           <option value="active">Activas</option>
-          <option value="reviewed">Revisadas</option>
+          <option value="reviewed">En revisión</option>
           <option value="resolved">Resueltas</option>
         </select>
-        <span className="text-sm text-muted-foreground ml-auto">{filtered.length} alertas</span>
+        <span className="ml-auto text-sm font-medium text-muted-foreground" aria-live="polite">{filtered.length} alertas</span>
       </div>
 
-      <div className="space-y-3">
-        {filtered.map((alert) => {
-          const config = typeConfig[alert.type] || typeConfig.declining;
-          const sConfig = statusConfig[alert.status] || statusConfig.active;
-          const Icon = config.icon;
-          return (
-            <Card key={alert.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedAlert(alert)}>
-              <CardContent className="p-4 flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${config.bg}`}><Icon className={`w-5 h-5 ${config.color}`} /></div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-card-foreground">{alert.student}</p>
-                    {alert.group && <span className="text-[11px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded">{alert.group}</span>}
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${sConfig.bg} ${sConfig.color}`}>{sConfig.label}</span>
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${alert.priority === "alta" ? "bg-destructive/10 text-destructive" : alert.priority === "media" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>Prioridad {alert.priority}</span>
+      {error ? (
+        <div className="rounded-2xl border border-border bg-card"><EstadoError onReintentar={fetchAlerts} /></div>
+      ) : (
+        <ul className="space-y-2.5">
+          {filtered.map((alert) => {
+            const config = typeConfig[alert.type] || typeConfig.declining;
+            const sConfig = statusConfig[alert.status] || statusConfig.active;
+            const Icon = config.icon;
+            return (
+              <li key={alert.id}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedAlert(alert)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedAlert(alert); } }}
+                  className="flex cursor-pointer items-start gap-3.5 rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+                >
+                  <span className={`grid h-10 w-10 flex-none place-items-center rounded-xl ${config.fondo}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="mr-1 text-[15px] font-semibold text-card-foreground">{alert.student}</p>
+                      {alert.group && <EstadoBadge tono="grupo">{alert.group}</EstadoBadge>}
+                      <EstadoBadge tono={sConfig.tono}>{sConfig.label}</EstadoBadge>
+                      <EstadoBadge tono={prioridadTono[alert.priority] || "sin"} icono={false}>Prioridad {alert.priority}</EstadoBadge>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{alert.message}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
+                  <span className="flex-none whitespace-nowrap text-xs text-muted-foreground">{alert.date}</span>
                 </div>
-                <span className="text-xs text-muted-foreground flex-shrink-0">{alert.date}</span>
-              </CardContent>
-            </Card>
-          );
-        })}
-        {filtered.length === 0 && (
-          <div className="text-center py-12">
-            <BellOff className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">No hay alertas con los filtros seleccionados</p>
-          </div>
-        )}
-      </div>
+              </li>
+            );
+          })}
+          {filtered.length === 0 && (
+            <li className="rounded-2xl border border-border bg-card">
+              {alerts.length === 0 ? (
+                <EstadoVacio titulo="No hay alertas registradas" descripcion="Cuando un estudiante tenga un promedio por debajo de 3.0, la alerta aparecerá aquí." />
+              ) : (
+                <EstadoVacio conMascota={false} titulo="No hay alertas con estos filtros" descripcion="Cambia el tipo o el estado para ver otras alertas." />
+              )}
+            </li>
+          )}
+        </ul>
+      )}
 
       <Dialog open={!!selectedAlert} onOpenChange={() => setSelectedAlert(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedAlert && (() => { const Icon = typeConfig[selectedAlert.type]?.icon || AlertTriangle; return <Icon className={`w-5 h-5 ${typeConfig[selectedAlert.type]?.color}`} />; })()}
-              Detalle de Alerta
+            <DialogTitle className="flex items-center gap-2.5 font-display text-xl">
+              {selectedAlert && (() => {
+                const c = typeConfig[selectedAlert.type] || typeConfig.declining;
+                const Icon = c.icon;
+                return <span className={`grid h-9 w-9 place-items-center rounded-xl ${c.fondo}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>;
+              })()}
+              Detalle de la alerta
             </DialogTitle>
+            <DialogDescription>Revisa el caso y registra el seguimiento. Resolver una alerta no la borra: queda en el historial.</DialogDescription>
           </DialogHeader>
           {selectedAlert && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-card-foreground text-lg">{selectedAlert.student}</span>
-                {selectedAlert.group && <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">{selectedAlert.group}</span>}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-lg font-semibold text-card-foreground">{selectedAlert.student}</span>
+                {selectedAlert.group && <EstadoBadge tono="grupo"><Users className="h-3.5 w-3.5" aria-hidden="true" />{selectedAlert.group}</EstadoBadge>}
               </div>
-              <div className="flex gap-2">
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${typeConfig[selectedAlert.type]?.bg} ${typeConfig[selectedAlert.type]?.color}`}>{typeConfig[selectedAlert.type]?.label}</span>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusConfig[selectedAlert.status]?.bg} ${statusConfig[selectedAlert.status]?.color}`}>{statusConfig[selectedAlert.status]?.label}</span>
+              <div className="flex flex-wrap gap-2">
+                <EstadoBadge tono="sin" icono={false}>{typeConfig[selectedAlert.type]?.label}</EstadoBadge>
+                <EstadoBadge tono={statusConfig[selectedAlert.status]?.tono || "alerta"}>{statusConfig[selectedAlert.status]?.label}</EstadoBadge>
+                <EstadoBadge tono={prioridadTono[selectedAlert.priority] || "sin"} icono={false}>Prioridad {selectedAlert.priority}</EstadoBadge>
               </div>
-              <div className="bg-muted/50 rounded-lg p-4"><p className="text-sm text-card-foreground leading-relaxed">{selectedAlert.detail || selectedAlert.message}</p></div>
-              <p className="text-xs text-muted-foreground">Fecha: {selectedAlert.date}</p>
-              <div className="flex gap-2 pt-2">
+              <div className="rounded-xl bg-secondary p-4">
+                <p className="text-[15px] leading-relaxed text-card-foreground">{selectedAlert.message || selectedAlert.detail}</p>
+              </div>
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <CalendarDays className="h-4 w-4" aria-hidden="true" /> Creada: {fechaCorta(selectedAlert.fecha)} ({selectedAlert.date.toLowerCase()})
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
                 {selectedAlert.status === "active" && (
-                  <Button size="sm" variant="outline" onClick={() => updateStatus(selectedAlert.id, "reviewed")}><Eye className="w-4 h-4 mr-1" /> Marcar como revisada</Button>
+                  <Button variant="outline" className="rounded-xl" disabled={actualizando} onClick={() => updateStatus(selectedAlert.id, "reviewed")}><Eye className="mr-1.5 h-4 w-4" /> Marcar en revisión</Button>
                 )}
                 {selectedAlert.status !== "resolved" && (
-                  <Button size="sm" onClick={() => updateStatus(selectedAlert.id, "resolved")}><CheckCircle className="w-4 h-4 mr-1" /> Resolver</Button>
+                  <Button className="rounded-xl" disabled={actualizando} onClick={() => updateStatus(selectedAlert.id, "resolved")}><CheckCircle className="mr-1.5 h-4 w-4" /> Resolver</Button>
                 )}
+                {selectedAlert.status === "resolved" && <p className="text-sm text-muted-foreground">Esta alerta ya está resuelta.</p>}
               </div>
             </div>
           )}

@@ -1,89 +1,174 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Sistema visual ClassKids (renovación aprobada: base «Recreo» + acentos «Cuaderno vivo").
+  - Texto en azul tinta; verde para la acción principal; frambuesa solo para alertas y errores.
+  - Cada estado académico tiene fondo suave + texto oscuro (≥ 4.5:1, WCAG AA).
+  - Valores HSL sin `hsl()` para usarlos con opacidad en Tailwind.
+*/
 @layer base {
   :root {
-    --background: 40 33% 97%;
-    --foreground: 218 28% 16%;
-
+    /* Neutros */
+    --background: 220 50% 98%;          /* nube #F6F8FC */
+    --foreground: 219 41% 19%;          /* tinta #1D2B45 */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-
+    --card-foreground: 219 41% 19%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 219 41% 19%;
 
-    --primary: 161 63% 32%;
+    --primary: 162 68% 28%;             /* verde ClassKids #17775A (blanco encima 5.5:1) */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 39 25% 91%;
-    --secondary-foreground: 215 25% 25%;
+    --secondary: 218 31% 95%;           /* #EEF1F6 */
+    --secondary-foreground: 219 41% 19%;
 
-    --muted: 40 22% 93%;
-    --muted-foreground: 215 12% 50%;
+    --muted: 218 31% 95%;
+    --muted-foreground: 222 21% 37%;    /* #4A5672: 6.9:1 sobre nube */
 
-    --accent: 12 76% 58%;
-    --accent-foreground: 36 90% 15%;
+    --accent: 154 51% 91%;              /* menta: hover de menús y opciones */
+    --accent-foreground: 155 70% 22%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 338 57% 44%;         /* frambuesa #B0305F */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 55% 42%;
+    --success: 155 70% 22%;             /* #11603F */
     --success-foreground: 0 0% 100%;
-
-    --warning: 36 90% 55%;
-    --warning-foreground: 36 90% 15%;
-
-    --info: 210 70% 55%;
+    --warning: 41 100% 24%;             /* #7A5300 */
+    --warning-foreground: 0 0% 100%;
+    --info: 222 63% 38%;                /* #24489E */
     --info-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 161 63% 32%;
+    --border: 218 33% 91%;              /* separadores */
+    --input: 220 16% 59%;               /* borde de campos #8792A8: 3.1:1 */
+    --ring: 162 68% 28%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 218 28% 16%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 43 86% 64%;
+    /* Paleta de identidad */
+    --tinta: 219 41% 19%;
+    --tinta-2: 222 21% 37%;
+    --menta: 154 51% 91%;
+    --cielo: 219 100% 94%;
+    --lavanda: 250 100% 95%;
+    --durazno: 22 100% 91%;
+    --mantequilla: 46 100% 87%;
+    --frambuesa: 338 57% 44%;
+    --sol: 42 100% 65%;
+    --azul: 222 63% 50%;
+
+    /* Estados académicos: fondo suave + texto oscuro */
+    --nivel-excelente: 154 51% 91%;   --nivel-excelente-fg: 155 70% 22%;
+    --nivel-aprobado: 219 100% 94%;   --nivel-aprobado-fg: 222 63% 38%;
+    --nivel-observar: 46 100% 87%;    --nivel-observar-fg: 41 100% 24%;
+    --nivel-reprobado: 22 100% 91%;   --nivel-reprobado-fg: 19 86% 33%;
+    --nivel-alerta: 338 75% 94%;      --nivel-alerta-fg: 338 62% 34%;
+    --nivel-sin: 218 31% 95%;         --nivel-sin-fg: 222 21% 37%;
+    --nivel-grupo: 250 100% 95%;      --nivel-grupo-fg: 250 46% 42%;
+
+    /* Barras de gráficas (≥ 3:1 sobre blanco) */
+    --barra-excelente: 155 63% 33%;
+    --barra-alto: 222 63% 50%;
+    --barra-observar: 36 71% 42%;
+    --barra-bajo: 21 76% 43%;
+
+    /* Menú lateral claro con identidad azul tinta */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 21% 37%;
+    --sidebar-primary: 219 41% 19%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 218 23% 23%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 218 20% 28%;
-    --sidebar-ring: 43 86% 64%;
-    --sidebar-muted: 218 14% 62%;
+    --sidebar-accent: 218 31% 95%;
+    --sidebar-accent-foreground: 219 41% 19%;
+    --sidebar-border: 218 33% 91%;
+    --sidebar-ring: 162 68% 28%;
+    --sidebar-muted: 222 21% 37%;
+
+    /* Colores de apoyo (antes sin definir). Oscuros para poder usarse también como texto. */
+    --chart-1: 162 68% 28%;
+    --chart-2: 222 63% 45%;
+    --chart-3: 250 46% 45%;
+    --chart-4: 33 90% 27%;
+    --chart-5: 338 57% 44%;
   }
 
+  /* Tema oscuro: diseñado aparte (no es una inversión). Superficies azul tinta, acentos claros
+     y estados con texto claro sobre fondo oscuro. Contraste verificado con
+     Docs/evidencias/scripts/contraste-wcag.py. */
   .dark {
-    --background: 215 25% 10%;
-    --foreground: 210 20% 92%;
-    --card: 215 25% 14%;
-    --card-foreground: 210 20% 92%;
-    --popover: 215 25% 14%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 142 60% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 20% 20%;
-    --secondary-foreground: 210 20% 90%;
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 12% 55%;
-    --accent: 36 90% 55%;
-    --accent-foreground: 36 90% 15%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 20% 22%;
-    --input: 215 20% 22%;
-    --ring: 142 60% 48%;
-    --sidebar-background: 215 30% 8%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 142 60% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 15%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 215 25% 15%;
-    --sidebar-ring: 142 60% 48%;
+    --background: 220 44% 11%;          /* #101828 aprox. */
+    --foreground: 220 47% 94%;          /* #E8EDF7 */
+    --card: 222 40% 17%;                /* #1A2540 */
+    --card-foreground: 220 47% 94%;
+    --popover: 222 40% 17%;
+    --popover-foreground: 220 47% 94%;
+
+    --primary: 158 52% 54%;             /* verde claro #4CC79A */
+    --primary-foreground: 158 58% 11%;
+
+    --secondary: 222 32% 23%;
+    --secondary-foreground: 220 47% 94%;
+    --muted: 222 32% 23%;
+    --muted-foreground: 220 22% 74%;    /* #A9B4CA */
+
+    --accent: 162 44% 18%;
+    --accent-foreground: 151 60% 78%;
+
+    --destructive: 340 100% 80%;        /* frambuesa clara */
+    --destructive-foreground: 336 62% 10%;
+
+    --success: 151 60% 76%;
+    --success-foreground: 158 58% 11%;
+    --warning: 43 100% 76%;
+    --warning-foreground: 41 100% 12%;
+    --info: 221 100% 85%;
+    --info-foreground: 222 63% 15%;
+
+    --border: 222 30% 27%;
+    --input: 222 17% 52%;
+    --ring: 158 52% 54%;
+
+    --tinta: 220 47% 94%;
+    --tinta-2: 220 22% 74%;
+    --menta: 162 44% 18%;
+    --cielo: 223 45% 25%;
+    --lavanda: 246 34% 26%;
+    --durazno: 17 42% 21%;
+    --mantequilla: 44 48% 18%;
+    --frambuesa: 340 100% 80%;
+    --sol: 42 100% 65%;
+    --azul: 222 100% 80%;
+
+    --nivel-excelente: 162 44% 18%;   --nivel-excelente-fg: 151 60% 78%;
+    --nivel-aprobado: 223 45% 25%;    --nivel-aprobado-fg: 221 100% 86%;
+    --nivel-observar: 44 48% 18%;     --nivel-observar-fg: 43 100% 77%;
+    --nivel-reprobado: 17 42% 21%;    --nivel-reprobado-fg: 21 100% 83%;
+    --nivel-alerta: 338 42% 22%;      --nivel-alerta-fg: 340 100% 86%;
+    --nivel-sin: 222 32% 23%;         --nivel-sin-fg: 219 25% 83%;
+    --nivel-grupo: 246 34% 26%;       --nivel-grupo-fg: 252 100% 89%;
+
+    --barra-excelente: 158 52% 54%;
+    --barra-alto: 222 100% 78%;
+    --barra-observar: 39 74% 58%;
+    --barra-bajo: 20 84% 66%;
+
+    --sidebar-background: 221 42% 14%;
+    --sidebar-foreground: 220 22% 76%;
+    --sidebar-primary: 220 47% 94%;
+    --sidebar-primary-foreground: 221 42% 14%;
+    --sidebar-accent: 222 32% 23%;
+    --sidebar-accent-foreground: 220 47% 94%;
+    --sidebar-border: 222 30% 24%;
+    --sidebar-ring: 158 52% 54%;
+    --sidebar-muted: 220 22% 76%;
+
+    --chart-1: 158 52% 54%;
+    --chart-2: 222 100% 80%;
+    --chart-3: 252 100% 86%;
+    --chart-4: 39 74% 62%;
+    --chart-5: 340 100% 80%;
   }
 }
 
@@ -92,9 +177,41 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'DM Sans', system-ui, sans-serif;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+
+  /* Cifras alineadas en tablas e indicadores */
+  table, .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 3px solid hsl(var(--azul));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
@@ -102,4 +219,62 @@
   .glass-card {
     @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm;
   }
+
+  /* Espacio para la barra de navegación inferior en celulares (incluye el área segura). */
+  .pb-nav-movil {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Sombra suave de tarjetas y paneles (misma en toda la plataforma). */
+  .sombra-tarjeta {
+    box-shadow: 0 1px 2px hsl(var(--tinta) / 0.04), 0 14px 34px -22px hsl(var(--tinta) / 0.28);
+  }
+  .dark .sombra-tarjeta {
+    box-shadow: 0 1px 2px hsl(0 0% 0% / 0.25), 0 16px 36px -22px hsl(0 0% 0% / 0.6);
+  }
+
+  /* Luz aurora detrás del encabezado de cada pantalla de la app (sutil, sin patrones). */
+  .aurora-app {
+    background-image:
+      radial-gradient(ellipse 45% 100% at 10% 0%, hsl(var(--menta) / 0.9) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 90% at 70% 0%, hsl(var(--cielo) / 0.8) 0%, transparent 70%),
+      radial-gradient(ellipse 35% 80% at 100% 10%, hsl(var(--lavanda) / 0.8) 0%, transparent 70%);
+  }
+  .dark .aurora-app {
+    background-image:
+      radial-gradient(ellipse 45% 100% at 10% 0%, hsl(var(--primary) / 0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 90% at 70% 0%, hsl(var(--azul) / 0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 35% 80% at 100% 10%, hsl(252 100% 80% / 0.08) 0%, transparent 70%);
+  }
+
+  /* Fondo de la landing: luces difuminadas de la paleta, sin patrones.
+     Claro: menta, cielo y lavanda luminosos. Oscuro: verde y azul profundos sobre tinta. */
+  .fondo-aurora {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(ellipse 55% 60% at 8% 0%, hsl(var(--menta)) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 55% at 95% 20%, hsl(var(--cielo)) 0%, transparent 72%),
+      radial-gradient(ellipse 45% 45% at 45% 100%, hsl(var(--lavanda)) 0%, transparent 75%);
+  }
+  .dark .fondo-aurora {
+    background-image:
+      radial-gradient(ellipse 55% 60% at 8% 0%, hsl(var(--primary) / 0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 55% at 95% 20%, hsl(var(--azul) / 0.20) 0%, transparent 72%),
+      radial-gradient(ellipse 45% 45% at 45% 100%, hsl(252 100% 80% / 0.14) 0%, transparent 75%);
+  }
+}
+
+/* Gráficas (Recharts): tooltips y leyendas con los colores del tema activo. */
+.recharts-default-tooltip {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.recharts-tooltip-label,
+.recharts-legend-item-text {
+  color: hsl(var(--foreground)) !important;
 }

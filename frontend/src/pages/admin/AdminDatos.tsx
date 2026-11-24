@@ -4,15 +4,18 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import PageHeader from "@/components/layout/PageHeader";
+import { Database } from "lucide-react";
+import { aLista } from "@/lib/listas";
+import type { Alerta, Estudiante, Grupo } from "@/types";
 
-const useAll = (endpoint: string) => {
-  const [rows, setRows] = useState<any[]>([]);
+// Nombres en español de los estados de alerta (mismos textos que la pantalla Alertas).
+const ESTADO_ALERTA: Record<string, string> = { active: "Activa", reviewed: "En revisión", resolved: "Resuelta" };
+
+const useAll = <T,>(endpoint: string) => {
+  const [rows, setRows] = useState<T[]>([]);
   useEffect(() => {
     api.get(endpoint)
-      .then((data: any) => {
-        const list = Array.isArray(data) ? data : data?.items || data?.data || [];
-        setRows(list);
-      })
+      .then((data) => setRows(aLista<T>(data)))
       .catch((err) => {
         console.error(`Error al cargar ${endpoint}:`, err);
         setRows([]);
@@ -22,13 +25,13 @@ const useAll = (endpoint: string) => {
 };
 
 const AdminDatos = () => {
-  const grupos = useAll("/grupos");
-  const estudiantes = useAll("/estudiantes");
-  const alertas = useAll("/alertas");
+  const grupos = useAll<Grupo>("/grupos");
+  const estudiantes = useAll<Estudiante>("/estudiantes");
+  const alertas = useAll<Alerta>("/alertas");
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Administración" title="Datos globales" description="Vista de solo lectura sobre la información de toda la plataforma" />
+      <PageHeader eyebrow="Administración" title="Datos globales" description="Vista de solo lectura sobre la información de toda la plataforma" icon={Database} tono="bg-cielo" />
 
       <Tabs defaultValue="grupos">
         <TabsList>
@@ -40,14 +43,15 @@ const AdminDatos = () => {
         <TabsContent value="grupos">
           <Card>
             <Table>
-              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Grado</TableHead><TableHead>Turno</TableHead><TableHead>Creado</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Grado</TableHead><TableHead>Turno</TableHead><TableHead>Año lectivo</TableHead></TableRow></TableHeader>
               <TableBody>
                 {grupos.map(g => (
                   <TableRow key={g.id}>
                     <TableCell className="font-medium">{g.nombre}</TableCell>
                     <TableCell>{g.grado}</TableCell>
                     <TableCell>{g.turno}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{g.created_at ? new Date(g.created_at).toLocaleDateString("es") : "N/A"}</TableCell>
+                    {/* H-26: la tabla `grupos` no tiene fecha de creación; se muestra el año lectivo, que sí existe. */}
+                    <TableCell className="text-sm text-muted-foreground">{g.ano_lectivo ?? "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -82,7 +86,7 @@ const AdminDatos = () => {
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">{a.tipo}</TableCell>
                     <TableCell className="text-sm">{a.mensaje}</TableCell>
-                    <TableCell>{a.estado}</TableCell>
+                    <TableCell>{ESTADO_ALERTA[a.estado] ?? a.estado}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

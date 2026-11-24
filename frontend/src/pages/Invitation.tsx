@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Lock, Mail } from "lucide-react";
+import ThemeToggle from "@/components/common/ThemeToggle";
 import { noClipboardProps } from "@/lib/passwordField";
+import { mensajeDeError } from "@/lib/utils";
 
 interface Invitation {
   email: string;
@@ -48,15 +50,16 @@ const Invitation = () => {
       await api.post(`/invitaciones/${encodeURIComponent(token || "")}/aceptar`, { nombre: name, apellido: lastName, password });
       toast.success("Cuenta activada. Ya puedes iniciar sesión.");
       navigate("/auth", { replace: true });
-    } catch (error: any) {
-      toast.error(error?.message || "No se pudo activar la cuenta");
+    } catch (error) {
+      toast.error(mensajeDeError(error, "No se pudo activar la cuenta"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="relative min-h-screen bg-background flex items-center justify-center p-4">
+      <ThemeToggle className="absolute right-4 top-4" />
       <Card className="w-full max-w-md">
         <CardContent className="p-8 space-y-6">
           <div className="text-center space-y-2">

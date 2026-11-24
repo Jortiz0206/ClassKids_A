@@ -17,3 +17,18 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+/** Tableta o pantalla estrecha de escritorio (menos de 1024 px): el menú lateral se contrae. */
+export function useIsNarrow() {
+  const [narrow, setNarrow] = React.useState<boolean>(() => typeof window !== "undefined" && window.innerWidth < 1024);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => setNarrow(window.innerWidth < 1024);
+    mql.addEventListener("change", onChange);
+    onChange();
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return narrow;
+}

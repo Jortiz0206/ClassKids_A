@@ -10,7 +10,7 @@ const ProteccionDatos = () => (
     </p>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">1. Responsable del tratamiento</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">1. Responsable del tratamiento</h2>
       <p className="mt-2">
         El colegio que administra la cuenta institucional actúa como responsable del tratamiento de los
         datos académicos registrados en ClassKids. La plataforma actúa como encargada técnica del
@@ -19,7 +19,7 @@ const ProteccionDatos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">2. Medidas de seguridad</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">2. Medidas de seguridad</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>Contraseñas cifradas con PBKDF2; nunca se almacenan en texto plano.</li>
         <li>Autenticación mediante token (JWT) con tiempo de expiración.</li>
@@ -29,13 +29,13 @@ const ProteccionDatos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">3. Derechos de los titulares</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">3. Derechos de los titulares</h2>
       <p className="mt-2">
         Como titular de los datos (o acudiente de un estudiante menor de edad), puedes solicitar en
         cualquier momento: conocer, actualizar, rectificar o suprimir tus datos, así como revocar la
         autorización de tratamiento cuando la ley lo permita. Estas solicitudes se canalizan a través de
         la coordinación del colegio o directamente a{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#147d68] hover:underline">
+        <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
           {CONTACT_EMAIL}
         </a>
         .
@@ -43,7 +43,7 @@ const ProteccionDatos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">4. Datos de menores de edad</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">4. Datos de menores de edad</h2>
       <p className="mt-2">
         Los datos de estudiantes menores de edad se registran por el colegio con fines exclusivamente
         académicos y bajo la responsabilidad de la institución educativa, conforme al interés superior
@@ -52,7 +52,7 @@ const ProteccionDatos = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">5. Vigencia</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">5. Vigencia</h2>
       <p className="mt-2">
         Esta política aplica mientras exista una relación con el colegio y se conserven datos en la
         plataforma. Puede actualizarse para ajustarse a cambios normativos o técnicos.

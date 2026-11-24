@@ -1,7 +1,13 @@
-import { useState, useEffect } from "react";
-import { AlertTriangle, Clock, TrendingDown } from "lucide-react";
-import { api } from "../../api/client";
+import { useMemo } from "react";
+import { TrendingDown, Clock, AlertTriangle, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useRecurso } from "@/hooks/useRecurso";
 import { Alerta } from "../../types";
+import { contarAlertasActivas, esAlertaActiva } from "@/lib/conteos";
+import { tiempoRelativo } from "@/lib/fechas";
+import { mapaGrupoPorEstudiante } from "@/lib/listas";
+import EstadoBadge from "@/components/common/EstadoBadge";
+import { EstadoCargando, EstadoVacio, EstadoError } from "@/components/common/Estados";
 
 interface AlertUI {
   id: number;
@@ -12,91 +18,91 @@ interface AlertUI {
   date: string;
 }
 
-const typeConfig: Record<string, { icon: typeof AlertTriangle; color: string; bg: string }> = {
-  "Bajo Rendimiento": { icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
-  "Inasistencia": { icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-  "Seguimiento": { icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10" },
-  "critical": { icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
+const iconoTipo = (tipo: string) => {
+  const t = (tipo || "").toLowerCase();
+  if (t.includes("inasist")) return Clock;
+  if (t.includes("low_grade") || t.includes("rendimiento")) return TrendingDown;
+  return AlertTriangle;
 };
 
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return "Reciente";
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays <= 0) return "Hoy";
-  if (diffDays === 1) return "Ayer";
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  return `Hace ${Math.floor(diffDays / 7)} semana(s)`;
-};
+/** Cuántas alertas muestra el resumen; la lista completa está en el módulo Alertas. */
+const ALERTAS_EN_RESUMEN = 5;
 
+/** Panel del Dashboard: solo alertas activas (mismo criterio que el contador, H-25). */
 const AlertsPanel = () => {
-  const [alerts, setAlerts] = useState<AlertUI[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Listas compartidas con el resto del Dashboard (una sola petición por recurso).
+  const qAlertas = useRecurso<Alerta>("/alertas");
+  const qEst = useRecurso<{ id: number; grupo_id?: number | null }>("/estudiantes");
+  const qGrupos = useRecurso<{ id: number; nombre: string }>("/grupos");
+  const loading = qAlertas.isLoading || qEst.isLoading || qGrupos.isLoading;
+  const error = qAlertas.isError || qEst.isError || qGrupos.isError;
+  const fetchAlerts = () => { qAlertas.refetch(); qEst.refetch(); qGrupos.refetch(); };
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      try {
-        setLoading(true);
-        // Llamada a tu API local en FastAPI
-        const data = await api.get<Alerta[]>("/alertas");
-
-        // Mapeo desde la estructura de FastAPI hacia la interfaz visual
-        const mapped: AlertUI[] = (data || []).map((a) => ({
-          id: a.id,
-          student: `${a.estudiante_nombre || ""} ${a.estudiante_apellido || ""}`.trim() || "Estudiante",
-          group: "Activo",
-          type: a.tipo,
-          message: a.mensaje,
-          date: formatDate(a.fecha_creacion),
-        }));
-
-        setAlerts(mapped);
-      } catch (error) {
-        console.error("Error cargando alertas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAlerts();
-  }, []);
+  const { alerts, activas } = useMemo(() => {
+    const data = qAlertas.data || [];
+    // El grupo del estudiante se muestra junto al nombre (antes decía «Activo» en todas).
+    const grupoDe = mapaGrupoPorEstudiante(qEst.data || [], qGrupos.data || []);
+    // Las resueltas siguen en PostgreSQL y se consultan en Alertas con el filtro «Resueltas».
+    const mapped: AlertUI[] = data.filter(esAlertaActiva).map((a) => ({
+      id: a.id,
+      student: `${a.estudiante_nombre || ""} ${a.estudiante_apellido || ""}`.trim() || "Estudiante",
+      group: grupoDe.get(String(a.estudiante_id)) || "Sin grupo",
+      type: a.tipo,
+      message: a.mensaje,
+      date: tiempoRelativo(a.fecha_creacion),
+    }));
+    return { alerts: mapped, activas: contarAlertasActivas(data) };
+  }, [qAlertas.data, qEst.data, qGrupos.data]);
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-card-foreground">Alertas Tempranas</h3>
-        <span className="text-xs bg-destructive/10 text-destructive font-semibold px-2.5 py-1 rounded-full">
-          {alerts.length} activas
-        </span>
+    <div className="flex flex-col rounded-2xl border border-border bg-card animate-fade-in">
+      <div className="flex items-start justify-between gap-3 px-5 pb-2 pt-5">
+        <div>
+          <h3 className="text-lg font-semibold text-card-foreground">Alertas tempranas</h3>
+          <p className="text-[13px] text-muted-foreground">Promedio acumulado inferior a 3.0</p>
+        </div>
+        {!loading && !error && <EstadoBadge tono="alerta">{activas} activas</EstadoBadge>}
       </div>
+
       {loading ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Cargando desde FastAPI...</p>
+        <EstadoCargando texto="Cargando alertas…" />
+      ) : error ? (
+        <EstadoError titulo="No pudimos cargar las alertas" onReintentar={fetchAlerts} />
       ) : alerts.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Sin alertas activas</p>
+        <EstadoVacio titulo="Sin alertas activas" descripcion="Ningún estudiante tiene un promedio por debajo de 3.0 en este momento." />
       ) : (
-        <div className="space-y-3">
-          {alerts.map((alert) => {
-            const config = typeConfig[alert.type] || typeConfig["Seguimiento"];
-            const Icon = config.icon;
+        <ul className="divide-y divide-border px-3" aria-label="Alertas activas más recientes">
+          {alerts.slice(0, ALERTAS_EN_RESUMEN).map((alert) => {
+            const Icon = iconoTipo(alert.type);
             return (
-              <div key={alert.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${config.bg}`}>
-                  <Icon className={`w-4 h-4 ${config.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-card-foreground">{alert.student}</p>
-                    <span className="text-[11px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{alert.group}</span>
+              <li key={alert.id}>
+                <div className="group grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/60">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-nivel-alerta text-nivel-alerta-fg">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span className="text-[15px] font-semibold text-card-foreground">{alert.student}</span>
+                      <EstadoBadge tono="grupo">{alert.group}</EstadoBadge>
+                    </p>
+                    <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{alert.message}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{alert.message}</p>
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">{alert.date}</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground flex-shrink-0">{alert.date}</span>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
+
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 py-3.5 text-sm font-semibold">
+        <Link to="/app/alertas" className="inline-flex items-center gap-1 text-azul hover:underline">
+          {alerts.length > ALERTAS_EN_RESUMEN ? `Ver las ${activas} alertas activas` : "Gestionar alertas"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+        <Link to="/app/alertas?estado=resolved" className="text-muted-foreground hover:text-foreground hover:underline">
+          Ver alertas resueltas
+        </Link>
+      </div>
     </div>
   );
 };

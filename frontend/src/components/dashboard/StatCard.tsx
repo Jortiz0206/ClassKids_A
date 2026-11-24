@@ -1,67 +1,36 @@
 import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   icon: LucideIcon;
   label: string;
   value: string | number;
-  change?: string;
-  changeType?: "positive" | "negative" | "neutral";
-  variant?: "default" | "primary" | "warning" | "success";
+  /** Texto de apoyo bajo la cifra. */
+  hint?: string;
+  /** Clase de fondo del ícono (color del módulo), por ejemplo «bg-lavanda». */
+  tono?: string;
   delay?: number;
+  className?: string;
 }
 
-const variantStyles = {
-  default: "bg-card border-border",
-  primary: "bg-primary/5 border-primary/20",
-  warning: "bg-warning/10 border-warning/20",
-  success: "bg-success/10 border-success/20",
-};
-
-const iconVariantStyles = {
-  default: "bg-secondary text-foreground",
-  primary: "bg-primary/10 text-primary",
-  warning: "bg-warning/15 text-warning",
-  success: "bg-success/15 text-success",
-};
-
-export const StatCard = ({
-  icon: Icon,
-  label,
-  value,
-  change,
-  changeType = "neutral",
-  variant = "default",
-  delay = 0,
-}: StatCardProps) => {
-  return (
-    <div
-      className={`group rounded-xl border p-5 animate-fade-in opacity-0 [animation-fill-mode:forwards] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/5 ${variantStyles[variant]}`}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{label}</p>
-          <p className="text-2xl font-bold mt-1 text-card-foreground">{value}</p>
-          {change && (
-            <p
-              className={`text-xs mt-1 font-medium ${
-                changeType === "positive"
-                  ? "text-success"
-                  : changeType === "negative"
-                  ? "text-destructive"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {change}
-            </p>
-          )}
-        </div>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${iconVariantStyles[variant]}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
+/**
+ * Indicador numérico. Tarjeta blanca; el color solo va en el ícono para que la cifra
+ * se lea primero. El rótulo va inmediatamente antes de la cifra (las pruebas E2E lo usan).
+ */
+export const StatCard = ({ icon: Icon, label, value, hint, tono = "bg-secondary", delay = 0, className }: StatCardProps) => (
+  <div
+    className={cn("sombra-tarjeta flex items-center gap-4 rounded-2xl border border-border bg-card p-4 animate-fade-in transition-transform motion-safe:hover:-translate-y-0.5 sm:p-5", className)}
+    style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
+  >
+    <span className={cn("grid h-11 w-11 flex-none place-items-center rounded-xl text-foreground", tono)}>
+      <Icon className="h-5 w-5" aria-hidden="true" />
+    </span>
+    <div className="min-w-0">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="mt-0.5 font-display text-[28px] font-bold leading-none tabular-nums text-card-foreground">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
-  );
-};
+  </div>
+);
 
 export default StatCard;

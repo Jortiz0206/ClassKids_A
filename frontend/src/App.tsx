@@ -1,4 +1,6 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
+import { CLAVE_TEMA } from "@/lib/tema";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -55,6 +57,8 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
+  // Modo claro / oscuro: clase «dark» en <html>, preferencia guardada en localStorage.
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey={CLAVE_TEMA} disableTransitionOnChange>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Sonner />
@@ -109,6 +113,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

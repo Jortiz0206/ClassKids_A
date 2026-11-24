@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { api } from "@/api/client";
-import { Users, GraduationCap, BookOpen, AlertTriangle, ShieldCheck, UserCheck } from "lucide-react";
+import { Users, GraduationCap, BookOpen, AlertTriangle, ShieldCheck, UserCheck, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import PageHeader from "@/components/layout/PageHeader";
 
-const Stat = ({ icon: Icon, label, value, tone, delay = 0 }: any) => (
+interface StatProps { icon: LucideIcon; label: string; value: number; tone: string; delay?: number }
+
+/** Total de una respuesta `{ count }` (o `{ total }`) de la API; 0 si no viene. */
+const total = (r: unknown): number => {
+  const c = r as { count?: number; total?: number } | null;
+  return c?.count || c?.total || 0;
+};
+
+const Stat = ({ icon: Icon, label, value, tone, delay = 0 }: StatProps) => (
   <Card
     className="group p-5 animate-fade-in opacity-0 [animation-fill-mode:forwards] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/5"
     style={{ animationDelay: `${delay}ms` }}
@@ -38,12 +46,12 @@ const AdminDashboard = () => {
         ]);
 
         setS({
-          docentes: (docentesRes as any)?.count || (docentesRes as any)?.total || 0,
-          admins: (adminsRes as any)?.count || (adminsRes as any)?.total || 0,
-          grupos: (gruposRes as any)?.count || (gruposRes as any)?.total || 0,
-          estudiantes: (estudiantesRes as any)?.count || (estudiantesRes as any)?.total || 0,
-          actividades: (actividadesRes as any)?.count || (actividadesRes as any)?.total || 0,
-          alertas: (alertasRes as any)?.count || (alertasRes as any)?.total || 0,
+          docentes: total(docentesRes),
+          admins: total(adminsRes),
+          grupos: total(gruposRes),
+          estudiantes: total(estudiantesRes),
+          actividades: total(actividadesRes),
+          alertas: total(alertasRes),
         });
       } catch (error) {
         console.error("Error al cargar las métricas del dashboard:", error);
@@ -53,7 +61,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Administración" title="Panel de administración" description="Métricas globales y control de la plataforma" />
+      <PageHeader eyebrow="Administración" title="Panel de administración" description="Métricas globales y control de la plataforma" icon={ShieldCheck} tono="bg-menta" />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <Stat icon={UserCheck} label="Docentes" value={s.docentes} tone="bg-primary/10 text-primary" delay={0} />
@@ -68,10 +76,10 @@ const AdminDashboard = () => {
         <h2 className="font-semibold text-foreground mb-2">¿Cómo funciona la creación de usuarios?</h2>
         <ol className="space-y-2 text-sm text-muted-foreground list-decimal pl-5">
           <li>Vas a <Link to="/admin/usuarios" className="text-primary font-medium hover:underline">Usuarios</Link> y haces clic en "Invitar docente".</li>
-          <li>Ingresas el correo del docente y el rol (docente o administrador).</li>
-          <li>El sistema envía un correo de invitación con un enlace seguro al docente.</li>
+          <li>Ingresas el correo del docente y el rol (docente o administrador). Las materias y grupos de cada docente se asignan en Materias → «Vincular a Grupo».</li>
+          <li>El sistema envía un correo con un enlace seguro, válido por 48 horas. Si el correo no está configurado, la pantalla muestra el enlace para que lo compartas.</li>
           <li>El docente abre el enlace, define su contraseña y queda activo automáticamente.</li>
-          <li>Tú puedes cambiar su rol o eliminarlo desde la misma pantalla.</li>
+          <li>Desde la misma pantalla puedes cambiar su rol o desactivar su acceso; su historial se conserva.</li>
         </ol>
       </Card>
     </div>

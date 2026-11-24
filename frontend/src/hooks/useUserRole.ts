@@ -13,7 +13,7 @@ export function useUserRole() {
   // `loading` con OR, alcanzaba a leer `isAdmin: false` con datos ya obsoletos
   // antes de que el efecto se disparara — redirigiendo a un administrador real
   // fuera del panel de administración.
-  const role: AppRole | null = user ? (((user as any).rol || (user as any).role || "docente") as AppRole) : null;
+  const role: AppRole | null = user ? ((user.rol || (user as { role?: string }).role || "docente") as AppRole) : null;
 
   return { role, loading, isAdmin: role === "admin" };
 }

@@ -1,17 +1,24 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Users, TrendingUp, MoreVertical, ChevronRight } from "lucide-react";
+import { Search, Plus, Users, TrendingUp, ChevronRight } from "lucide-react";
+import { GraduationCap } from "lucide-react";
+import { Link } from "react-router-dom";
+import StatCard from "@/components/dashboard/StatCard";
+import { colorBarra } from "@/components/dashboard/PerformanceChart";
+import EstadoBadge, { type Tono } from "@/components/common/EstadoBadge";
+import { EstadoCargando, EstadoVacio } from "@/components/common/Estados";
+import { formatoEscala5, nivelPromedio } from "@/lib/notas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import { api } from "@/api/client";
 import { toast } from "sonner";
 import PageHeader from "@/components/layout/PageHeader";
-import logoC from "@/assets/logo-ClassKids.png";
+import { aLista } from "@/lib/listas";
+import type { Actividad, Alerta, Calificacion, Estudiante, Grupo } from "@/types";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface GrupoRow {
   id: string;
@@ -27,10 +34,10 @@ interface GrupoRow {
 }
 
 const getPerformanceColor = (promedio: number) => {
-  if (promedio >= 90) return "text-emerald-500";
-  if (promedio >= 80) return "text-primary";
-  if (promedio >= 70) return "text-amber-500";
-  return "text-destructive";
+  if (promedio >= 90) return "text-nivel-excelente-fg";
+  if (promedio >= 80) return "text-nivel-aprobado-fg";
+  if (promedio >= 70) return "text-nivel-observar-fg";
+  return "text-nivel-reprobado-fg";
 };
 
 const getPerformanceLabel = (promedio: number) => {
@@ -40,10 +47,12 @@ const getPerformanceLabel = (promedio: number) => {
   return "En riesgo";
 };
 
-const getPerformanceBadgeVariant = (promedio: number): "default" | "secondary" | "destructive" | "outline" => {
-  if (promedio >= 90) return "default";
-  if (promedio >= 80) return "secondary";
-  return "destructive";
+// «Regular» (70 – 79 %) es un promedio aprobado: antes se pintaba en rojo como si fuera malo.
+const getPerformanceTono = (promedio: number): Tono => {
+  if (promedio >= 90) return "excelente";
+  if (promedio >= 80) return "aprobado";
+  if (promedio >= 70) return "observar";
+  return "reprobado";
 };
 
 // Cursos disponibles para el selector de "Nuevo grupo": de 1° a 5°, secciones A y B.
@@ -66,6 +75,7 @@ const colorForGrupo = (nombre: string) => {
 };
 
 const Grupos = () => {
+  const { isAdmin } = useUserRole();
   const [grupos, setGrupos] = useState<GrupoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -86,22 +96,22 @@ const Grupos = () => {
         api.get("/calificaciones"),
       ]);
 
-      const gruposData = Array.isArray(gruposRes) ? gruposRes : (gruposRes as any)?.items || [];
-      const estudiantesData = Array.isArray(estRes) ? estRes : (estRes as any)?.items || [];
-      const actividadesData = Array.isArray(actRes) ? actRes : (actRes as any)?.items || [];
-      const alertasData = Array.isArray(alertasRes) ? alertasRes : (alertasRes as any)?.items || [];
-      const calificacionesData = Array.isArray(calsRes) ? calsRes : (calsRes as any)?.items || [];
+      const gruposData = aLista<Grupo>(gruposRes);
+      const estudiantesData = aLista<Estudiante>(estRes);
+      const actividadesData = aLista<Actividad>(actRes);
+      const alertasData = aLista<Alerta>(alertasRes);
+      const calificacionesData = aLista<Calificacion>(calsRes);
 
-      const enriched: GrupoRow[] = gruposData.map((g: any) => {
-        const grupoEstudiantes = estudiantesData.filter((e: any) => String(e.grupo_id) === String(g.id));
-        const estIds = new Set(grupoEstudiantes.map((e: any) => String(e.id)));
+      const enriched: GrupoRow[] = gruposData.map((g) => {
+        const grupoEstudiantes = estudiantesData.filter((e) => String(e.grupo_id) === String(g.id));
+        const estIds = new Set(grupoEstudiantes.map((e) => String(e.id)));
 
-        const grupoActividades = actividadesData.filter((a: any) => String(a.grupo_id) === String(g.id));
-        const grupoAlertas = alertasData.filter((al: any) => estIds.has(String(al.estudiante_id)) && String(al.estado || "").toLowerCase() !== "resolved" && String(al.estado || "") !== "Resuelta");
-        const grupoCalificaciones = calificacionesData.filter((c: any) => estIds.has(String(c.estudiante_id)));
+        const grupoActividades = actividadesData.filter((a) => String(a.grupo_id) === String(g.id));
+        const grupoAlertas = alertasData.filter((al) => estIds.has(String(al.estudiante_id)) && String(al.estado || "").toLowerCase() !== "resolved" && String(al.estado || "") !== "Resuelta");
+        const grupoCalificaciones = calificacionesData.filter((c) => estIds.has(String(c.estudiante_id)));
 
         const promedio = grupoCalificaciones.length > 0
-          ? Math.round((grupoCalificaciones.reduce((s: number, c: any) => s + Number(c.calificacion ?? c.nota * 20), 0) / grupoCalificaciones.length))
+          ? Math.round((grupoCalificaciones.reduce((s: number, c) => s + Number(c.nota) * 20, 0) / grupoCalificaciones.length))
           : 0;
 
         return {
@@ -160,58 +170,28 @@ const Grupos = () => {
   const promedioGlobal = grupos.length > 0 ? Math.round(grupos.reduce((s, g) => s + (g.promedioGeneral || 0), 0) / grupos.length) : 0;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando grupos...</p></div>;
+    return <EstadoCargando texto="Cargando grupos…" className="h-64" />;
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Estructura académica" title="Grupos" description="Gestión y seguimiento de grupos académicos" actions={<Button onClick={() => setDialogOpen(true)} className="gap-2">
+      <PageHeader eyebrow="Estructura académica" title="Grupos" description={isAdmin ? "Gestión y seguimiento de grupos académicos" : "Los grupos donde tienes materias asignadas"} icon={Users} tono="bg-lavanda" actions={isAdmin && <Button onClick={() => setDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" /> Nuevo Grupo
         </Button>} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{grupos.length}</p>
-              <p className="text-xs text-muted-foreground">Grupos activos</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-chart-2/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-chart-2" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{totalEstudiantes}</p>
-              <p className="text-xs text-muted-foreground">Estudiantes totales</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-chart-3/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-chart-3" />
-            </div>
-            <div>
-              <p className={`text-2xl font-bold ${getPerformanceColor(promedioGlobal)}`}>{promedioGlobal}%</p>
-              <p className="text-xs text-muted-foreground">Promedio global</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <StatCard icon={Users} label="Grupos activos" value={grupos.length} tono="bg-lavanda" />
+        <StatCard icon={GraduationCap} label="Estudiantes totales" value={totalEstudiantes} tono="bg-cielo" />
+        <StatCard icon={TrendingUp} label="Promedio global" value={`${promedioGlobal}%`} hint={`${formatoEscala5(promedioGlobal)} de 5.0`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar grupo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <div className="relative w-full sm:w-auto sm:min-w-[220px] sm:max-w-xs sm:flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input placeholder="Buscar grupo..." aria-label="Buscar grupo" value={search} onChange={(e) => setSearch(e.target.value)} className="h-11 rounded-xl pl-9" />
         </div>
         <Select value={filterGrado} onValueChange={setFilterGrado}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Grado" /></SelectTrigger>
+          <SelectTrigger className="h-11 w-[calc(50%-0.375rem)] rounded-xl sm:w-[170px]"><SelectValue placeholder="Grado" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los grados</SelectItem>
             {Array.from(new Set(grupos.map((g) => g.grado))).sort().map((grado) => (
@@ -220,7 +200,7 @@ const Grupos = () => {
           </SelectContent>
         </Select>
         <Select value={filterTurno} onValueChange={setFilterTurno}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Turno" /></SelectTrigger>
+          <SelectTrigger className="h-11 w-[calc(50%-0.375rem)] rounded-xl sm:w-[170px]"><SelectValue placeholder="Turno" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los turnos</SelectItem>
             <SelectItem value="Matutino">Matutino</SelectItem>
@@ -231,65 +211,69 @@ const Grupos = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((grupo) => (
-          <Card key={grupo.id} className="group hover:shadow-md transition-shadow cursor-pointer">
+          <Card key={grupo.id} className="group rounded-2xl transition-shadow hover:shadow-md">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1.5" style={{ backgroundColor: grupo.color }}>
-                    <img src={logoC} alt="ClassKids" className="w-full h-full rounded-md object-contain" />
+                  <div className="relative grid h-11 w-11 place-items-center rounded-xl bg-lavanda font-display text-sm font-bold text-nivel-grupo-fg">
+                    {grupo.nombre.replace("Grado ", "")}
+                    {/* Color propio del grupo (dato existente), como marca pequeña. */}
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card" style={{ backgroundColor: grupo.color }} aria-hidden="true" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">{grupo.nombre}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{grupo.grado} · {grupo.turno}</p>
+                    <CardTitle className="text-lg">{grupo.nombre}</CardTitle>
+                    <p className="text-[13px] text-muted-foreground">{grupo.grado} · {grupo.turno}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {(grupo.alertasCount || 0) > 0 && (
-                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5">{grupo.alertasCount} alertas</Badge>
-                  )}
-                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </div>
+                {(grupo.alertasCount || 0) > 0 && (
+                  <EstadoBadge tono="alerta">{grupo.alertasCount} alertas</EstadoBadge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-3 gap-2 rounded-xl bg-secondary/60 py-3 text-center">
                 <div>
-                  <p className="text-lg font-bold text-foreground">{grupo.estudiantesCount}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Estudiantes</p>
+                  <p className="font-display text-xl font-bold tabular-nums text-foreground">{grupo.estudiantesCount}</p>
+                  <p className="text-xs text-muted-foreground">Estudiantes</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-foreground">{grupo.actividadesCount}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Actividades</p>
+                  <p className="font-display text-xl font-bold tabular-nums text-foreground">{grupo.actividadesCount}</p>
+                  <p className="text-xs text-muted-foreground">Actividades</p>
                 </div>
                 <div>
-                  <p className={`text-lg font-bold ${getPerformanceColor(grupo.promedioGeneral || 0)}`}>{grupo.promedioGeneral}%</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Promedio</p>
+                  <p className={`font-display text-xl font-bold tabular-nums ${getPerformanceColor(grupo.promedioGeneral || 0)}`}>{grupo.promedioGeneral}%</p>
+                  <p className="text-xs text-muted-foreground">Promedio · {formatoEscala5(grupo.promedioGeneral || 0)}</p>
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">Rendimiento</span>
-                  <Badge variant={getPerformanceBadgeVariant(grupo.promedioGeneral || 0)} className="text-[10px] h-5">
+                  <EstadoBadge tono={getPerformanceTono(grupo.promedioGeneral || 0)}>
                     {getPerformanceLabel(grupo.promedioGeneral || 0)}
-                  </Badge>
+                  </EstadoBadge>
                 </div>
-                <Progress value={grupo.promedioGeneral || 0} className="h-2" />
+                <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full rounded-full" style={{ width: `${grupo.promedioGeneral || 0}%`, background: colorBarra[nivelPromedio(grupo.promedioGeneral || 0)] }} />
+                </div>
               </div>
-              <Button variant="ghost" className="w-full justify-between text-xs text-muted-foreground hover:text-foreground">
-                Ver detalle del grupo <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
+              <Link
+                to={`/app/estudiantes?grupo=${grupo.id}`}
+                className="flex h-10 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold text-azul transition-colors hover:bg-secondary"
+              >
+                Ver estudiantes del grupo <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No se encontraron grupos</p>
-          <p className="text-sm text-muted-foreground/60">Intenta con otros filtros de búsqueda</p>
+        <div className="rounded-2xl border border-border bg-card">
+          {grupos.length === 0 ? (
+            <EstadoVacio titulo={isAdmin ? "Aún no hay grupos" : "Aún no tienes grupos asignados"} descripcion={isAdmin ? "Crea el primer grupo con el botón «Nuevo Grupo»." : "Cuando el administrador te asigne una materia en un grupo, aparecerá aquí."} />
+          ) : (
+            <EstadoVacio conMascota={false} titulo="No se encontraron grupos" descripcion="Intenta con otros filtros de búsqueda." />
+          )}
         </div>
       )}
 

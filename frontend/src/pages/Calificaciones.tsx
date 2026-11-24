@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Search, Save, CheckCircle2, Users, BookOpen, Award } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Save, CheckCircle2, Users, Award, BarChart3, ClipboardList, CalendarDays, Library, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -10,18 +8,57 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { api } from "@/api/client";
 import { toast } from "sonner";
 import PageHeader from "@/components/layout/PageHeader";
+import EstadoBadge from "@/components/common/EstadoBadge";
+import { EstadoVacio, FilasCargando } from "@/components/common/Estados";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { fechaCorta } from "@/lib/fechas";
+import {
+  ETIQUETA_ESTADO, UMBRAL_APROBADO, aEscala5, estadoNota, filaModificada, formatoEscala5,
+  iniciales, normalizarEntradaNota, promedioActividad,
+} from "@/lib/notas";
+import { aLista } from "@/lib/listas";
+import type { Calificacion, Estudiante } from "@/types";
 
 interface Grupo { id: string; nombre: string; }
-interface Actividad { id: string; titulo: string; tipo: string; grupo_id: string; }
-interface Estudiante { id: string; nombre: string; apellido: string; }
+interface Actividad { id: string; titulo: string; tipo: string; grupo_id: string; materia_id?: number | string; materia_nombre?: string; fecha_entrega?: string; }
 interface CalificacionRow {
   estudiante_id: string;
   nombre: string;
   apellido: string;
-  calificacion: number;
+  // Porcentaje que se muestra y se digita (nota × 20). `null` = el estudiante no tiene
+  // calificación en esta actividad (antes se mostraba como 0 y se guardaba como 0: H-02).
+  calificacion: number | null;
   entregado: boolean;
   id?: string;
+  // Valores con los que se cargó la fila, para guardar solo lo que el docente cambió (D2).
+  original: { calificacion: number | null; entregado: boolean };
 }
+
+const tonosAvatar = ["bg-menta", "bg-cielo", "bg-lavanda", "bg-durazno", "bg-mantequilla"];
+
+/** Campo de nota (0 – 100) con su equivalencia en la escala oficial (÷ 20). */
+const CampoNota = ({ fila, onChange }: { fila: CalificacionRow; onChange: (raw: string) => void }) => {
+  const equivalencia = formatoEscala5(fila.calificacion);
+  return (
+    <div className="flex items-center gap-2.5">
+      <Input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={100}
+        value={fila.calificacion ?? ""}
+        placeholder="—"
+        aria-label={`Calificación de ${fila.nombre} ${fila.apellido}`}
+        aria-describedby={`equiv-${fila.estudiante_id}`}
+        onChange={(e) => onChange(e.target.value)}
+        className={`h-10 w-[76px] rounded-lg text-center text-[15px] font-bold tabular-nums ${filaModificada(fila) ? "border-sol ring-2 ring-sol/60" : ""}`}
+      />
+      <span id={`equiv-${fila.estudiante_id}`} className="min-w-[64px] text-[13px] tabular-nums text-muted-foreground">
+        {equivalencia ? <>/ 100 = <b className="text-foreground">{equivalencia}</b></> : <span className="sr-only">Sin nota</span>}
+      </span>
+    </div>
+  );
+};
 
 const Calificaciones = () => {
   const [grupos, setGrupos] = useState<Grupo[]>([]);
@@ -36,10 +73,10 @@ const Calificaciones = () => {
     const fetchGrupos = async () => {
       try {
         const res = await api.get("/grupos");
-        const data = Array.isArray(res) ? res : (res as any)?.items || [];
+        const data = aLista(res);
         setGrupos(data);
       } catch (error) {
-        toast.error("Error al cargar los grupos");
+        toast.error("No pudimos cargar los grupos. Revisa tu conexión.");
       }
     };
     fetchGrupos();
@@ -54,12 +91,12 @@ const Calificaciones = () => {
     const fetchActividades = async () => {
       try {
         const res = await api.get(`/actividades?grupo_id=${selectedGrupo}`);
-        const data = Array.isArray(res) ? res : (res as any)?.items || [];
-        const filtered = data.filter((a: any) => String(a.grupo_id) === String(selectedGrupo));
+        const data = aLista(res);
+        const filtered = data.filter((a) => String(a.grupo_id) === String(selectedGrupo));
         setActividades(filtered);
         setSelectedActividad("");
       } catch (error) {
-        toast.error("Error al cargar las actividades");
+        toast.error("No pudimos cargar las actividades del grupo.");
       }
     };
     fetchActividades();
@@ -76,212 +113,293 @@ const Calificaciones = () => {
   const loadCalificaciones = async () => {
     setLoading(true);
     try {
-      const actividad = actividades.find((item) => String(item.id) === String(selectedActividad));
       const [estRes, calRes] = await Promise.all([
         api.get(`/estudiantes?grupo_id=${selectedGrupo}`),
         api.get("/calificaciones"),
       ]);
 
-      const estudiantesRaw = Array.isArray(estRes) ? estRes : (estRes as any)?.items || [];
+      const estudiantesRaw = aLista<Estudiante>(estRes);
       const estudiantes = estudiantesRaw
-        .filter((e: any) => String(e.grupo_id) === String(selectedGrupo))
-        .sort((a: any, b: any) => String(a.apellido).localeCompare(String(b.apellido)));
+        .filter((e) => String(e.grupo_id) === String(selectedGrupo))
+        .sort((a, b) => String(a.apellido).localeCompare(String(b.apellido)));
 
       // Importante: filtrar por actividad_id (no solo materia_id). Una materia puede
       // tener varias actividades para el mismo grupo; filtrar solo por materia_id
       // mezclaba la nota de una actividad distinta y, al guardar, podía reasignarla
       // silenciosamente a la actividad seleccionada.
-      const calsRaw = Array.isArray(calRes) ? calRes : (calRes as any)?.items || [];
-      const cals = calsRaw.filter((c: any) => String(c.actividad_id) === String(selectedActividad));
+      const calsRaw = aLista<Calificacion>(calRes);
+      const cals = calsRaw.filter((c) => String(c.actividad_id) === String(selectedActividad));
 
-      const calMap = new Map(cals.map((c: any) => [String(c.estudiante_id), c]));
+      const calMap = new Map(cals.map((c) => [String(c.estudiante_id), c]));
 
-      const rows: CalificacionRow[] = estudiantes.map((e: any) => {
-        const existing = calMap.get(String(e.id)) as any;
+      const rows: CalificacionRow[] = estudiantes.map((e) => {
+        const existing = calMap.get(String(e.id));
+        const calificacion = existing ? Number(existing.nota) * 20 : null;
+        // «Entregado» se lee de la base (columna `entregado`, migración 001). Si la base aún
+        // no tiene la columna, se conserva el comportamiento anterior: con nota = entregado.
+        const entregado = existing ? (typeof existing.entregado === "boolean" ? existing.entregado : true) : false;
         return {
           estudiante_id: String(e.id),
           nombre: String(e.nombre || ""),
           apellido: String(e.apellido || ""),
-          calificacion: existing ? Number(existing.calificacion ?? Number(existing.nota || 0) * 20) : 0,
-          entregado: Boolean(existing),
+          calificacion,
+          entregado,
           id: existing ? String(existing.id) : undefined,
+          original: { calificacion, entregado },
         };
       });
       setCalificaciones(rows);
     } catch (error) {
-      toast.error("Error al cargar las calificaciones");
+      toast.error("No pudimos cargar las calificaciones. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateCalificacion = (idx: number, value: number) => {
-    setCalificaciones(prev => prev.map((c, i) => i === idx ? { ...c, calificacion: Math.min(100, Math.max(0, value)) } : c));
+  const updateCalificacion = (idx: number, raw: string) => {
+    const value = normalizarEntradaNota(raw);
+    setCalificaciones(prev => prev.map((c, i) => i === idx ? { ...c, calificacion: value } : c));
   };
 
   const toggleEntregado = (idx: number) => {
     setCalificaciones(prev => prev.map((c, i) => i === idx ? { ...c, entregado: !c.entregado } : c));
   };
 
+  const pendientesDeGuardar = calificaciones.filter(filaModificada).length;
+
   const handleSave = async () => {
     if (!selectedActividad) return;
+    const materiaId = Number(actividades.find((item) => String(item.id) === String(selectedActividad))?.materia_id);
+    // D2: solo se envían las filas que el docente modificó. Las demás no se tocan, y un
+    // estudiante sin nota no recibe un 0 (H-02).
+    const modificadas = calificaciones.filter(filaModificada);
+    const guardables = modificadas.filter((c) => c.calificacion !== null);
+    const omitidas = modificadas.length - guardables.length;
+    if (guardables.length === 0) {
+      if (omitidas > 0) toast.error("Ingresa la calificación para poder registrar la entrega.");
+      else toast("No hay cambios para guardar");
+      return;
+    }
     setSaving(true);
+    let guardadas = 0;
     try {
-      for (const c of calificaciones) {
+      for (const c of guardables) {
+        // No se envían `periodo` ni `observacion`: el backend conserva los valores existentes
+        // al actualizar (H-33, H-31) y usa el periodo 1 por defecto al crear (RN-08).
         const payload = {
-          estudiante_id: c.estudiante_id,
-          materia_id: Number((actividades.find((item) => String(item.id) === String(selectedActividad)) as any)?.materia_id),
+          estudiante_id: Number(c.estudiante_id),
+          materia_id: materiaId,
           actividad_id: Number(selectedActividad),
-          nota: Number((c.calificacion / 20).toFixed(1)),
-          observacion: c.entregado ? "Actividad entregada" : null,
+          nota: aEscala5(c.calificacion as number),
+          entregado: c.entregado,
         };
-
         if (c.id) {
           await api.put(`/calificaciones/${c.id}`, payload);
         } else {
           await api.post("/calificaciones", payload);
         }
+        guardadas++;
       }
-      toast.success("Calificaciones guardadas correctamente");
+      toast.success(`Calificaciones guardadas correctamente (${guardadas})`);
+      if (omitidas > 0) toast(`${omitidas} fila(s) sin calificación no se guardaron.`);
       loadCalificaciones();
     } catch (error) {
-      toast.error("Error al guardar calificaciones");
+      const detalle = error instanceof Error ? error.message : "";
+      toast.error(`Error al guardar calificaciones${guardadas ? ` (se guardaron ${guardadas} antes del error)` : ""}: ${detalle}`);
+      if (guardadas) loadCalificaciones();
     } finally {
       setSaving(false);
     }
   };
 
-  const promedio = calificaciones.length > 0
-    ? Math.round(calificaciones.reduce((s, c) => s + c.calificacion, 0) / calificaciones.length)
-    : 0;
+  // Indicadores: mismo cálculo que antes (un estudiante sin nota cuenta como 0 en el
+  // promedio, hallazgo H-19, que no forma parte de esta corrección).
+  const promedio = promedioActividad(calificaciones);
   const entregados = calificaciones.filter(c => c.entregado).length;
-  const aprobados = calificaciones.filter(c => c.calificacion >= 70).length;
+  const aprobados = calificaciones.filter(c => (c.calificacion ?? 0) >= UMBRAL_APROBADO).length;
 
-  const getCalColor = (cal: number) => {
-    if (cal >= 90) return "text-emerald-600 dark:text-emerald-400";
-    if (cal >= 70) return "text-primary";
-    if (cal > 0) return "text-destructive";
-    return "text-muted-foreground";
-  };
+  const isMobile = useIsMobile();
+  const actividadSel = actividades.find((a) => String(a.id) === String(selectedActividad));
+  const grupoSel = grupos.find((g) => String(g.id) === String(selectedGrupo));
+
+  const botonGuardar = (
+    <Button onClick={handleSave} disabled={saving || pendientesDeGuardar === 0} className="h-11 gap-2 rounded-xl px-5">
+      {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
+      {saving ? "Guardando..." : pendientesDeGuardar > 0 ? `Guardar cambios (${pendientesDeGuardar})` : "Guardar cambios"}
+    </Button>
+  );
 
   return (
-    <div className="space-y-6">
-      <PageHeader eyebrow="Evidencia de aprendizaje" title="Calificaciones" description="Asigna y consulta calificaciones por actividad" actions={calificaciones.length > 0 && (
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" /> {saving ? "Guardando..." : "Guardar cambios"}
-          </Button>
-        )} />
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Evidencia de aprendizaje"
+        title="Calificaciones"
+        description="Registra notas y entregas por actividad. La nota se escribe de 0 a 100 y se guarda en la escala 0.0 – 5.0."
+        icon={ClipboardList}
+        tono="bg-menta"
+        actions={calificaciones.length > 0 && !isMobile && botonGuardar}
+      />
 
-      {/* Selectors */}
-      <div className="flex flex-wrap items-center gap-3">
-        <Select value={selectedGrupo} onValueChange={setSelectedGrupo}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Seleccionar grupo" /></SelectTrigger>
-          <SelectContent>
-            {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={selectedActividad} onValueChange={setSelectedActividad} disabled={!selectedGrupo}>
-          <SelectTrigger className="w-[260px]"><SelectValue placeholder="Seleccionar actividad" /></SelectTrigger>
-          <SelectContent>
-            {actividades.map(a => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.titulo} <span className="text-muted-foreground ml-1">({a.tipo})</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Selectores (el orden grupo → actividad lo usan las pruebas E2E) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5">
+          <p className="text-[13px] font-semibold text-muted-foreground" id="lbl-grupo">Grupo</p>
+          <Select value={selectedGrupo} onValueChange={setSelectedGrupo}>
+            <SelectTrigger className="h-11 w-full rounded-xl sm:w-[220px]" aria-labelledby="lbl-grupo"><SelectValue placeholder="Seleccionar grupo" /></SelectTrigger>
+            <SelectContent>
+              {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-[13px] font-semibold text-muted-foreground" id="lbl-actividad">Actividad</p>
+          <Select value={selectedActividad} onValueChange={setSelectedActividad} disabled={!selectedGrupo}>
+            <SelectTrigger className="h-11 w-full rounded-xl sm:w-[320px]" aria-labelledby="lbl-actividad"><SelectValue placeholder={selectedGrupo ? "Seleccionar actividad" : "Primero elige un grupo"} /></SelectTrigger>
+            <SelectContent>
+              {actividades.map(a => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.titulo} <span className="ml-1 text-muted-foreground">({a.tipo})</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {actividadSel && (
+          <div className="flex flex-wrap gap-2 sm:pb-2.5">
+            {actividadSel.materia_nombre && <EstadoBadge tono="sin" icono={false}><Library className="h-3.5 w-3.5" aria-hidden="true" />{actividadSel.materia_nombre}</EstadoBadge>}
+            {actividadSel.fecha_entrega && <EstadoBadge tono="sin" icono={false}><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />Entrega: {fechaCorta(actividadSel.fecha_entrega)}</EstadoBadge>}
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
       {calificaciones.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <Card><CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div>
-            <div><p className="text-2xl font-bold text-foreground">{calificaciones.length}</p><p className="text-xs text-muted-foreground">Estudiantes</p></div>
-          </CardContent></Card>
-          <Card><CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-chart-2/10 flex items-center justify-center"><CheckCircle2 className="w-5 h-5 text-chart-2" /></div>
-            <div><p className="text-2xl font-bold text-foreground">{entregados}/{calificaciones.length}</p><p className="text-xs text-muted-foreground">Entregados</p></div>
-          </CardContent></Card>
-          <Card><CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-chart-3/10 flex items-center justify-center"><Award className="w-5 h-5 text-chart-3" /></div>
-            <div><p className="text-2xl font-bold text-foreground">{aprobados}</p><p className="text-xs text-muted-foreground">Aprobados (≥70)</p></div>
-          </CardContent></Card>
-          <Card><CardContent className="flex items-center gap-4 p-5">
-            <div className="w-11 h-11 rounded-xl bg-chart-4/10 flex items-center justify-center"><BookOpen className="w-5 h-5 text-chart-4" /></div>
-            <div><p className={`text-2xl font-bold ${getCalColor(promedio)}`}>{promedio}%</p><p className="text-xs text-muted-foreground">Promedio</p></div>
-          </CardContent></Card>
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><Users className="h-4 w-4" aria-hidden="true" />Estudiantes</p>
+              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{calificaciones.length}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{grupoSel ? `en ${grupoSel.nombre}` : "del grupo"}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Entregados</p>
+              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{entregados}/{calificaciones.length}</p>
+              <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="Entregas" aria-valuemin={0} aria-valuemax={calificaciones.length} aria-valuenow={entregados}>
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(entregados / calificaciones.length) * 100}%` }} />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><Award className="h-4 w-4" aria-hidden="true" />Aprobados</p>
+              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{aprobados}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">desde 70 % (3.5)</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><BarChart3 className="h-4 w-4" aria-hidden="true" />Promedio</p>
+              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{promedio} % <span className="text-base font-semibold text-muted-foreground">· {formatoEscala5(promedio)}</span></p>
+              <p className="mt-1.5 text-xs text-muted-foreground" title="Hallazgo H-19, pendiente">Quien no tiene nota cuenta como 0</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+            <span>Estados:</span>
+            <EstadoBadge tono="excelente">Excelente ≥ 90 %</EstadoBadge>
+            <EstadoBadge tono="aprobado">Aprobado 70 – 89 %</EstadoBadge>
+            <EstadoBadge tono="reprobado">Reprobado &lt; 70 %</EstadoBadge>
+            <EstadoBadge tono="sin">Sin calificar</EstadoBadge>
+          </div>
+        </>
       )}
 
-      {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-40"><p className="text-muted-foreground">Cargando...</p></div>
+        <div className="rounded-2xl border border-border bg-card"><FilasCargando filas={6} /></div>
       ) : calificaciones.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
+        isMobile ? (
+          <ul className="space-y-2.5" aria-label="Estudiantes del grupo">
+            {calificaciones.map((c, i) => {
+              const estado = estadoNota(c.calificacion);
+              const modificada = filaModificada(c);
+              return (
+                <li key={c.estudiante_id} className={`rounded-2xl border p-3.5 ${modificada ? "border-sol bg-mantequilla" : "border-border bg-card"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className={`grid h-9 w-9 flex-none place-items-center rounded-full text-xs font-bold ${tonosAvatar[i % 5]}`}>{iniciales(c.nombre, c.apellido)}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[15px] font-semibold">{c.apellido}, {c.nombre}</span>
+                        {modificada && <span className="block text-xs font-semibold text-nivel-observar-fg">Sin guardar</span>}
+                      </span>
+                    </div>
+                    <EstadoBadge tono={estado}>{ETIQUETA_ESTADO[estado]}</EstadoBadge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <CampoNota fila={c} onChange={(raw) => updateCalificacion(i, raw)} />
+                    <label className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+                      Entregado
+                      <Switch checked={c.entregado} onCheckedChange={() => toggleEntregado(i)} aria-label={`Entregado: ${c.nombre} ${c.apellido}`} />
+                    </label>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Estudiante</TableHead>
-                  <TableHead className="w-[140px] text-center">Calificación</TableHead>
-                  <TableHead className="w-[100px] text-center">Entregado</TableHead>
-                  <TableHead className="w-[100px] text-center">Estado</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-12 text-xs font-bold uppercase tracking-wide">#</TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wide">Estudiante</TableHead>
+                  <TableHead className="w-[220px] text-xs font-bold uppercase tracking-wide">Calificación</TableHead>
+                  <TableHead className="w-[120px] text-center text-xs font-bold uppercase tracking-wide">Entregado</TableHead>
+                  <TableHead className="w-[150px] text-xs font-bold uppercase tracking-wide">Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {calificaciones.map((c, i) => (
-                  <TableRow key={c.estudiante_id}>
-                    <TableCell className="text-muted-foreground text-xs">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-primary">{c.nombre[0]}{c.apellido[0]}</span>
+                {calificaciones.map((c, i) => {
+                  const estado = estadoNota(c.calificacion);
+                  const modificada = filaModificada(c);
+                  return (
+                    <TableRow key={c.estudiante_id} className={modificada ? "bg-mantequilla hover:bg-mantequilla" : ""}>
+                      <TableCell className={`text-sm tabular-nums text-muted-foreground ${modificada ? "shadow-[inset_4px_0_0_hsl(var(--sol))]" : ""}`}>{i + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <span className={`grid h-9 w-9 flex-none place-items-center rounded-full text-xs font-bold text-foreground ${tonosAvatar[i % 5]}`}>{iniciales(c.nombre, c.apellido)}</span>
+                          <span>
+                            <span className="block text-[15px] font-semibold text-foreground">{c.apellido}, {c.nombre}</span>
+                            {modificada && <span className="block text-xs font-semibold text-nivel-observar-fg">Sin guardar</span>}
+                          </span>
                         </div>
-                        <span className="font-medium text-sm text-foreground">{c.apellido}, {c.nombre}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={c.calificacion}
-                        onChange={(e) => updateCalificacion(i, Number(e.target.value))}
-                        className={`w-20 mx-auto text-center font-bold ${getCalColor(c.calificacion)}`}
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Switch checked={c.entregado} onCheckedChange={() => toggleEntregado(i)} />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {c.calificacion >= 90 ? (
-                        <Badge variant="default" className="text-[10px]">Excelente</Badge>
-                      ) : c.calificacion >= 70 ? (
-                        <Badge variant="secondary" className="text-[10px]">Aprobado</Badge>
-                      ) : c.calificacion > 0 ? (
-                        <Badge variant="destructive" className="text-[10px]">Reprobado</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px]">Sin calif.</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell><CampoNota fila={c} onChange={(raw) => updateCalificacion(i, raw)} /></TableCell>
+                      <TableCell className="text-center">
+                        <Switch checked={c.entregado} onCheckedChange={() => toggleEntregado(i)} aria-label={`Entregado: ${c.nombre} ${c.apellido}`} />
+                      </TableCell>
+                      <TableCell><EstadoBadge tono={estado}>{ETIQUETA_ESTADO[estado]}</EstadoBadge></TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+            <p className="border-t border-border px-4 py-3 text-[13px] text-muted-foreground">
+              Solo se guardan las filas que modifiques. La nota se convierte a la escala 0.0 – 5.0 dividiendo entre 20, con un decimal.
+            </p>
+          </div>
+        )
       ) : selectedActividad ? (
-        <div className="text-center py-16">
-          <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No hay estudiantes en este grupo</p>
+        <div className="rounded-2xl border border-border bg-card">
+          <EstadoVacio titulo="Este grupo no tiene estudiantes" descripcion="Registra estudiantes en el grupo para poder calificar esta actividad." />
         </div>
       ) : (
-        <div className="text-center py-16">
-          <BookOpen className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">Selecciona un grupo y una actividad</p>
-          <p className="text-sm text-muted-foreground/60">para ver y asignar calificaciones</p>
+        <div className="rounded-2xl border border-dashed border-input bg-card">
+          <EstadoVacio
+            titulo={selectedGrupo ? "Ahora elige una actividad" : "Elige un grupo y una actividad"}
+            descripcion="Aquí aparecerá la lista del grupo para registrar notas y entregas."
+          />
+        </div>
+      )}
+
+      {isMobile && pendientesDeGuardar > 0 && (
+        <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] z-30 flex items-center justify-between gap-3 rounded-2xl bg-foreground py-2.5 pl-4 pr-2.5 text-sm font-semibold text-background shadow-lg">
+          <span>{pendientesDeGuardar === 1 ? "1 cambio sin guardar" : `${pendientesDeGuardar} cambios sin guardar`}</span>
+          {botonGuardar}
         </div>
       )}
     </div>

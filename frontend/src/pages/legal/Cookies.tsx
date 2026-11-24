@@ -9,7 +9,7 @@ const Cookies = () => (
     </p>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">1. Qué almacenamos</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">1. Qué almacenamos</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>
           <strong>Sesión (obligatorio):</strong> un token de autenticación que identifica tu cuenta
@@ -23,7 +23,7 @@ const Cookies = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">2. Lo que no hacemos</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">2. Lo que no hacemos</h2>
       <p className="mt-2">
         ClassKids no utiliza cookies de publicidad ni de rastreo de terceros. No compartimos información
         de navegación con redes publicitarias ni con otras plataformas.
@@ -31,7 +31,7 @@ const Cookies = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">3. Cómo gestionarlas</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">3. Cómo gestionarlas</h2>
       <p className="mt-2">
         Puedes borrar el almacenamiento local de tu navegador en cualquier momento; ten en cuenta que
         esto cerrará tu sesión y deberás iniciar sesión nuevamente.
@@ -39,10 +39,10 @@ const Cookies = () => (
     </section>
 
     <section>
-      <h2 className="font-display text-xl font-semibold text-[#20262d]">4. Contacto</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">4. Contacto</h2>
       <p className="mt-2">
         Si tienes preguntas sobre esta política, escríbenos a{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#147d68] hover:underline">
+        <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
           {CONTACT_EMAIL}
         </a>
         .

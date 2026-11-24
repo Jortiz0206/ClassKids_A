@@ -35,7 +35,7 @@ export const ObservacionesEstudiante = ({ estudianteId }: { estudianteId: number
       // Filtrar por estudiante localmente o por parámetro si el endpoint lo admite
       const filtradas = data.filter((obs) => String(obs.estudiante_id) === String(estudianteId));
       setObservaciones(filtradas);
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Error al cargar observaciones desde la API");
       console.error(error);
     } finally {
@@ -67,7 +67,7 @@ export const ObservacionesEstudiante = ({ estudianteId }: { estudianteId: number
       setContenido("");
       setShowForm(false);
       fetchObservaciones();
-    } catch (error: any) {
+    } catch (error) {
       toast.error(`Error al guardar: ${error.message || "Fallo en la API"}`);
     } finally {
       setSaving(false);
@@ -80,7 +80,7 @@ export const ObservacionesEstudiante = ({ estudianteId }: { estudianteId: number
       await api.delete(`/observaciones/${id}`);
       toast.success("Observación eliminada");
       fetchObservaciones();
-    } catch (error: any) {
+    } catch (error) {
       toast.error(`Error al eliminar: ${error.message || "Fallo en la API"}`);
     }
   };
@@ -90,7 +90,7 @@ export const ObservacionesEstudiante = ({ estudianteId }: { estudianteId: number
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <MessageSquare className="w-4 h-4" /> Observaciones
-          <Badge variant="secondary" className="text-[10px]">{observaciones.length}</Badge>
+          <Badge variant="secondary" className="text-xs">{observaciones.length}</Badge>
         </h4>
         <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShowForm(!showForm)}>
           <Plus className="w-3 h-3" /> Nueva
@@ -143,8 +143,8 @@ export const ObservacionesEstudiante = ({ estudianteId }: { estudianteId: number
                     <div className={`w-5 h-5 rounded flex items-center justify-center ${config.className}`}>
                       <Icon className="w-3 h-3" />
                     </div>
-                    <Badge variant="outline" className="text-[10px]">{config.label}</Badge>
-                    <span className="text-[10px] text-muted-foreground">
+                    <Badge variant="outline" className="text-xs">{config.label}</Badge>
+                    <span className="text-xs text-muted-foreground">
                       {format(fechaValida, "d MMM yyyy, HH:mm", { locale: es })}
                     </span>
                   </div>

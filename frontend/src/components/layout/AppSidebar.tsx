@@ -1,71 +1,77 @@
-import { 
-  LayoutDashboard, Users, BookOpen, BarChart3, Bell, 
-  GraduationCap, ClipboardList, LogOut, ChevronLeft, ChevronRight, Library, ShieldCheck
-} from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import ThemeToggle from "@/components/common/ThemeToggle";
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useIsNarrow } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useIsMobile } from "@/hooks/use-mobile";
-import logoc from "@/assets/logo-ClassKids.png";
+import { useAlertasActivas } from "@/hooks/useAlertasActivas";
+import { SelloMascota } from "@/components/common/Mascota";
+import { iniciales } from "@/lib/notas";
+import { modulosApp, fondoTono, esRutaActiva } from "./navegacion";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/app" },
-  { icon: Users, label: "Grupos", path: "/app/grupos" },
-  { icon: GraduationCap, label: "Estudiantes", path: "/app/estudiantes" },
-  { icon: Library, label: "Materias", path: "/app/materias" },
-  { icon: BookOpen, label: "Actividades", path: "/app/actividades" },
-  { icon: ClipboardList, label: "Calificaciones", path: "/app/calificaciones" },
-  { icon: BarChart3, label: "Análisis", path: "/app/analisis" },
-  { icon: Bell, label: "Alertas", path: "/app/alertas" },
-];
-
+/** Menú lateral de escritorio: claro, con el azul tinta como color de identidad. */
 export const AppSidebar = () => {
-  const { collapsed, toggle } = useSidebar();
-  const isMobile = useIsMobile();
-  const isCollapsed = collapsed || isMobile;
+  const { collapsed: plegado, toggle } = useSidebar();
+  const estrecho = useIsNarrow();
+  const collapsed = plegado || estrecho;
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { role, isAdmin } = useUserRole();
-
-  const handleSignOut = () => {
-    signOut();
-  };
+  const alertas = useAlertasActivas();
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-300 z-50 ${
-        isCollapsed ? "w-[72px]" : "w-[260px]"
+      aria-label="Menú principal"
+      className={`fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-300 ${
+        collapsed ? "w-[76px]" : "w-[256px]"
       }`}
     >
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-3 min-w-0">
-          <img src={logoc} alt="ClassKids" className="w-9 h-9 rounded-lg flex-shrink-0 object-cover" />
-          {!isCollapsed && (
-            <div className="animate-fade-in min-w-0">
-              <h1 className="text-base font-bold tracking-tight truncate text-sidebar-foreground">ClassKids</h1>
-              <p className="text-[11px] text-sidebar-muted">Seguimiento Académico</p>
+      <div className={`flex items-center gap-3 py-5 ${collapsed ? "justify-center px-3" : "px-5"}`}>
+        <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="ClassKids, ir al inicio">
+          <SelloMascota className="h-11 w-11" />
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="truncate font-display text-lg font-bold leading-tight text-sidebar-primary">ClassKids</p>
+              <p className="text-xs text-sidebar-muted">Seguimiento académico</p>
             </div>
           )}
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+        {modulosApp.map((item) => {
+          const activo = esRutaActiva(location.pathname, item.path);
           return (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === "/app"}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              }`}
+              title={collapsed ? item.label : undefined}
+              aria-current={activo ? "page" : undefined}
+              className={`group flex h-11 items-center gap-3 rounded-xl px-2 text-[15px] transition-colors ${
+                activo
+                  ? "bg-sidebar-accent font-bold text-sidebar-primary"
+                  : "font-medium text-sidebar-foreground hover:bg-sidebar-accent/70 hover:text-sidebar-primary"
+              } ${collapsed ? "justify-center" : ""}`}
             >
-              <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-sidebar-primary" : ""}`} />
-              {!isCollapsed && <span className="animate-fade-in">{item.label}</span>}
+              <span
+                className={`relative grid h-8 w-8 flex-none place-items-center rounded-lg ${
+                  activo ? `${fondoTono[item.tono]} text-sidebar-primary` : ""
+                }`}
+              >
+                <item.icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                {collapsed && item.path === "/app/alertas" && alertas > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-frambuesa ring-2 ring-sidebar" />
+                )}
+              </span>
+              {!collapsed && <span className="truncate">{item.label}</span>}
+              {!collapsed && item.path === "/app/alertas" && alertas > 0 && (
+                <span className="ml-auto rounded-full bg-nivel-alerta px-2 py-0.5 text-xs font-bold text-nivel-alerta-fg">
+                  {alertas}
+                  <span className="sr-only"> por revisar</span>
+                </span>
+              )}
             </NavLink>
           );
         })}
@@ -73,48 +79,59 @@ export const AppSidebar = () => {
         {isAdmin && (
           <NavLink
             to="/admin"
-            className="flex items-center gap-3 px-3 py-2.5 mt-4 rounded-lg text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-all border border-primary/30"
+            title={collapsed ? "Panel de administración" : undefined}
+            className={`mt-4 flex h-11 items-center gap-3 rounded-xl border border-dashed border-input px-2 text-[15px] font-semibold text-sidebar-primary transition-colors hover:bg-sidebar-accent ${
+              collapsed ? "justify-center" : ""
+            }`}
           >
-            <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span>Panel Admin</span>}
+            <span className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-menta">
+              <ShieldCheck className="h-[18px] w-[18px]" aria-hidden="true" />
+            </span>
+            {!collapsed && <span>Panel admin</span>}
           </NavLink>
         )}
       </nav>
 
-      <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
-        {!isCollapsed && user && (
-          <div className="px-3 py-2 mb-1">
-            <p className="text-xs font-medium text-sidebar-foreground truncate">{user.email}</p>
-            <span
-              className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                role === "admin"
-                  ? "bg-primary/20 text-primary"
-                  : "bg-accent text-accent-foreground"
-              }`}
-            >
-              {role === "admin" ? "Administrador" : "Docente"}
+      <div className="space-y-2 border-t border-sidebar-border p-3">
+        {!collapsed && user && (
+          <div className="flex min-w-0 items-center gap-3 rounded-xl bg-sidebar-accent px-3 py-2.5">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-lavanda text-xs font-bold text-nivel-grupo-fg">
+              {iniciales(user.nombre || user.email || "", user.apellido || "")}
             </span>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold text-sidebar-primary" title={user.email}>{user.email}</p>
+              <span
+                className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  role === "admin" ? "bg-menta text-nivel-excelente-fg" : "bg-lavanda text-nivel-grupo-fg"
+                }`}
+              >
+                {role === "admin" ? "Administrador" : "Docente"}
+              </span>
+            </div>
           </div>
         )}
+        <ThemeToggle conTexto={!collapsed} className={`w-full ${collapsed ? "" : "justify-start px-3"}`} />
         <button
-          onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-destructive/20 hover:text-destructive transition-all w-full text-left"
+          type="button"
+          onClick={signOut}
+          title={collapsed ? "Cerrar sesión" : undefined}
+          className={`flex h-10 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-nivel-alerta hover:text-nivel-alerta-fg ${
+            collapsed ? "justify-center" : ""
+          }`}
         >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!isCollapsed && <span>Cerrar sesión</span>}
+          <LogOut className="h-[18px] w-[18px] flex-none" aria-hidden="true" />
+          {!collapsed && <span>Cerrar sesión</span>}
         </button>
       </div>
 
-      <button
+      {!estrecho && <button
+        type="button"
         onClick={toggle}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-card border border-border shadow-sm flex items-center justify-center hover:bg-secondary transition-colors"
+        aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
+        className="absolute -right-3 top-20 grid h-6 w-6 place-items-center rounded-full border border-border bg-card shadow-sm transition-colors hover:bg-secondary"
       >
-        {isCollapsed ? (
-          <ChevronRight className="w-3.5 h-3.5 text-foreground" />
-        ) : (
-          <ChevronLeft className="w-3.5 h-3.5 text-foreground" />
-        )}
-      </button>
+        {collapsed ? <ChevronRight className="h-3.5 w-3.5 text-foreground" /> : <ChevronLeft className="h-3.5 w-3.5 text-foreground" />}
+      </button>}
     </aside>
   );
 };

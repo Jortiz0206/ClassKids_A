@@ -5,7 +5,7 @@ export interface Grupo {
   nombre: string;
   grado?: string;
   turno?: string;
-  año_lectivo?: number;
+  ano_lectivo?: number; // mismo nombre que la columna y la respuesta de GET /grupos (H-27)
 }
 
 export interface Estudiante {
@@ -31,22 +31,26 @@ export interface Actividad {
   materia_nombre?: string;
   grupo_nombre?: string;
   titulo: string;
+  tipo?: string;
   descripcion?: string;
   fecha_entrega?: string;
+  estado?: string;
 }
 
 export interface Calificacion {
   id: number;
   estudiante_id: number;
   materia_id: number;
-  actividad_id?: number;
+  actividad_id?: number | null;
   estudiante_nombre?: string;
   estudiante_apellido?: string;
   materia_nombre?: string;
   nota: number;
   periodo?: number;
-  observacion?: string;
+  observacion?: string | null;
   fecha_registro?: string;
+  /** Estado «Entregado» (H-31); solo existe si la migración 001 está aplicada. */
+  entregado?: boolean;
 }
 
 export interface Observacion {

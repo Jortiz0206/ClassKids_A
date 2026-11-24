@@ -1,7 +1,11 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../api/client";
-import { Estudiante, Grupo } from "../../types";
+import { useRecurso } from "@/hooks/useRecurso";
+import { Estudiante, Grupo, Calificacion } from "../../types";
+import { ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { nivelSeguimiento, formatoEscala5, iniciales } from "@/lib/notas";
+import EstadoBadge, { type Tono } from "@/components/common/EstadoBadge";
+import { FilasCargando, EstadoVacio } from "@/components/common/Estados";
 
 interface StudentView {
   id: number | string;
@@ -12,164 +16,144 @@ interface StudentView {
   trend: string;
 }
 
-const statusConfig = {
-  risk: { label: "En riesgo", className: "bg-destructive/10 text-destructive" },
-  watch: { label: "Observar", className: "bg-warning/10 text-warning" },
-  good: { label: "Buen nivel", className: "bg-success/10 text-success" },
+// Regla existente: < 70 % en riesgo, 70 – 79 % observar, el resto buen nivel.
+const statusConfig: Record<StudentView["status"], { label: string; tono: Tono }> = {
+  risk: { label: "En riesgo", tono: "reprobado" },
+  watch: { label: "Observar", tono: "observar" },
+  good: { label: "Buen nivel", tono: "excelente" },
 };
 
-const trendConfig: Record<string, string> = {
-  up: "↑",
-  down: "↓",
-  stable: "→",
-};
+const trendConfig = {
+  up: { icon: TrendingUp, label: "Mejora" },
+  down: { icon: TrendingDown, label: "Baja" },
+  stable: { icon: Minus, label: "Estable" },
+} as const;
 
 export const RecentStudents = () => {
-  const [students, setStudents] = useState<StudentView[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  // Listas compartidas con el resto del Dashboard (una sola petición por recurso).
+  const qEst = useRecurso<Estudiante>("/estudiantes");
+  const qGrupos = useRecurso<Grupo>("/grupos");
+  const qCal = useRecurso<Calificacion>("/calificaciones");
+  const loading = qEst.isLoading || qGrupos.isLoading || qCal.isLoading;
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setLoading(true);
+  // Mismo cálculo que antes (promedio × 20, estado y tendencia entre periodos).
+  const students = useMemo<StudentView[]>(() => {
+    const estudiantes = qEst.data || [];
+    const grupos = qGrupos.data || [];
+    const calificaciones = qCal.data || [];
+    if (estudiantes.length === 0) return [];
+    // Mapa de ID de Grupo -> Nombre del Grupo
+    const gruposMap = new Map(grupos.map((g) => [g.id, g.nombre]));
 
-        // Peticiones paralelas al backend en FastAPI
-        const [estudiantes, grupos, calificaciones] = await Promise.all([
-          api.get<Estudiante[]>("/estudiantes"),
-          api.get<Grupo[]>("/grupos"),
-          api.get<any[]>("/calificaciones"),
-        ]);
-
-        if (!estudiantes || estudiantes.length === 0) {
-          setStudents([]);
-          setLoading(false);
-          return;
-        }
-
-        // Mapa de ID de Grupo -> Nombre del Grupo
-        const gruposMap = new Map(grupos.map((g) => [g.id, g.nombre]));
-
-        // Mapa de ID de Estudiante -> Lista de Calificaciones (nota + periodo)
-        const calMap = new Map<number | string, { nota: number; periodo: number }[]>();
-        calificaciones.forEach((c) => {
-          const estId = c.estudiante_id;
-          if (estId !== undefined && c.nota !== undefined) {
-            if (!calMap.has(estId)) calMap.set(estId, []);
-            calMap.get(estId)!.push({ nota: Number(c.nota), periodo: Number(c.periodo || 1) });
-          }
-        });
-
-        // Tomamos los primeros 6 estudiantes
-        const recent = estudiantes.slice(0, 6);
-
-        const enriched: StudentView[] = recent.map((e) => {
-          const calsList = calMap.get(e.id) || [];
-          const avg =
-            calsList.length > 0
-              ? Math.round((calsList.reduce((s, c) => s + c.nota, 0) / calsList.length) * 20)
-              : 0;
-
-          const status: "risk" | "watch" | "good" =
-            avg > 0 && avg < 70 ? "risk" : avg >= 70 && avg < 80 ? "watch" : "good";
-
-          // No existe columna `tendencia` en el backend: se calcula comparando el
-          // promedio del primer y el último periodo con calificaciones reales.
-          const periodos = Array.from(new Set(calsList.map((c) => c.periodo))).sort((a, b) => a - b);
-          let trend = "stable";
-          if (periodos.length >= 2) {
-            const avgFor = (p: number) => {
-              const notas = calsList.filter((c) => c.periodo === p).map((c) => c.nota);
-              return notas.length > 0 ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
-            };
-            const primero = avgFor(periodos[0]);
-            const ultimo = avgFor(periodos[periodos.length - 1]);
-            if (primero !== null && ultimo !== null) {
-              if (ultimo > primero + 0.1) trend = "up";
-              else if (ultimo < primero - 0.1) trend = "down";
-            }
-          }
-
-          return {
-            id: e.id,
-            name: `${e.nombre} ${e.apellido}`,
-            group: e.grupo_id ? gruposMap.get(e.grupo_id) || "" : "",
-            average: avg,
-            status,
-            trend,
-          };
-        });
-
-        setStudents(enriched);
-      } catch (error) {
-        console.error("Error al cargar estudiantes destacados:", error);
-      } finally {
-        setLoading(false);
+    // Mapa de ID de Estudiante -> Lista de Calificaciones (nota + periodo)
+    const calMap = new Map<number | string, { nota: number; periodo: number }[]>();
+    calificaciones.forEach((c) => {
+      const estId = c.estudiante_id;
+      if (estId !== undefined && c.nota !== undefined) {
+        if (!calMap.has(estId)) calMap.set(estId, []);
+        calMap.get(estId)!.push({ nota: Number(c.nota), periodo: Number(c.periodo || 1) });
       }
-    };
+    });
 
-    fetchStudents();
-  }, []);
+    // Tomamos los primeros 6 estudiantes
+    const recent = estudiantes.slice(0, 6);
 
-  if (loading) {
-    return (
-      <div className="bg-card rounded-xl border border-border p-5 animate-fade-in">
-        <h3 className="font-semibold text-card-foreground mb-4">Estudiantes Destacados</h3>
-        <p className="text-sm text-muted-foreground text-center py-8">Cargando...</p>
-      </div>
-    );
-  }
+    const enriched: StudentView[] = recent.map((e) => {
+      const calsList = calMap.get(e.id) || [];
+      const avg =
+        calsList.length > 0
+          ? Math.round((calsList.reduce((s, c) => s + c.nota, 0) / calsList.length) * 20)
+          : 0;
+
+      const status = nivelSeguimiento(avg);
+
+      // No existe columna `tendencia` en el backend: se calcula comparando el
+      // promedio del primer y el último periodo con calificaciones reales.
+      const periodos = Array.from(new Set(calsList.map((c) => c.periodo))).sort((a, b) => a - b);
+      let trend = "stable";
+      if (periodos.length >= 2) {
+        const avgFor = (p: number) => {
+          const notas = calsList.filter((c) => c.periodo === p).map((c) => c.nota);
+          return notas.length > 0 ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
+        };
+        const primero = avgFor(periodos[0]);
+        const ultimo = avgFor(periodos[periodos.length - 1]);
+        if (primero !== null && ultimo !== null) {
+          if (ultimo > primero + 0.1) trend = "up";
+          else if (ultimo < primero - 0.1) trend = "down";
+        }
+      }
+
+      return {
+        id: e.id,
+        name: `${e.nombre} ${e.apellido}`,
+        group: e.grupo_id ? gruposMap.get(e.grupo_id) || "" : "",
+        average: avg,
+        status,
+        trend,
+      };
+    });
+    return enriched;
+  }, [qEst.data, qGrupos.data, qCal.data]);
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-card-foreground">Estudiantes Destacados</h3>
+    <section className="rounded-2xl border border-border bg-card p-5 animate-fade-in" aria-labelledby="titulo-seguimiento">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 id="titulo-seguimiento" className="text-lg font-semibold text-card-foreground">Seguimiento de estudiantes</h3>
+          <p className="text-[13px] text-muted-foreground">Primeros estudiantes de la lista con su promedio y tendencia entre periodos</p>
+        </div>
         <button
-          onClick={() => navigate("/estudiantes")}
-          className="text-xs text-primary font-medium hover:underline"
+          type="button"
+          onClick={() => navigate("/app/estudiantes")}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-azul hover:underline"
         >
-          Ver todos
+          Ver todos <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-      {students.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Sin estudiantes registrados
-        </p>
+      {loading ? (
+        <FilasCargando filas={4} className="p-0" />
+      ) : students.length === 0 ? (
+        <EstadoVacio titulo="Sin estudiantes registrados" descripcion="Cuando registres estudiantes, aquí verás su promedio." />
       ) : (
-        <div className="space-y-2">
+        <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {students.map((s) => {
             const config = statusConfig[s.status];
+            const tendencia = trendConfig[s.trend as keyof typeof trendConfig] ?? trendConfig.stable;
+            const [nombre, ...resto] = s.name.split(" ");
             return (
-              <div
-                key={s.id}
-                onClick={() => navigate(`/estudiantes`)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-primary">
-                    {s.name.charAt(0)}
+              <li key={s.id}>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/app/estudiantes?buscar=${encodeURIComponent(s.name)}`)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-secondary/60"
+                >
+                  <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-cielo text-sm font-bold text-nivel-aprobado-fg">
+                    {iniciales(nombre, resto.join(" "))}
                   </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-card-foreground">{s.name}</p>
-                  <p className="text-xs text-muted-foreground">{s.group}</p>
-                </div>
-                <div className="text-right flex items-center gap-2">
-                  <span className="text-sm font-bold text-card-foreground">
-                    {s.average}% {trendConfig[s.trend] || "→"}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px] font-semibold text-card-foreground">{s.name}</span>
+                    <span className="block text-[13px] text-muted-foreground">{s.group || "Sin grupo"}</span>
                   </span>
-                  <span
-                    className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${config.className}`}
-                  >
-                    {config.label}
+                  <span className="flex flex-col items-end gap-1">
+                    <span className="flex items-center gap-1 text-sm font-bold tabular-nums text-card-foreground">
+                      {s.average > 0 ? `${s.average} %` : "—"}
+                      <tendencia.icon className="h-4 w-4 text-muted-foreground" aria-label={tendencia.label} />
+                    </span>
+                    {s.average > 0 ? (
+                      <EstadoBadge tono={config.tono} icono={false}>{config.label} · {formatoEscala5(s.average)}</EstadoBadge>
+                    ) : (
+                      <EstadoBadge tono="sin" icono={false}>Sin notas</EstadoBadge>
+                    )}
                   </span>
-                </div>
-              </div>
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
-    </div>
+    </section>
   );
 };
 

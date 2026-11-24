@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Plus, GraduationCap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight, Pencil } from "lucide-react";
+import { Minus } from "lucide-react";
+import StatCard from "@/components/dashboard/StatCard";
+import EstadoBadge from "@/components/common/EstadoBadge";
+import { EstadoCargando, EstadoVacio } from "@/components/common/Estados";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { clasePromedio, formatoEscala5, iniciales } from "@/lib/notas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -14,6 +19,8 @@ import { api } from "@/api/client";
 import { toast } from "sonner";
 import ObservacionesEstudiante from "@/components/students/ObservacionesEstudiante";
 import PageHeader from "@/components/layout/PageHeader";
+import { aLista } from "@/lib/listas";
+import type { Alerta, Calificacion, Estudiante, Grupo } from "@/types";
 
 interface EstudianteView {
   id: string;
@@ -26,34 +33,30 @@ interface EstudianteView {
   estado: string;
   promedio: number;
   alertas: number;
+  activo: boolean;
 }
 
+// Estado académico calculado en esta pantalla (sin cambios en la regla); solo cambia el color.
 const getEstadoBadge = (estado: string) => {
   switch (estado) {
-    case "activo": return <Badge variant="default" className="text-[10px]">Activo</Badge>;
-    case "en riesgo": return <Badge variant="secondary" className="text-[10px] bg-warning/15 text-warning-foreground border-warning/30">En riesgo</Badge>;
-    case "crítico": return <Badge variant="destructive" className="text-[10px]">Crítico</Badge>;
-    default: return <Badge variant="outline" className="text-[10px]">Activo</Badge>;
+    case "en riesgo": return <EstadoBadge tono="reprobado">En riesgo</EstadoBadge>;
+    case "crítico": return <EstadoBadge tono="alerta">Crítico</EstadoBadge>;
+    default: return <EstadoBadge tono="aprobado">Activo</EstadoBadge>;
   }
 };
 
 const getTendenciaIcon = (tendencia: string) => {
   switch (tendencia) {
-    case "up": return <TrendingUp className="w-4 h-4 text-primary" />;
-    case "down": return <TrendingDown className="w-4 h-4 text-destructive" />;
-    default: return <div className="w-4 h-4 rounded-full bg-muted" />;
+    case "up": return <span className="inline-flex items-center gap-1 text-xs font-semibold text-nivel-excelente-fg"><TrendingUp className="h-4 w-4" aria-hidden="true" />Sube</span>;
+    case "down": return <span className="inline-flex items-center gap-1 text-xs font-semibold text-nivel-reprobado-fg"><TrendingDown className="h-4 w-4" aria-hidden="true" />Baja</span>;
+    default: return <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Minus className="h-4 w-4" aria-hidden="true" />Estable</span>;
   }
 };
 
-const getInitials = (nombre: string, apellido: string) => `${nombre?.[0] || ""}${apellido?.[0] || ""}`.toUpperCase();
+const POR_PAGINA = 25;
 
-const avatarColors = [
-  "bg-primary/15 text-primary",
-  "bg-chart-2/15 text-chart-2",
-  "bg-chart-3/15 text-chart-3",
-  "bg-chart-4/15 text-chart-4",
-  "bg-chart-5/15 text-chart-5",
-];
+
+const avatarColors = ["bg-menta text-foreground", "bg-cielo text-foreground", "bg-lavanda text-foreground", "bg-durazno text-foreground", "bg-mantequilla text-foreground"];
 
 const Estudiantes = () => {
   const [estudiantes, setEstudiantes] = useState<EstudianteView[]>([]);
@@ -61,7 +64,10 @@ const Estudiantes = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("buscar") || "");
-  const [filterGrupo, setFilterGrupo] = useState("todos");
+  // Permite llegar filtrado desde Grupos (?grupo=<id>).
+  const [filterGrupo, setFilterGrupo] = useState(searchParams.get("grupo") || "todos");
+  const [pagina, setPagina] = useState(1);
+  const isMobile = useIsMobile();
   const [filterEstado, setFilterEstado] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEstudiante, setSelectedEstudiante] = useState<EstudianteView | null>(null);
@@ -81,28 +87,32 @@ const Estudiantes = () => {
         api.get("/alertas"),
       ]);
 
-      const gruposList = Array.isArray(gruposRes) ? gruposRes : (gruposRes as any)?.items || [];
-      setGrupos(gruposList);
+      const gruposList = aLista<Grupo>(gruposRes);
+      // Los IDs se manejan SIEMPRE como texto dentro de esta pantalla (opciones de los
+      // selectores, filtro y formulario). La API los entrega como número; mezclar ambos
+      // tipos hacía que el filtro por grupo no encontrara coincidencias (H-29) y que el
+      // selector apareciera vacío al editar (H-28).
+      setGrupos(gruposList.map((g: { id: number | string; nombre?: string }) => ({ id: String(g.id), nombre: String(g.nombre || "") })));
 
-      const gruposMap = new Map(gruposList.map((g: any) => [String(g.id), g.nombre]));
+      const gruposMap = new Map(gruposList.map((g) => [String(g.id), g.nombre]));
 
-      const ests = Array.isArray(estRes) ? estRes : (estRes as any)?.items || [];
-      const cals = Array.isArray(calsRes) ? calsRes : (calsRes as any)?.items || [];
-      const alertas = Array.isArray(alertasRes) ? alertasRes : (alertasRes as any)?.items || [];
+      const ests = aLista<Estudiante>(estRes);
+      const cals = aLista<Calificacion>(calsRes);
+      const alertas = aLista<Alerta>(alertasRes);
 
-      const enriched: EstudianteView[] = ests.map((e: any) => {
-        const estCals = cals.filter((c: any) => String(c.estudiante_id) === String(e.id));
+      const enriched: EstudianteView[] = ests.map((e) => {
+        const estCals = cals.filter((c) => String(c.estudiante_id) === String(e.id));
         const promedio = estCals.length > 0
-          ? Math.round(estCals.reduce((s: number, c: any) => s + Number(c.calificacion ?? Number(c.nota || 0) * 20), 0) / estCals.length)
+          ? Math.round(estCals.reduce((s: number, c) => s + Number(c.nota || 0) * 20, 0) / estCals.length)
           : 0;
 
-        const estAlertas = alertas.filter((a: any) => String(a.estudiante_id) === String(e.id) && String(a.estado || "").toLowerCase() !== "resolved" && String(a.estado || "") !== "Resuelta");
+        const estAlertas = alertas.filter((a) => String(a.estudiante_id) === String(e.id) && String(a.estado || "").toLowerCase() !== "resolved" && String(a.estado || "") !== "Resuelta");
 
         // No existe una columna de asistencia en la base de datos: el estado y la
         // tendencia se calculan a partir de datos reales (promedio, alertas activas
         // y comparación de promedio entre periodos), no de campos inventados.
         const periodos = new Map<number, number[]>();
-        estCals.forEach((c: any) => {
+        estCals.forEach((c) => {
           const p = Number(c.periodo || 1);
           const nota = Number(c.nota || 0);
           if (!periodos.has(p)) periodos.set(p, []);
@@ -138,6 +148,7 @@ const Estudiantes = () => {
           estado,
           promedio,
           alertas: estAlertas.length,
+          activo: e.activo !== false,
         };
       });
 
@@ -161,8 +172,10 @@ const Estudiantes = () => {
         documento: newDocumento,
         nombre: newNombre, 
         apellido: newApellido, 
-        grupo_id: newGrupoId,
-        activo: true,
+        grupo_id: Number(newGrupoId),
+        // Al editar se conserva el estado actual del estudiante; antes se enviaba
+        // siempre `true` y un estudiante inactivo quedaba reactivado (H-28).
+        activo: editingEstudiante ? editingEstudiante.activo : true,
       };
       if (editingEstudiante) {
         await api.put(`/estudiantes/${editingEstudiante.id}`, payload);
@@ -209,50 +222,46 @@ const Estudiantes = () => {
     return matchSearch && matchGrupo && matchEstado;
   });
 
+  // Paginación (antes la tabla mostraba los 200 estudiantes en una sola página).
+  const totalPaginas = Math.max(1, Math.ceil(filtered.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, totalPaginas);
+  const visibles = filtered.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA);
+
   const enRiesgo = estudiantes.filter(e => e.estado === "en riesgo" || e.estado === "crítico").length;
   const promedioGeneral = estudiantes.length > 0 
     ? Math.round(estudiantes.reduce((s, e) => s + e.promedio, 0) / estudiantes.length) 
     : 0;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando estudiantes...</p></div>;
+    return <EstadoCargando texto="Cargando estudiantes…" className="h-64" />;
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Comunidad escolar" title="Estudiantes" description="Seguimiento individual de cada estudiante" actions={<Button onClick={openCreateDialog} className="gap-2">
+      <PageHeader eyebrow="Comunidad escolar" title="Estudiantes" description="Seguimiento individual de cada estudiante" icon={GraduationCap} tono="bg-cielo" actions={<Button onClick={openCreateDialog} className="gap-2">
           <Plus className="w-4 h-4" /> Nuevo Estudiante
         </Button>} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card><CardContent className="flex items-center gap-4 p-5">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center"><GraduationCap className="w-5 h-5 text-primary" /></div>
-          <div><p className="text-2xl font-bold text-foreground">{estudiantes.length}</p><p className="text-xs text-muted-foreground">Total estudiantes</p></div>
-        </CardContent></Card>
-        <Card><CardContent className="flex items-center gap-4 p-5">
-          <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-destructive" /></div>
-          <div><p className="text-2xl font-bold text-destructive">{enRiesgo}</p><p className="text-xs text-muted-foreground">En riesgo o crítico</p></div>
-        </CardContent></Card>
-        <Card><CardContent className="flex items-center gap-4 p-5">
-          <div className="w-11 h-11 rounded-xl bg-chart-3/10 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-chart-3" /></div>
-          <div><p className="text-2xl font-bold text-foreground">{promedioGeneral}%</p><p className="text-xs text-muted-foreground">Promedio general</p></div>
-        </CardContent></Card>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <StatCard icon={GraduationCap} label="Total estudiantes" value={estudiantes.length} tono="bg-cielo" />
+        <StatCard icon={AlertTriangle} label="En riesgo o crítico" value={enRiesgo} hint="promedio menor que 70 %" tono="bg-durazno" />
+        <StatCard icon={TrendingUp} label="Promedio general" value={`${promedioGeneral}%`} hint={`${formatoEscala5(promedioGeneral)} de 5.0`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar estudiante..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-xs sm:flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input placeholder="Buscar estudiante..." aria-label="Buscar estudiante" value={search} onChange={(e) => { setSearch(e.target.value); setPagina(1); }} className="h-11 rounded-xl pl-9" />
         </div>
-        <Select value={filterGrupo} onValueChange={setFilterGrupo}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Grupo" /></SelectTrigger>
+        <Select value={filterGrupo} onValueChange={(v) => { setFilterGrupo(v); setPagina(1); }}>
+          <SelectTrigger className="h-11 w-[calc(50%-0.375rem)] rounded-xl sm:w-[180px]" aria-label="Filtrar por grupo"><SelectValue placeholder="Grupo" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los grupos</SelectItem>
             {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filterEstado} onValueChange={setFilterEstado}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+        <Select value={filterEstado} onValueChange={(v) => { setFilterEstado(v); setPagina(1); }}>
+          <SelectTrigger className="h-11 w-[calc(50%-0.375rem)] rounded-xl sm:w-[160px]" aria-label="Filtrar por estado"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="activo">Activo</SelectItem>
@@ -262,54 +271,90 @@ const Estudiantes = () => {
         </Select>
       </div>
 
-      <Card>
+      {filtered.length > 0 && isMobile && (
+        <ul className="space-y-2" aria-label="Estudiantes">
+          {visibles.map((est, idx) => (
+            <li key={est.id}>
+              <button type="button" onClick={() => setSelectedEstudiante(est)} className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-left">
+                <span className={`grid h-10 w-10 flex-none place-items-center rounded-full text-xs font-bold ${avatarColors[idx % avatarColors.length]}`}>{iniciales(est.nombre, est.apellido)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-semibold">{est.nombre} {est.apellido}</span>
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5"><EstadoBadge tono="grupo">{est.grupo_nombre}</EstadoBadge>{getEstadoBadge(est.estado)}</span>
+                </span>
+                <span className={`flex-none text-right text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{est.promedio}%<span className="block text-xs font-semibold text-muted-foreground">{formatoEscala5(est.promedio)}</span></span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {filtered.length > 0 && !isMobile && (
+      <Card className="overflow-hidden rounded-2xl">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Estudiante</TableHead>
-                <TableHead>Grupo</TableHead>
-                <TableHead className="text-center">Promedio</TableHead>
-                <TableHead className="text-center">Tendencia</TableHead>
-                <TableHead className="text-center">Estado</TableHead>
-                <TableHead className="text-center">Alertas</TableHead>
-                <TableHead></TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wide">Estudiante</TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wide">Grupo</TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wide">Promedio</TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wide">Tendencia</TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wide">Estado</TableHead>
+                <TableHead className="text-center text-xs font-bold uppercase tracking-wide">Alertas</TableHead>
+                <TableHead><span className="sr-only">Abrir</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((est, idx) => (
-                <TableRow key={est.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedEstudiante(est)}>
+              {visibles.map((est, idx) => (
+                <TableRow key={est.id} className="cursor-pointer hover:bg-secondary/60" onClick={() => setSelectedEstudiante(est)}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className={`text-xs font-semibold ${avatarColors[idx % avatarColors.length]}`}>
-                          {getInitials(est.nombre, est.apellido)}
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className={`text-xs font-bold ${avatarColors[idx % avatarColors.length]}`}>
+                          {iniciales(est.nombre, est.apellido)}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-medium text-sm text-foreground">{est.nombre} {est.apellido}</p>
+                      <p className="text-[15px] font-semibold text-foreground">{est.nombre} {est.apellido}</p>
                     </div>
                   </TableCell>
-                  <TableCell><Badge variant="outline" className="text-[10px]">{est.grupo_nombre}</Badge></TableCell>
-                  <TableCell className="text-center">
-                    <span className={`font-bold text-sm ${est.promedio >= 80 ? "text-primary" : est.promedio >= 70 ? "text-warning" : "text-destructive"}`}>{est.promedio}%</span>
+                  <TableCell><EstadoBadge tono="grupo">{est.grupo_nombre}</EstadoBadge></TableCell>
+                  <TableCell>
+                    <span className={`text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{est.promedio}%</span>
+                    <span className="ml-1.5 text-[13px] tabular-nums text-muted-foreground">{formatoEscala5(est.promedio)}</span>
                   </TableCell>
-                  <TableCell className="text-center">{getTendenciaIcon(est.tendencia)}</TableCell>
-                  <TableCell className="text-center">{getEstadoBadge(est.estado)}</TableCell>
+                  <TableCell>{getTendenciaIcon(est.tendencia)}</TableCell>
+                  <TableCell>{getEstadoBadge(est.estado)}</TableCell>
                   <TableCell className="text-center">
-                    {est.alertas > 0 ? <Badge variant="destructive" className="text-[10px] px-1.5">{est.alertas}</Badge> : <span className="text-xs text-muted-foreground">—</span>}
+                    {est.alertas > 0 ? <EstadoBadge tono="alerta" icono={false}>{est.alertas}</EstadoBadge> : <span className="text-sm text-muted-foreground">—</span>}
                   </TableCell>
-                  <TableCell><Button variant="ghost" size="icon" className="h-7 w-7"><ChevronRight className="w-4 h-4" /></Button></TableCell>
+                  <TableCell><ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+      )}
+
+      {filtered.length > POR_PAGINA && (
+        <nav className="flex flex-wrap items-center justify-between gap-3" aria-label="Paginación de estudiantes">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {(paginaActual - 1) * POR_PAGINA + 1}–{Math.min(paginaActual * POR_PAGINA, filtered.length)} de {filtered.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="h-10 rounded-xl" disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>Anterior</Button>
+            <span className="min-w-[90px] text-center text-sm font-semibold tabular-nums">Página {paginaActual} de {totalPaginas}</span>
+            <Button variant="outline" className="h-10 rounded-xl" disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>Siguiente</Button>
+          </div>
+        </nav>
+      )}
 
       {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <GraduationCap className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No se encontraron estudiantes</p>
+        <div className="rounded-2xl border border-border bg-card">
+          {estudiantes.length === 0 ? (
+            <EstadoVacio titulo="Aún no hay estudiantes" descripcion="Registra el primero con el botón «Nuevo Estudiante»." />
+          ) : (
+            <EstadoVacio conMascota={false} titulo="No se encontraron estudiantes" descripcion="Prueba con otro nombre o cambia los filtros." />
+          )}
         </div>
       )}
 
@@ -321,7 +366,7 @@ const Estudiantes = () => {
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
                     <AvatarFallback className="text-base font-bold bg-primary/15 text-primary">
-                      {getInitials(selectedEstudiante.nombre, selectedEstudiante.apellido)}
+                      {iniciales(selectedEstudiante.nombre, selectedEstudiante.apellido)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -336,16 +381,16 @@ const Estudiantes = () => {
               <div className="space-y-4 py-2">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Promedio</p>
-                  <p className={`text-xl font-bold ${selectedEstudiante.promedio >= 80 ? "text-primary" : selectedEstudiante.promedio >= 70 ? "text-warning" : "text-destructive"}`}>{selectedEstudiante.promedio}%</p>
+                  <p className={`font-display text-2xl font-bold tabular-nums ${clasePromedio(selectedEstudiante.promedio)}`}>{selectedEstudiante.promedio}% <span className="text-base font-semibold text-muted-foreground">· {formatoEscala5(selectedEstudiante.promedio)} de 5.0</span></p>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2"><span className="text-xs text-muted-foreground">Estado:</span>{getEstadoBadge(selectedEstudiante.estado)}</div>
                   <div className="flex items-center gap-2"><span className="text-xs text-muted-foreground">Tendencia:</span>{getTendenciaIcon(selectedEstudiante.tendencia)}</div>
                 </div>
                 {selectedEstudiante.alertas > 0 && (
-                  <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/15 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-destructive" />
-                    <p className="text-xs text-destructive">{selectedEstudiante.alertas} alerta(s) activa(s)</p>
+                  <div className="flex items-center gap-2 rounded-xl bg-nivel-alerta p-3 text-nivel-alerta-fg">
+                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                    <p className="text-sm font-semibold">{selectedEstudiante.alertas} alerta(s) activa(s)</p>
                   </div>
                 )}
                 <div className="border-t border-border pt-3">

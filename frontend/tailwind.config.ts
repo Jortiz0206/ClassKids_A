@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -15,7 +16,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["'DM Sans'", "system-ui", "sans-serif"],
-        display: ["'Space Grotesk'", "'DM Sans'", "system-ui", "sans-serif"],
+        display: ["'Bricolage Grotesque'", "'DM Sans'", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -63,6 +64,44 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        tinta: { DEFAULT: "hsl(var(--tinta))", 2: "hsl(var(--tinta-2))" },
+        menta: "hsl(var(--menta))",
+        cielo: "hsl(var(--cielo))",
+        lavanda: "hsl(var(--lavanda))",
+        durazno: "hsl(var(--durazno))",
+        mantequilla: "hsl(var(--mantequilla))",
+        frambuesa: "hsl(var(--frambuesa))",
+        sol: "hsl(var(--sol))",
+        azul: "hsl(var(--azul))",
+        nivel: {
+          excelente: "hsl(var(--nivel-excelente))",
+          "excelente-fg": "hsl(var(--nivel-excelente-fg))",
+          aprobado: "hsl(var(--nivel-aprobado))",
+          "aprobado-fg": "hsl(var(--nivel-aprobado-fg))",
+          observar: "hsl(var(--nivel-observar))",
+          "observar-fg": "hsl(var(--nivel-observar-fg))",
+          reprobado: "hsl(var(--nivel-reprobado))",
+          "reprobado-fg": "hsl(var(--nivel-reprobado-fg))",
+          alerta: "hsl(var(--nivel-alerta))",
+          "alerta-fg": "hsl(var(--nivel-alerta-fg))",
+          sin: "hsl(var(--nivel-sin))",
+          "sin-fg": "hsl(var(--nivel-sin-fg))",
+          grupo: "hsl(var(--nivel-grupo))",
+          "grupo-fg": "hsl(var(--nivel-grupo-fg))",
+        },
+        barra: {
+          excelente: "hsl(var(--barra-excelente))",
+          alto: "hsl(var(--barra-alto))",
+          observar: "hsl(var(--barra-observar))",
+          bajo: "hsl(var(--barra-bajo))",
+        },
+        chart: {
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+          4: "hsl(var(--chart-4))",
+          5: "hsl(var(--chart-5))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -97,6 +136,10 @@ export default {
           from: { opacity: "0", transform: "translateX(-12px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        flotar: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
         "pulse-gentle": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
@@ -108,8 +151,9 @@ export default {
         "fade-in": "fade-in 0.4s ease-out",
         "slide-in-left": "slide-in-left 0.3s ease-out",
         "pulse-gentle": "pulse-gentle 2s ease-in-out infinite",
+        flotar: "flotar 7s ease-in-out infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
