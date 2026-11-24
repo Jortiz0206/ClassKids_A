@@ -321,3 +321,26 @@ Todas aprobadas antes y después de cada etapa. Casos unitarios reales: 55. `tsc
 **Pruebas.** 152 de 152 (pytest 61, Vitest 49, Playwright 42). Reporte: [`reporte-ejecucion-2026-11-24.md`](../../Docs/pruebas/reporte-ejecucion-2026-11-24.md). La base de pruebas quedó idéntica al respaldo y la base real no recibió escrituras.
 
 **Evidencias.** Se retomaron las capturas afectadas por los permisos: 142 vigentes, con nuevas vistas del docente de una materia, del administrador y del filtro por materia. También se hizo la verificación de 18 peticiones reales a la API. El video v2 se grabó antes de H-08; se reemplazó por la v3 (sección H) y queda como respaldo histórico.
+
+## H. Cierre visual, video final, fixtures y consolidación local (24/11/2026)
+
+**Fixtures y entorno.**
+- **H-41:** tras reiniciar el equipo, el contenedor de pruebas quedaba detenido (`restart: no`) y pytest fallaba al cargar `conftest.py` con una traza de SQLAlchemy, sin ejecutar ninguna prueba. Ahora la comprobación de la base corre en `pytest_sessionstart` y termina con un mensaje claro, y el contenedor tiene `restart: unless-stopped`.
+- **H-42:** el backend respondía 500 en la primera petición después de reiniciar PostgreSQL. `database.py` usa ahora `pool_pre_ping`.
+- Las suites de pytest pasan completas, archivo por archivo, en orden inverso y desde la raíz del repositorio.
+
+**Video.**
+- La v3 (118 s) reemplaza a la v2. Muestra la landing, al docente con sus asignaciones e indicadores por materia, y al administrador con la visión general, la gestión de materias y Usuarios.
+- Conserva la música original (−21,5 LUFS).
+- La v2 se guarda en `Docs/evidencias/video-respaldo/`.
+
+**Presentación PDF.** `ClassKids_presentacion.pdf` se eliminó por obsoleto y no se recuperó. Ningún criterio de la rúbrica exige una presentación aparte del documento Word, así que no se generó una nueva.
+
+**Pruebas.**
+- pytest 61, Vitest 49 y Playwright 42: **152 de 152**.
+- Verificación de permisos: 18 de 18.
+- `tsc` sin errores, ESLint sin errores y `vite build` exitoso.
+- La base de pruebas quedó idéntica al respaldo y la base real no recibió escrituras.
+
+**Git.** Commits locales en `stg`, integrados con avance rápido en `develop` y en `master`. No hubo push ni despliegue.
+
