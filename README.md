@@ -203,7 +203,7 @@ Integrantes actuales:
 - Faloon Johanna Ortiz
 - Jan Llanos
 
-Los roles y la distribución del trabajo están en [`Docs/equipo/README.md`](Docs/equipo/README.md), pendientes de que el equipo los complete.
+Los roles y la distribución de responsabilidades del equipo se encuentran documentados en [`Docs/equipo/README.md`](Docs/equipo/README.md). La distribución se consolidó a partir de la revisión de los entregables y registros disponibles, y está pendiente de validación por parte de los integrantes.
 
 
 Programa Análisis y Desarrollo de Software (ADSO) — Servicio Nacional de Aprendizaje (SENA). Proyecto desarrollado con fines académicos.
