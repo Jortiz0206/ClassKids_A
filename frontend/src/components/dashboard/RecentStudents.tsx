@@ -137,11 +137,11 @@ export const RecentStudents = () => {
                   </span>
                   <span className="flex flex-col items-end gap-1">
                     <span className="flex items-center gap-1 text-sm font-bold tabular-nums text-card-foreground">
-                      {s.average > 0 ? `${s.average} %` : "—"}
+                      {s.average > 0 ? formatoEscala5(s.average) : "—"}
                       <tendencia.icon className="h-4 w-4 text-muted-foreground" aria-label={tendencia.label} />
                     </span>
                     {s.average > 0 ? (
-                      <EstadoBadge tono={config.tono} icono={false}>{config.label} · {formatoEscala5(s.average)}</EstadoBadge>
+                      <EstadoBadge tono={config.tono} icono={false}>{config.label} · {s.average} %</EstadoBadge>
                     ) : (
                       <EstadoBadge tono="sin" icono={false}>Sin notas</EstadoBadge>
                     )}

@@ -9,8 +9,8 @@ Relaciona cada requisito funcional con su caso de uso, historia de usuario, pant
 | RF-03 Gestionar grupos | CU-04 | HU-07 | `Grupos.tsx` | `GET/POST/PUT/DELETE /grupos` | grupos | Parcial | H-12, H-13 (pendientes); H-27 corregido |
 | RF-04 Gestionar estudiantes | CU-05 | HU-08 | `Estudiantes.tsx` | `GET/POST/PUT/DELETE /estudiantes` | estudiantes | Parcial | H-11, H-12 (pendientes); H-05 y H-28 corregido |
 | RF-05 Consultar estudiantes | CU-05 | HU-08 | `Estudiantes.tsx` | `GET /estudiantes`, `/calificaciones`, `/alertas` | estudiantes, calificaciones, alertas | Implementado | H-01 (pendiente); H-29 corregido |
-| RF-06 Registrar actividad | CU-08 | HU-11 | `Actividades.tsx` | `GET/POST/PUT/DELETE /actividades` | actividades | Parcial | H-12, H-16 (pendientes); H-30 corregido parcialmente |
-| RF-07 Registrar calificación | CU-09 | HU-12 | `Calificaciones.tsx` | `GET/POST/PUT /calificaciones` | calificaciones | Con observaciones | Corregidos: H-02, H-24, H-31, H-33. Pendientes: H-03, H-05, H-06, H-19 |
+| RF-06 Registrar actividad | CU-08 | HU-11 | `Actividades.tsx` | `GET/POST/PUT/DELETE /actividades` | actividades | Parcial | H-12 (pendiente); H-16 y H-30 corregidos parcialmente |
+| RF-07 Registrar calificación | CU-09 | HU-12 | `Calificaciones.tsx` | `GET/POST/PUT /calificaciones` | calificaciones | Con observaciones | Corregidos: H-02, H-03, H-05, H-24, H-31, H-33, H-44. Pendientes: H-06, H-19 |
 | RF-08 Calcular promedio | CU-09, CU-11 | HU-12 | Varias pantallas | `POST /calificaciones` (promedio para la alerta) | calificaciones | Implementado | H-01 |
 | RF-09 Consultar historial | CU-05 | HU-13 | Detalle en `Estudiantes.tsx` | `GET /calificaciones`, `/observaciones` | calificaciones, observaciones | Parcial | H-12 |
 | RF-10 Analizar desempeño | CU-11 | HU-15 | `Analisis.tsx` | `GET /grupos`, `/estudiantes`, `/calificaciones`, `/actividades` | varias | Con observaciones | H-01, H-07 |
@@ -51,7 +51,7 @@ Relaciona cada requisito funcional con su caso de uso, historia de usuario, pant
 | RNF-14 Control de acceso | Middleware `require_authentication`, `sesion_actual`, `solo_admin`; `test_permisos.py`; P-SEG-01 a P-SEG-07 | Cumplido |
 | RNF-18 Confidencialidad por asignación | Filtros por asignación en `main.py`; `test_permisos.py` (19), `permisos.spec.ts` (2); `evidencias/permisos/verificacion-api-permisos.md` | Cumplido |
 | RNF-15 CORS | `CORSMiddleware` con `CORS_ORIGINS` | Cumplido |
-| RNF-16 Pruebas automatizadas | 231 pruebas el 24/11/2026: 128 pytest, 59 Vitest y 44 Playwright, en entorno aislado | Parcial |
+| RNF-16 Pruebas automatizadas | 264 pruebas el 24/11/2026 en el entorno aislado (156 pytest, 64 Vitest y 44 Playwright) y 17 sobre la demostración (11 pytest y 6 Playwright) | Parcial |
 | RNF-17 Tokens de recuperación | Tabla `password_reset_tokens` | Cumplido |
 
 ## Trazabilidad de los permisos (24/11/2026)

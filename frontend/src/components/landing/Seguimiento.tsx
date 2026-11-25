@@ -4,7 +4,7 @@ import { PANTALLAS_FLUJO, REGLA_ALERTA, type Captura } from "./contenido";
 
 /** Cómo se encadenan nota, promedio, alerta y seguimiento (reglas reales del sistema). */
 const FLUJO = [
-  { paso: "Calificación", texto: "El docente escribe la nota de 0 a 100 y ve al instante su equivalencia en la escala 0.0 – 5.0." },
+  { paso: "Calificación", texto: "El docente escribe la nota de 0.0 a 5.0 y ve al instante su equivalencia en porcentaje." },
   { paso: "Promedio", texto: "ClassKids calcula el promedio de cada estudiante, grupo y materia." },
   { paso: "Alerta", texto: `Al registrar una nota, si el promedio acumulado del estudiante baja de ${REGLA_ALERTA.toFixed(1)}, se crea una alerta.` },
   { paso: "Seguimiento", texto: "El docente revisa el caso, deja observaciones en la ficha del estudiante y marca la alerta como resuelta." },

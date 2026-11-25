@@ -14,11 +14,13 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.demo.example
 .venv
 __pycache__
 *.pyc
 backend/backups/
 backend/CREDENCIALES_LOCALES.md
+backend/CREDENCIALES_DEMO.md
 test-results/
 
 # Editor directories and files
@@ -31,3 +33,7 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+# Grabación original del prototipo IoT (93,5 MiB): se conserva en local y no se publica en Git.
+# En el repositorio va la copia ligera (.webm) y los fotogramas. Ver 06_IOT_BONIFICACION/README.md.
+ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/evidencias/2026-11-24_grabacion-simulacion-wokwi.mp4

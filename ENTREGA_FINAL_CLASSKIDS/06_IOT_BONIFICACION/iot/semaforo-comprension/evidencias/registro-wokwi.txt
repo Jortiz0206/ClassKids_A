@@ -1,0 +1,14 @@
+{"evento":"inicio","dispositivo":"aula-1A","version":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":2}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":3}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":4}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":5}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":6}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":7}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":8}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":9}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":10}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":1,"entendi":7,"dudas":3,"no_entendi":0,"total":10,"comprension":70,"nivel":"verde"}
+{"evento":"ronda_vacia","dispositivo":"aula-1A","ronda":2}

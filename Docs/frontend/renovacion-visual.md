@@ -46,7 +46,7 @@ Referencias de diseño aprobadas: diagnóstico visual y maquetas (Login, Dashboa
 
 Los umbrales se centralizaron en `frontend/src/lib/notas.ts` con los mismos valores que ya tenía cada pantalla. Las pruebas `src/test/notas.test.ts` protegen que no cambien. Cada estado lleva ícono y texto, de modo que no depende solo del color (WCAG 1.4.1).
 
-**Escala.** La interfaz muestra y recibe 0–100; el backend y PostgreSQL guardan 0.0–5.0 (÷ 20, un decimal). Ahora se muestra la equivalencia, por ejemplo `86 / 100 = 4.3`, sin alterar el valor guardado. Las referencias 3.0 (alerta) y 3.5 (aprobación) aparecen como líneas punteadas en las gráficas del Dashboard y de Análisis.
+**Escala.** *Actualización del 24/11/2026: la nota se escribe y se muestra en 0.0–5.0, con el porcentaje y la equivalencia sobre 20 como datos secundarios (ver reglas de negocio, RN-02).* En la renovación visual, la interfaz mostraba y recibía 0–100; el backend y PostgreSQL guardan 0.0–5.0 (÷ 20, un decimal). Ahora se muestra la equivalencia, por ejemplo `86 / 100 = 4.3`, sin alterar el valor guardado. Las referencias 3.0 (alerta) y 3.5 (aprobación) aparecen como líneas punteadas en las gráficas del Dashboard y de Análisis.
 
 ## 3. Pantallas y rutas
 

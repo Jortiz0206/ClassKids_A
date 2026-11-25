@@ -46,7 +46,7 @@ test("H-02/H-31/H-33: cambiar una nota guarda solo esa fila y conserva observaci
   try {
     await loginDocente(page);
     await abrirActividad1(page);
-    await page.getByLabel("Calificación de Isabella Díaz").fill("90");
+    await page.getByLabel("Calificación de Isabella Díaz").fill("4.5");
     await expect(page.getByRole("button", { name: "Guardar cambios (1)" })).toBeEnabled();
     await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
     await expect(page.getByText("Calificaciones guardadas correctamente (1)")).toBeVisible();
@@ -94,7 +94,7 @@ test("H-02: calificar a un estudiante sin nota crea solo su calificación en el 
   try {
     await loginDocente(page);
     await abrirActividad1(page);
-    await page.getByLabel("Calificación de Mariana Acosta").fill("80");
+    await page.getByLabel("Calificación de Mariana Acosta").fill("4.0");
     await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
     await expect(page.getByText("Calificaciones guardadas correctamente (1)")).toBeVisible();
 
@@ -109,7 +109,7 @@ test("H-02: calificar a un estudiante sin nota crea solo su calificación en el 
   }
 });
 
-test("escala 0.0 – 5.0: lo digitado se guarda dividido entre 20, con un decimal y sin salir de 0 – 5", async ({ guardedPage: page, request }) => {
+test("escala 0.0 – 5.0: el docente escribe la nota directamente y los valores inválidos no se pueden guardar", async ({ guardedPage: page, request }) => {
   const h = await headers(request);
   const isabella = (await calificacionesActividad1(request, h)).find((c) => c.estudiante_id === 5)!;
   const notaGuardada = async () => (await calificacionesActividad1(request, h)).find((c) => c.id === isabella.id)!.nota;
@@ -118,15 +118,21 @@ test("escala 0.0 – 5.0: lo digitado se guarda dividido entre 20, con un decima
     await abrirActividad1(page);
     const campo = page.getByLabel("Calificación de Isabella Díaz");
 
-    await campo.fill("150"); // fuera de 0 – 100: se limita a 100
-    await expect(campo).toHaveValue("100");
-    await expect(page.locator("#equiv-5")).toContainText("5.0");
+    // Valores fuera de la escala o con más de un decimal: se marcan y no se pueden guardar.
+    for (const [texto, motivo] of [["80", "La nota va de 0.0 a 5.0"], ["5.1", "La nota va de 0.0 a 5.0"], ["-0.1", "La nota va de 0.0 a 5.0"], ["2.96", "Usa un solo decimal"]]) {
+      await campo.fill(texto);
+      await expect(page.locator("#equiv-5")).toContainText(motivo);
+      await expect(page.getByRole("button", { name: /Guardar cambios/ })).toBeDisabled();
+    }
+
+    await campo.fill("5.0"); // límite superior
+    await expect(page.locator("#equiv-5")).toContainText("100 % · 20 / 20");
     await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
     await expect(page.getByText("Calificaciones guardadas correctamente (1)")).toBeVisible();
     await expect.poll(notaGuardada).toBe(5.0);
 
-    await campo.fill("87"); // 4.35 → 4.4 (mitad hacia arriba, como NUMERIC(3,1))
-    await expect(page.locator("#equiv-5")).toContainText("4.4");
+    await campo.fill("4,4"); // coma decimal
+    await expect(page.locator("#equiv-5")).toContainText("88 % · 17.6 / 20");
     await page.getByRole("button", { name: "Guardar cambios (1)" }).click();
     // El aviso del primer guardado puede seguir visible: se espera el valor guardado.
     await expect.poll(notaGuardada).toBe(4.4);

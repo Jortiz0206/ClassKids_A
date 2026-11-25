@@ -43,6 +43,7 @@ La carpeta [`../ENTREGA_FINAL_CLASSKIDS/`](../ENTREGA_FINAL_CLASSKIDS/00_INDICE_
 | Informe de diferencias del modelo relacional | [`referencia-tecnica/modelo-relacional-diferencias.md`](referencia-tecnica/modelo-relacional-diferencias.md) |
 | Diagramas UML (clases), componentes y despliegue | [`diagramas/uml-y-modelo-relacional.md`](diagramas/uml-y-modelo-relacional.md) |
 | Renovación visual del frontend | [`frontend/renovacion-visual.md`](frontend/renovacion-visual.md) |
+| Guía de la demostración (base persistente con datos sintéticos) | [`demo/guia-demostracion.md`](demo/guia-demostracion.md) |
 | Plan de pruebas | [`pruebas/plan-de-pruebas.md`](pruebas/plan-de-pruebas.md) |
 | Reporte de ejecución (antes y después) | [`pruebas/reporte-ejecucion-2026-11-20.md`](pruebas/reporte-ejecucion-2026-11-20.md) |
 | Registro de defectos | [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md) |
@@ -52,7 +53,9 @@ La carpeta [`../ENTREGA_FINAL_CLASSKIDS/`](../ENTREGA_FINAL_CLASSKIDS/00_INDICE_
 | Organización del código (diagnóstico y etapas) | [`frontend/organizacion-codigo.md`](frontend/organizacion-codigo.md) |
 | Trabajo en equipo y retroalimentación | [`equipo/README.md`](equipo/README.md) |
 | Comparativa de backends y deuda técnica | [`backends-comparativa.md`](backends-comparativa.md), [`deuda-tecnica.md`](deuda-tecnica.md) |
-| IoT (propuesta) | [`iot/propuesta-iot.md`](iot/propuesta-iot.md) |
+| IoT: Semáforo de Comprensión (propuesta y prototipo en Wokwi) | [`iot/propuesta-iot.md`](iot/propuesta-iot.md) y [`06_IOT_BONIFICACION/iot/semaforo-comprension/`](../ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/README.md) |
+| Índice de evidencias por criterio | [`evidencias/README.md`](evidencias/README.md) |
+| Planificación del seguimiento, actas y retroalimentación | [`equipo/planificacion-y-actas.md`](equipo/planificacion-y-actas.md) |
 | Estado del repositorio Git | [`repositorio-git.md`](repositorio-git.md) |
 | Contraste WCAG y capturas vigentes | [`evidencias/contraste-wcag.md`](evidencias/contraste-wcag.md), [`evidencias/capturas-v3/README.md`](evidencias/capturas-v3/README.md) (142 capturas por módulo, claro y oscuro, escritorio y celular) |
 

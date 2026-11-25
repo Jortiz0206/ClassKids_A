@@ -70,6 +70,48 @@ Después de corregir H-01, H-05, H-09, H-17 y H-43 (CORS en las respuestas 401 y
 
 **Total: 170 pruebas automatizadas, 170 aprobadas, 0 fallidas, 0 omitidas.** Ninguna prueba está deshabilitada (`skip`).
 
+### Auditoría integral (24/11/2026)
+
+| Suite | Comando | Resultado |
+|---|---|---|
+| pytest (`classkids_test`) | `python -m pytest` en `backend/` | **156 de 156** |
+| pytest sobre la demostración | `python -m pytest tests_demo` en `backend/` (transacción que se deshace) | **11 de 11** |
+| Verificación de la demostración | `python demo/generar_demo.py verificar` (solo lectura) | 11 de 11 comprobaciones en 0 |
+| Vitest | `npx vitest run` en `frontend/` | **64 de 64** (nueva: H-46) |
+| Playwright (entorno de pruebas) | `node node_modules/@playwright/test/cli.js test -c e2e/playwright.config.ts` | **44 de 44** después de corregir H-45 y H-46 |
+| Playwright (demostración) | `... -c e2e/demo/playwright.demo.config.ts -g "panel muestra\|solo sus asignaciones\|indicadores y alertas"` | **3 de 3** (solo lectura). Las 3 que escriben no se ejecutaron: requieren autorización para modificar `classkids_demo` |
+| IoT | `python -m pytest ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/pruebas` | **48 de 48** (25/11/2026). Incluye el registro serial de la grabación, el monitor serial copiado de Wokwi (70 %, verde, y ronda vacía) y el receptor en una consola de Windows |
+| TypeScript, ESLint y compilación | `npx tsc --noEmit -p tsconfig.app.json`, `npx eslint .`, `npx vite build` | 0 errores; 0 errores y 9 avisos heredados; compilación correcta |
+
+**Antes de las correcciones:**
+- **Primera ejecución completa de Playwright:** 43 de 44, con un fallo intermitente en la navegación móvil.
+- **Ejecución de diagnóstico con trazas:** 42 de 44. Fallaron la navegación móvil (H-45, el aviso tapaba la barra) y el mensaje de sesión cerrada (H-46).
+- **Después de corregirlos:** 44 de 44 en la suite completa, y las especificaciones afectadas pasaron 3 de 3 repeticiones.
+
+### Demostración persistente y escala 0.0–5.0 en la interfaz
+
+Etapa de demostración (`classkids_demo`), con la nota escrita en 0.0–5.0. Guía: [`../demo/guia-demostracion.md`](../demo/guia-demostracion.md).
+
+**Entorno aislado de pruebas:**
+
+| Suite | Resultado |
+|---|---|
+| pytest | **156 de 156** (28 nuevas del generador) |
+| Vitest | **63 de 63** (entrada 0.0–5.0, equivalencias y diferencia en la escala oficial) |
+| Playwright | **44 de 44** (Calificaciones y renovación adaptadas a la entrada 0.0–5.0) |
+
+**Base de demostración:**
+
+| Suite | Resultado |
+|---|---|
+| pytest `tests_demo` | **11 de 11** |
+| Playwright `e2e/demo` | **6 de 6** |
+| `generar_demo.py verificar` | 11 de 11 comprobaciones en 0 |
+| Reproducibilidad | Dos generaciones con la misma semilla y fecha dieron la misma huella (`e5cbe87a…`) |
+| Persistencia | La misma huella tras `docker restart` y tras `compose stop` + `up` |
+
+**Total: 263 pruebas en el entorno aislado y 17 sobre la demostración, todas aprobadas.**
+
 ### Verificación de la escala de calificaciones (H-44)
 
 Se revisó la escala 0.0–5.0 en todas las capas. El detalle está en [`../evidencias/escala-notas/verificacion-escala.md`](../evidencias/escala-notas/verificacion-escala.md).

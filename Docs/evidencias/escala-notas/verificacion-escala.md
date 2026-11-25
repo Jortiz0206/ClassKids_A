@@ -14,8 +14,8 @@ Verificación del 24/11/2026, hecha en el entorno de pruebas aislado (`classkids
 | API: registrar | `backend/main.py:891`: `registrar_calificacion` (`POST /calificaciones`) | Usa `CalificacionSchema`: la validación ocurre antes de los permisos y de la base. |
 | API: editar | `backend/main.py:928`: `actualizar_calificacion` (`PUT /calificaciones/{id}`) | Usa el mismo esquema y las mismas validaciones. |
 | Alerta | `backend/main.py:905-910`: `evaluar_alerta_bajo_rendimiento`, `AVG(nota)` y `< 3` | El promedio se calcula en la escala 0–5, sin redondear. |
-| Interfaz: entrada | `frontend/src/pages/Calificaciones.tsx:48` (`max={100}`) y `:160`; `frontend/src/lib/notas.ts:79` (`normalizarEntradaNota`) | El docente digita un porcentaje y se limita a 0–100. |
-| Interfaz: conversión al guardar | `frontend/src/pages/Calificaciones.tsx:193`; `frontend/src/lib/notas.ts:60` (`aEscala5`) | Envía `round(porcentaje ÷ 2) ÷ 10`: siempre entre 0.0 y 5.0 y con un decimal. |
+| Interfaz: entrada | `frontend/src/lib/notas.ts` (`interpretarNota`) y `Calificaciones.tsx` (`updateCalificacion`) | Desde la etapa de demostración, el docente escribe la nota en 0.0–5.0; un valor fuera de rango o con más de un decimal se marca y no se puede guardar. |
+| Interfaz: guardado | `Calificaciones.tsx` (`handleSave`) | Envía la nota escrita, sin conversión. `aEscala5` (`round(porcentaje ÷ 2) ÷ 10`) solo se usa para mostrar en 0.0–5.0 los promedios calculados en porcentaje. |
 | Interfaz: lectura | `frontend/src/lib/notas.ts:65` (`aPorcentaje`) y `:28` (`promedioExacto`); pantallas Estudiantes, Grupos, Actividades, Análisis y Dashboard | Muestran nota × 20. Las clasificaciones usan el promedio exacto (H-01). |
 
 **Otros elementos revisados:**
@@ -74,7 +74,7 @@ No se encontró ningún punto que permitiera guardar 80 o 100 como nota oficial.
 **Vitest:**
 - Equivalencias × 20 y × 4.
 - Límites: 0, 2, 98 y 100 % se convierten en 0.0, 0.1, 4.9 y 5.0.
-- Lo digitado fuera de 0–100 se limita, y para todo porcentaje de 0 a 100 la nota enviada queda entre 0 y 5 con un decimal.
+- Desde la etapa de demostración, la nota se escribe en 0.0–5.0: `interpretarNota` acepta 0, 0.1, 4.9 y 5.0 (con punto o coma) y rechaza -0.1, 5.1, 80, 100 y los valores con más de un decimal.
 - El redondeo es uniforme.
 
 **Playwright:**

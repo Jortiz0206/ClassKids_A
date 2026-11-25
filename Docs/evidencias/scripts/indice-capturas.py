@@ -68,7 +68,7 @@ lineas = [
     "- **Única escritura:** el mensaje de éxito de Calificaciones guarda un cambio en `classkids_test` y lo restaura enseguida. La huella MD5 de la tabla `calificaciones` antes y después fue idéntica.",
     "- Los diálogos de eliminar y desactivar se capturaron y se cancelaron.",
     "- Desde el 24/11/2026 cada docente ve solo sus asignaciones (H-08). Las capturas del docente usan el docente demo (5 materias en 3 grupos); se agregaron vistas de un docente con una sola materia (Matemáticas), del administrador y del filtro por materia en Análisis. Las respuestas de la API ante accesos no autorizados están en [`../permisos/verificacion-api-permisos.md`](../permisos/verificacion-api-permisos.md).",
-    "- El video vigente (`frontend/public/video/recorrido-classkids-v3.webm`, grabado después de H-08) muestra al docente con sus asignaciones y al administrador con la visión general; tiene música instrumental original, a volumen bajo, que no suena sola y se controla desde la landing. La v1 (sin audio) y la v2 (anterior a H-08) se conservan como respaldo en `Docs/evidencias/video-respaldo/`.",
+    "- El video vigente (`frontend/public/video/recorrido-classkids-v3.webm`, grabado después de H-08) muestra al docente con sus asignaciones y al administrador con la visión general; tiene música instrumental original, a volumen bajo, que no suena sola y se controla desde la landing. Las versiones anteriores (v1, v2 y la v3 con la nota en porcentaje) se eliminaron el 25/11/2026.",
     "",
 ] + secciones + [
     "## Depuración de evidencias (23/11/2026)",

@@ -9,7 +9,7 @@ Comprobar que ClassKids cumple sus reglas académicas y funcionales, y que las c
 ## 2. Alcance
 
 **Dentro del alcance**
-- Reglas de presentación de notas: escala 0–100 ↔ 0.0–5.0, umbrales 90 / 70 / 3.5 / 3.0 y estados.
+- Reglas de presentación de notas: entrada en 0.0–5.0, equivalencias (× 20 y × 4), umbrales 4.5 / 3.5 / 3.0 y estados.
 - Calificaciones: guardado solo de filas modificadas (D2), conservación de periodo y observación (H-31, H-33), estado «Entregado» con y sin la columna `entregado`.
 - Alertas: deduplicación `low_grade` / «Bajo Rendimiento» (D3), conteo de activas (H-25), consulta de resueltas sin eliminarlas.
 - Grupos: año lectivo (H-27). Estudiantes: filtros, edición, paginación.
@@ -21,18 +21,21 @@ Comprobar que ClassKids cumple sus reglas académicas y funcionales, y que las c
 - Correcciones no autorizadas: H-01, H-04, H-05, H-19 y otras (ver [`registro-defectos.md`](registro-defectos.md)). H-08 y H-18 se corrigieron y se prueban desde el 24/11/2026.
 - Pruebas de carga y de seguridad automatizadas (OWASP); envío real de correos SMTP.
 - Base real `classkids` y migración 001: no se prueban ni se ejecutan sin autorización.
-- IoT: no existe un prototipo (ver [`../iot/propuesta-iot.md`](../iot/propuesta-iot.md)).
+- IoT: el prototipo independiente tiene sus propias pruebas (48 automáticas y 9 manuales en Wokwi), descritas en [`ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/README.md`](../../ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/README.md). No forma parte del sistema ClassKids.
 
 ## 3. Niveles y tipos de prueba
 
 | Nivel | Herramienta | Qué comprueba | Ubicación | Casos |
 |---|---|---|---|---:|
-| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 59 |
+| Unitarias (frontend) | Vitest | Funciones puras sin red: notas, fechas, conteos, navegación por rol, tema, formato de errores | `frontend/src/test/` | 64 |
 | Unitarias (backend) | pytest | Funciones y esquemas puros sin base de datos: estados de alerta, hash PBKDF2, JWT, esquemas Pydantic, caché de columnas | `backend/tests/test_unitarias.py` | 11 funciones (18 ejecuciones con parámetros) |
 | Integración (API + PostgreSQL) | pytest + TestClient | Endpoints contra `classkids_test` dentro de una transacción que se deshace | `backend/tests/test_alertas.py`, `test_calificaciones.py`, `test_grupos.py`, `test_entorno.py` | 24 |
 | Seguridad de la API (permisos) | pytest + TestClient | H-18 y H-08 con casos permitidos y denegados, llamando a la API directamente con tres sesiones | `backend/tests/test_permisos.py` | 19 |
 | Hallazgos del cierre | pytest + TestClient | H-05 (validación y errores), H-09 (cuenta revalidada), H-17 (`.env`) y CORS en 401/403 | `backend/tests/test_hallazgos_cierre.py` | 11 |
 | Escala de calificaciones | pytest + TestClient + SQL | Límites válidos (0.0, 0.1, 2.5, 3.0, 4.0, 4.9, 5.0) e inválidos (-0.1, 5.1, 80, 100, más de un decimal, texto, booleano) en POST y PUT; CHECK y `NUMERIC(3,1)` en PostgreSQL; alerta con 2.9 sí y con 3.0 no | `backend/tests/test_escala_notas.py` | 56 |
+| Generador de la demostración | pytest | Plan reproducible (misma semilla y fecha → mismos datos), volumen, relaciones, datos ficticios, escala, escenarios y protecciones de destino (rechaza `classkids` y `classkids_test`) | `backend/tests/test_demo_generador.py` | 28 |
+| Base de demostración | pytest + TestClient (aparte: `pytest tests_demo`) | `classkids_demo` coincide con el plan; integridad; hash PBKDF2; alertas creadas por la regla real; permisos por docente; registro y edición de notas; indicadores | `backend/tests_demo/` | 11 |
+| Recorrido de la demostración | Playwright (aparte: `e2e/demo/`) | Panel del administrador, invitación y asignación de un docente, restricciones entre docentes, nota de 0 a 5 que persiste al recargar, observación, indicadores y alertas, todo contra `classkids_demo` | `e2e/demo/recorrido.spec.ts` | 6 |
 | Interfaz de extremo a extremo | Playwright (Chromium) | Flujos completos en el navegador: frontend 8081 → API 8001 → `classkids_test` (incluye modo claro y oscuro, landing, confirmaciones, celular y permisos por rol) | `e2e/tests/` | 44 |
 | Estáticas | TypeScript (`tsc`), ESLint, `vite build` | Tipos, estilo y compilación de producción | `frontend/` | — |
 | Accesibilidad | Script de contraste WCAG | 32 pares de color por tema (claro y oscuro) de `index.css` | `Docs/evidencias/scripts/contraste-wcag.py` | 64 |
@@ -80,7 +83,7 @@ Las pruebas que dependían del alcance anterior del docente (por ejemplo, ver lo
 
 | ID | Caso | Nivel | Resultado esperado |
 |---|---|---|---|
-| CP-01 | Nota 86 % se guarda como 4.3 y se muestra «86 / 100 = 4.3» | Unitaria + E2E | Conversión ÷ 20 con un decimal; sin cambio de escala |
+| CP-01 | La nota 4.3 se escribe, se guarda como 4.3 y muestra «86 % · 17.2 / 20»; 80, 5.1 y 2.96 no se pueden guardar | Unitaria + E2E | Entrada en la escala oficial (RN-02 desde el 24/11/2026) |
 | CP-02 | Límites de estado 90 / 89 / 70 / 69 | Unitaria | Excelente / Aprobado / Aprobado / Reprobado |
 | CP-03 | Guardar sin cambios | E2E | Botón deshabilitado; no se envía nada |
 | CP-04 | Cambiar una nota | E2E | Solo esa fila se guarda; periodo y observación se conservan |

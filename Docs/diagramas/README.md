@@ -105,7 +105,7 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    A[Docente elige grupo y actividad] --> B[Digita o cambia notas 0-100 y marca Entregado]
+    A[Docente elige grupo y actividad] --> B[Escribe o cambia notas 0.0-5.0 y marca Entregado]
     B --> M[Guardar cambios: solo filas MODIFICADAS]
     M --> C{¿La fila ya tenía calificación?}
     C -- Sí --> D[PUT /calificaciones/id<br/>solo campos enviados: conserva periodo y observación<br/>no evalúa alertas]

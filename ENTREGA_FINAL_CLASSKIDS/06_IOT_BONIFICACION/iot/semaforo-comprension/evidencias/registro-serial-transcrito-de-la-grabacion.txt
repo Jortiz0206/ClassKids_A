@@ -1,0 +1,31 @@
+TRANSCRIPCIÓN del monitor serial que aparece en evidencias/2026-11-24_grabacion-simulacion-wokwi.mp4 (106 s), hecha a mano el 24/11/2026 a partir de fotogramas tomados cada 2 s. No se agregó ni se cambió ninguna línea.
+Las líneas que no empiezan con «{» (como estas dos) las ignora el receptor. Fuente de cada tramo: inicio y ronda 1, segundos 6 a 50; ronda 2, segundos 50 a 92.
+{"evento":"inicio","dispositivo":"aula-1A","version":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":2}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":3}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":4}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":5}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"no_entendi","total":6}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"no_entendi","total":7}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":8}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":9}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"no_entendi","total":10}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":1,"entendi":3,"dudas":4,"no_entendi":3,"total":10,"comprension":30,"nivel":"rojo"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"entendi","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"duda","total":2}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":2,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"no_entendi","total":3}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"no_entendi","total":4}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":2,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"no_entendi","total":5}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"no_entendi","total":6}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":2,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"duda","total":7}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"duda","total":8}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"entendi","total":9}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":2,"entendi":2,"dudas":3,"no_entendi":4,"total":9,"comprension":22,"nivel":"rojo"}

@@ -22,10 +22,10 @@ export const colorBarra: Record<NivelPromedio, string> = {
 /** Leyenda compartida de las gráficas de promedio. */
 export const LeyendaPromedios = () => (
   <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.excelente }} />≥ 90 %</span>
-    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.alto }} />80 – 89 %</span>
-    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.observar }} />70 – 79 % (observar)</span>
-    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.bajo }} />&lt; 70 %</span>
+    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.excelente }} />4.5 – 5.0</span>
+    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.alto }} />4.0 – 4.4</span>
+    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.observar }} />3.5 – 3.9 (observar)</span>
+    <span className="inline-flex items-center gap-1.5"><i className="h-3 w-3 rounded-sm" style={{ background: colorBarra.bajo }} />&lt; 3.5</span>
     <span className="inline-flex items-center gap-1.5"><i className="h-3.5 w-0 border-l-2 border-dashed border-nivel-alerta-fg" />3.0 · alerta</span>
     <span className="inline-flex items-center gap-1.5"><i className="h-3.5 w-0 border-l-2 border-dashed border-foreground" />3.5 · aprobación</span>
   </div>
@@ -82,8 +82,8 @@ export const PerformanceChart = () => {
                 <XAxis
                   type="number"
                   domain={[0, 100]}
-                  ticks={[0, 25, 50, 75, 100]}
-                  tickFormatter={(v: number) => `${v} %`}
+                  ticks={[0, 20, 40, 60, 80, 100]}
+                  tickFormatter={(v: number) => formatoEscala5(v)}
                   tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={{ stroke: "hsl(var(--border))" }}
                   tickLine={false}
@@ -99,7 +99,7 @@ export const PerformanceChart = () => {
                 <Tooltip
                   cursor={{ fill: "hsl(var(--secondary))" }}
                   contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 13 }}
-                  formatter={(value: number) => [`${value} % · ${formatoEscala5(value)} de 5.0`, "Promedio"]}
+                  formatter={(value: number) => [`${formatoEscala5(value)} de 5.0 · ${value} %`, "Promedio"]}
                 />
                 <ReferenceLine x={60} stroke="hsl(var(--nivel-alerta-fg))" strokeDasharray="5 4" strokeWidth={2} />
                 <ReferenceLine x={70} stroke="hsl(var(--foreground))" strokeDasharray="5 4" strokeWidth={2} />
@@ -110,7 +110,7 @@ export const PerformanceChart = () => {
                   <LabelList
                     dataKey="promedio"
                     position="right"
-                    formatter={(v: number) => `${v} % · ${formatoEscala5(v)}`}
+                    formatter={(v: number) => `${formatoEscala5(v)} · ${v} %`}
                     style={{ fontSize: 13, fontWeight: 700, fill: "hsl(var(--foreground))" }}
                   />
                 </Bar>

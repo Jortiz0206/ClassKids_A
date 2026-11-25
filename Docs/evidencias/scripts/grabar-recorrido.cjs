@@ -1,7 +1,7 @@
 // Graba la IMAGEN del recorrido en video: uso real de la app en el entorno de pruebas
 // (frontend 8081 → API 8001 → base classkids_test), con los datos de demostración.
 //
-// Interacciones reales (v3, después de H-08): landing, acceso del docente con sus asignaciones e
+// Interacciones reales (v3, después de H-08; nota de 0.0 a 5.0 desde la etapa de demostración): landing, acceso del docente con sus asignaciones e
 // indicadores por materia, ficha de un estudiante, una nota escrita SIN guardar, filtro por materia,
 // detalle de una alerta, acceso del administrador con su visión general, Materias, Usuarios y tema.
 // Salvaguardas: cualquier petición al backend real (:8000) o cualquier escritura en la API de
@@ -174,7 +174,7 @@ const LEMA = "Aprender · Crecer · Avanzar";
   await page.keyboard.press("Escape"); await pausa(500);
 
   // 5. Calificaciones dentro de su asignación (nota escrita sin guardar)
-  await ir("Calificaciones", "Calificaciones", "Solo grupos y actividades de sus materias; la nota se escribe de 0 a 100");
+  await ir("Calificaciones", "Calificaciones", "Solo grupos y actividades de sus materias; la nota se escribe de 0.0 a 5.0");
   await pausa(700);
   await clic(page.getByRole("combobox").first()); await pausa(500);
   await clic(page.getByRole("option", { name: "Grado 1A", exact: true }), 200); await pausa(500);
@@ -184,9 +184,9 @@ const LEMA = "Aprender · Crecer · Avanzar";
   await nota.waitFor(); await pausa(800);
   await nota.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "smooth" })); await pausa(800);
   await clic(nota);
-  await nota.pressSequentially("75", { delay: 220 });
+  await nota.pressSequentially("3.8", { delay: 220 });
   await apartar();
-  await rotulo("Equivalencia inmediata", "75 de 100 equivale a 3.8 en la escala 0.0 – 5.0 (este cambio no se guarda)");
+  await rotulo("Nota de 0.0 a 5.0", "3.8 equivale a 76 % y a 15.2 sobre 20 (este cambio no se guarda)");
   await pausa(3000);
 
   // 6. Análisis con filtro por materia

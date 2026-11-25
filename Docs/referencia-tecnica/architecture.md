@@ -128,7 +128,7 @@ PostgreSQL 15 en el contenedor `classkids_db`, con la base `classkids` y el volu
 ## Ejemplo de flujo: registrar una calificación
 
 1. El docente pulsa «Guardar cambios» en la pantalla Calificaciones.
-2. `Calificaciones.tsx` convierte cada porcentaje digitado a la escala oficial 0.0–5.0 (÷ 20, un decimal) y llama a `api.post('/calificaciones', …)` o a `api.put(…)`.
+2. `Calificaciones.tsx` valida la nota escrita en la escala oficial 0.0–5.0 (`interpretarNota`) y llama a `api.post('/calificaciones', …)` o a `api.put(…)` con ese mismo valor.
 3. `client.ts` envía la petición con el token.
 4. El middleware valida el token y guarda la identidad; FastAPI valida el JSON con `CalificacionSchema` y el endpoint comprueba que el docente tenga asignada esa materia en el grupo del estudiante (si no, 403).
 5. El endpoint inserta la calificación, calcula el promedio del estudiante y, si es menor a 3.0, crea la alerta.

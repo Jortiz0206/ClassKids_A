@@ -53,6 +53,10 @@ Este capítulo reúne los defectos y las funcionalidades incompletas encontrados
 | H-41 | Tras reiniciar el equipo, la base de pruebas quedaba detenida y pytest fallaba al cargar los fixtures. | Media | Corregido (24/11/2026) |
 | H-42 | El backend respondía 500 en la primera petición tras reiniciar PostgreSQL. | Media | Corregido (24/11/2026) |
 | H-43 | Las respuestas 401 y 403 del middleware salían sin cabeceras CORS. | Media | Corregido (24/11/2026) |
+| H-45 | En el celular, el aviso «¡Bienvenido a ClassKids!» aparecía sobre la barra de navegación inferior y bloqueaba sus botones (por ejemplo, «Más») mientras era visible. | Media | Corregido (24/11/2026) |
+| H-46 | Al cerrarse la sesión por la API (H-09), un mensaje genérico «Error 401» podía guardarse antes que el motivo real y mostrarse en lugar de «Tu rol cambió». | Baja | Corregido (24/11/2026) |
+| H-47 | Prototipo IoT: el receptor en Python se detenía con `UnicodeEncodeError` en la consola de Windows al mostrar un resumen, por las flechas «→» y «←». | Media | Corregido (24/11/2026) |
+| H-48 | Prototipo IoT: el `.gitignore` excluye `*.log`, así que el ejemplo del protocolo y el registro de la simulación no se habrían publicado, y las pruebas fallarían en otra copia del repositorio. | Media | Corregido (24/11/2026) |
 | H-44 | La API aceptaba notas con más de un decimal (PostgreSQL las redondeaba en silencio: 2.96 → 3.0), además de texto («4.0») y booleanos. La interfaz redondeaba los porcentajes impares de forma desigual (87 % → 4.3; 85 % → 4.3). | Media | Corregido (24/11/2026) |
 
 Los hallazgos H-24 a H-33 provienen de la auditoría de integración entre capas (ver el capítulo correspondiente).
@@ -87,6 +91,12 @@ Las correcciones se probaron en el entorno aislado `classkids_test` (ver el cap�
 | H-41 | **Corregido** | `conftest.py` comprueba la base en `pytest_sessionstart` y termina con un mensaje claro si no responde; el contenedor de pruebas se reinicia con Docker. | pytest con la base apagada: salida 3 con instrucciones; con la base encendida: 61 de 61 |
 | H-42 | **Corregido** | `database.py` crea el motor con `pool_pre_ping=True`: tras reiniciar PostgreSQL la primera petición ya no responde 500. | Reinicio de la base de pruebas con el backend encendido: inicio de sesión 200 |
 | H-43 | **Corregido** | CORS se registra como el middleware más externo: las respuestas 401 y 403 llevan sus cabeceras y la interfaz puede mostrar el motivo. | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
+| H-03 | **Corregido** (24/11/2026) | La nota se escribe directamente en 0.0–5.0 con un decimal (RN-02): ya no hay conversión desde el porcentaje ni pérdida de precisión. | Vitest `interpretarNota`; Playwright «escala 0.0 – 5.0…» |
+| H-16 | **Corregido parcialmente** (24/11/2026) | Actividades pide estudiantes y calificaciones una sola vez y los agrupa en el navegador (antes: dos peticiones por actividad; con 270 actividades serían 540). Sigue sin paginación en el servidor. | Recorrido de la demostración (`e2e/demo/`) |
+| H-45 | **Corregido** | En el celular los avisos se muestran arriba (`components/ui/sonner.tsx`); antes tapaban la barra inferior. Lo detectó una prueba E2E intermitente; la causa se confirmó con la traza (el aviso interceptaba el toque) | Playwright «docente: barra inferior…» (comprueba la posición del aviso); 3 de 3 repeticiones |
+| H-46 | **Corregido** | El motivo de la API reemplaza a un mensaje genérico, y nunca al revés (`api/client.ts`) | Vitest «si el genérico llega primero…» (falla con la versión anterior); Playwright `sesion.spec.ts`, 3 de 3 |
+| H-47 | **Corregido** | `receptor.py` usa flechas ASCII y la salida reemplaza los caracteres que la consola no admite | pytest «el receptor funciona en una consola de Windows» (falla con la versión anterior) |
+| H-48 | **Corregido** | Los dos archivos pasaron de `.log` a `.txt`; no se cambió el `.gitignore` | Las 47 pruebas del prototipo pasan en una copia que solo tiene los archivos que Git publicaría |
 | H-44 | **Corregido** | `CalificacionSchema.nota` es estricto (solo números) y `nota_con_un_decimal` rechaza más de un decimal con 422. `aEscala5` redondea con `round(porcentaje ÷ 2) ÷ 10`. Escala, fórmulas y umbrales sin cambios. | pytest `test_escala_notas.py` (56; con el backend anterior fallan 12), Vitest (4), Playwright «escala 0.0 – 5.0…» |
 
 **Actualización del 24/11/2026:** H-01, H-05, H-09 y H-17 se corrigieron; H-04 queda pendiente de decisión funcional. **Situación anterior**: **H-01** (umbrales distintos: 3.5 en la interfaz y 3.0 en la alerta), **H-04** (la regla de alerta no se evalúa al editar ni por materia) y **H-19** (el promedio de una actividad cuenta como 0 a los estudiantes sin nota). También H-03 y H-05 a H-23. H-14 queda parcialmente resuelto (ver su fila). El registro de seguimiento con severidad y estado está en [`pruebas/registro-defectos.md`](pruebas/registro-defectos.md).
@@ -112,6 +122,8 @@ Cada detalle describe el problema tal como se encontró en la auditoría. Para s
 - **Pendiente:** guardar solo las filas con nota ingresada o modificada y distinguir «sin nota» de «nota 0». Es la primera prueba que debe ejecutarse en un entorno de pruebas.
 
 ### H-03. Pérdida de precisión en la nota
+
+**Corregido el 24/11/2026:** el docente escribe la nota en 0.0–5.0 con un decimal; ya no se convierte desde el porcentaje.
 
 - **Dónde:** `Calificaciones.tsx` (línea 135) y `calificaciones.nota NUMERIC(3,1)`.
 - **Qué ocurre:** la escala oficial admite un decimal (pasos de 0.1), que en la visualización equivalen a pasos de 2 puntos porcentuales. La interfaz permite digitar cualquier porcentaje: si el docente escribe 73, la conversión da 3.65, se guarda con un decimal (3.6 o 3.7, según el redondeo de JavaScript) y al recargar aparece 72 o 74. Solo los porcentajes pares se conservan exactamente.

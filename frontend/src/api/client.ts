@@ -27,12 +27,20 @@ export function formatApiErrorDetail(detail: unknown): string | null {
 /** Clave con la que el inicio de sesión muestra por qué se cerró la sesión (H-09). */
 export const CLAVE_SESION_CERRADA = 'classkids_sesion_cerrada';
 
+/** Mensaje genérico que se arma cuando la respuesta no trae `detail` (por ejemplo, si su cuerpo
+ *  no se alcanzó a leer porque la página ya estaba navegando). */
+const esMotivoGenerico = (motivo: string) => /^Error \d{3}:/.test(motivo);
+
 function cerrarSesionLocal(motivo: string) {
   localStorage.removeItem('classkids_token');
   localStorage.removeItem('classkids_user');
-  // Varias peticiones pueden recibir el 401 a la vez; se conserva el primer motivo (el de la API),
-  // no el genérico de las peticiones que se interrumpen al navegar.
-  if (!sessionStorage.getItem(CLAVE_SESION_CERRADA)) sessionStorage.setItem(CLAVE_SESION_CERRADA, motivo);
+  // Varias peticiones pueden recibir el 401 a la vez y terminar en cualquier orden. Se guarda el
+  // primer motivo, pero el motivo de la API («Tu rol cambió», «Tu cuenta ya no está activa»)
+  // reemplaza a uno genérico («Error 401: …»); nunca al revés.
+  const actual = sessionStorage.getItem(CLAVE_SESION_CERRADA);
+  if (!actual || (esMotivoGenerico(actual) && !esMotivoGenerico(motivo))) {
+    sessionStorage.setItem(CLAVE_SESION_CERRADA, motivo);
+  }
   if (!window.location.pathname.startsWith('/auth')) window.location.assign('/auth');
 }
 

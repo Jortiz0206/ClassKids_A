@@ -17,7 +17,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 
-from database import get_db
+from database import ENTORNO, NOMBRE_BASE, get_db
 
 load_dotenv()
 
@@ -35,6 +35,9 @@ ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
     "CORS_ORIGINS",
     "http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173",
 ).split(",")]
+
+# Muestra al arrancar a qué entorno y base se conecta (sin credenciales).
+print(f"[ClassKids] Entorno: {ENTORNO or 'sin definir'} | base de datos: {NOMBRE_BASE}")
 
 
 # H-05: los errores de integridad de PostgreSQL responden con un código y un mensaje claros
@@ -361,7 +364,8 @@ def exigir_calificar(db: Session, yo: Sesion, estudiante_id, materia_id, activid
 
 @app.get("/", tags=["Inicio"])
 def inicio():
-    return {"proyecto": "ClassKids", "estado": "Operativo - PostgreSQL Docker", "autor": "Johanna Ortiz, Jan Llanos y María Alejandra Guio"}
+    return {"proyecto": "ClassKids", "estado": "Operativo - PostgreSQL Docker", "autor": "Johanna Ortiz, Jan Llanos y María Alejandra Guio",
+            "entorno": ENTORNO or "sin definir", "base_de_datos": NOMBRE_BASE}
 
 
 # =================================================================

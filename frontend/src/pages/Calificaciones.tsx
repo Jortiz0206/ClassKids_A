@@ -13,8 +13,8 @@ import { EstadoVacio, FilasCargando } from "@/components/common/Estados";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { fechaCorta } from "@/lib/fechas";
 import {
-  ETIQUETA_ESTADO, UMBRAL_APROBADO, aEscala5, estadoNota, filaModificada, formatoEscala5,
-  iniciales, normalizarEntradaNota, promedioActividad,
+  ETIQUETA_ESTADO, UMBRAL_APROBACION_NOTA, aPorcentaje, estadoNota, filaModificada, formatoNota,
+  iniciales, interpretarNota, promedioActividad, textoEquivalencias,
 } from "@/lib/notas";
 import { aLista } from "@/lib/listas";
 import type { Calificacion, Estudiante } from "@/types";
@@ -25,40 +25,42 @@ interface CalificacionRow {
   estudiante_id: string;
   nombre: string;
   apellido: string;
-  // Porcentaje que se muestra y se digita (nota × 20). `null` = el estudiante no tiene
-  // calificación en esta actividad (antes se mostraba como 0 y se guardaba como 0: H-02).
-  calificacion: number | null;
+  // Nota en la escala oficial 0.0 – 5.0. `null` = el estudiante no tiene calificación en esta
+  // actividad (antes se mostraba como 0 y se guardaba como 0: H-02).
+  nota: number | null;
+  // Lo que el docente escribió y, si no es válido, el motivo (la fila no se puede guardar).
+  entrada: string;
+  error: string | null;
   entregado: boolean;
   id?: string;
   // Valores con los que se cargó la fila, para guardar solo lo que el docente cambió (D2).
-  original: { calificacion: number | null; entregado: boolean };
+  original: { nota: number | null; entregado: boolean };
 }
 
 const tonosAvatar = ["bg-menta", "bg-cielo", "bg-lavanda", "bg-durazno", "bg-mantequilla"];
 
-/** Campo de nota (0 – 100) con su equivalencia en la escala oficial (÷ 20). */
-const CampoNota = ({ fila, onChange }: { fila: CalificacionRow; onChange: (raw: string) => void }) => {
-  const equivalencia = formatoEscala5(fila.calificacion);
-  return (
-    <div className="flex items-center gap-2.5">
-      <Input
-        type="number"
-        inputMode="numeric"
-        min={0}
-        max={100}
-        value={fila.calificacion ?? ""}
-        placeholder="—"
-        aria-label={`Calificación de ${fila.nombre} ${fila.apellido}`}
-        aria-describedby={`equiv-${fila.estudiante_id}`}
-        onChange={(e) => onChange(e.target.value)}
-        className={`h-10 w-[76px] rounded-lg text-center text-[15px] font-bold tabular-nums ${filaModificada(fila) ? "border-sol ring-2 ring-sol/60" : ""}`}
-      />
-      <span id={`equiv-${fila.estudiante_id}`} className="min-w-[64px] text-[13px] tabular-nums text-muted-foreground">
-        {equivalencia ? <>/ 100 = <b className="text-foreground">{equivalencia}</b></> : <span className="sr-only">Sin nota</span>}
-      </span>
-    </div>
-  );
-};
+/** Campo de nota en la escala oficial (0.0 – 5.0) con sus equivalencias como dato secundario. */
+const CampoNota = ({ fila, onChange }: { fila: CalificacionRow; onChange: (raw: string) => void }) => (
+  <div className="flex items-center gap-2.5">
+    <Input
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      value={fila.entrada}
+      placeholder="—"
+      aria-label={`Calificación de ${fila.nombre} ${fila.apellido}`}
+      aria-describedby={`equiv-${fila.estudiante_id}`}
+      aria-invalid={fila.error ? true : undefined}
+      onChange={(e) => onChange(e.target.value)}
+      className={`h-10 w-[68px] rounded-lg text-center text-[15px] font-bold tabular-nums ${fila.error ? "border-destructive ring-2 ring-destructive/40" : filaModificada(fila) ? "border-sol ring-2 ring-sol/60" : ""}`}
+    />
+    <span id={`equiv-${fila.estudiante_id}`} className="min-w-[96px] text-[13px] leading-tight tabular-nums text-muted-foreground">
+      {fila.error ? <span className="font-semibold text-destructive">{fila.error}</span>
+        : fila.nota !== null ? <>de 5.0<span className="block text-xs">{textoEquivalencias(fila.nota)}</span></>
+        : <span className="sr-only">Sin nota</span>}
+    </span>
+  </div>
+);
 
 const Calificaciones = () => {
   const [grupos, setGrupos] = useState<Grupo[]>([]);
@@ -134,7 +136,7 @@ const Calificaciones = () => {
 
       const rows: CalificacionRow[] = estudiantes.map((e) => {
         const existing = calMap.get(String(e.id));
-        const calificacion = existing ? Number(existing.nota) * 20 : null;
+        const nota = existing ? Number(existing.nota) : null;
         // «Entregado» se lee de la base (columna `entregado`, migración 001). Si la base aún
         // no tiene la columna, se conserva el comportamiento anterior: con nota = entregado.
         const entregado = existing ? (typeof existing.entregado === "boolean" ? existing.entregado : true) : false;
@@ -142,10 +144,12 @@ const Calificaciones = () => {
           estudiante_id: String(e.id),
           nombre: String(e.nombre || ""),
           apellido: String(e.apellido || ""),
-          calificacion,
+          nota,
+          entrada: nota === null ? "" : formatoNota(nota),
+          error: null,
           entregado,
           id: existing ? String(existing.id) : undefined,
-          original: { calificacion, entregado },
+          original: { nota, entregado },
         };
       });
       setCalificaciones(rows);
@@ -157,8 +161,8 @@ const Calificaciones = () => {
   };
 
   const updateCalificacion = (idx: number, raw: string) => {
-    const value = normalizarEntradaNota(raw);
-    setCalificaciones(prev => prev.map((c, i) => i === idx ? { ...c, calificacion: value } : c));
+    const { nota, error } = interpretarNota(raw);
+    setCalificaciones(prev => prev.map((c, i) => i === idx ? { ...c, entrada: raw, nota, error } : c));
   };
 
   const toggleEntregado = (idx: number) => {
@@ -166,14 +170,19 @@ const Calificaciones = () => {
   };
 
   const pendientesDeGuardar = calificaciones.filter(filaModificada).length;
+  const filasConError = calificaciones.filter((c) => c.error).length;
 
   const handleSave = async () => {
     if (!selectedActividad) return;
     const materiaId = Number(actividades.find((item) => String(item.id) === String(selectedActividad))?.materia_id);
     // D2: solo se envían las filas que el docente modificó. Las demás no se tocan, y un
     // estudiante sin nota no recibe un 0 (H-02).
+    if (filasConError > 0) {
+      toast.error(filasConError === 1 ? "Corrige la nota marcada en rojo antes de guardar." : `Corrige las ${filasConError} notas marcadas en rojo antes de guardar.`);
+      return;
+    }
     const modificadas = calificaciones.filter(filaModificada);
-    const guardables = modificadas.filter((c) => c.calificacion !== null);
+    const guardables = modificadas.filter((c) => c.nota !== null);
     const omitidas = modificadas.length - guardables.length;
     if (guardables.length === 0) {
       if (omitidas > 0) toast.error("Ingresa la calificación para poder registrar la entrega.");
@@ -190,7 +199,7 @@ const Calificaciones = () => {
           estudiante_id: Number(c.estudiante_id),
           materia_id: materiaId,
           actividad_id: Number(selectedActividad),
-          nota: aEscala5(c.calificacion as number),
+          nota: c.nota as number,
           entregado: c.entregado,
         };
         if (c.id) {
@@ -216,14 +225,14 @@ const Calificaciones = () => {
   // promedio, hallazgo H-19, que no forma parte de esta corrección).
   const promedio = promedioActividad(calificaciones);
   const entregados = calificaciones.filter(c => c.entregado).length;
-  const aprobados = calificaciones.filter(c => (c.calificacion ?? 0) >= UMBRAL_APROBADO).length;
+  const aprobados = calificaciones.filter(c => (c.nota ?? 0) >= UMBRAL_APROBACION_NOTA).length;
 
   const isMobile = useIsMobile();
   const actividadSel = actividades.find((a) => String(a.id) === String(selectedActividad));
   const grupoSel = grupos.find((g) => String(g.id) === String(selectedGrupo));
 
   const botonGuardar = (
-    <Button onClick={handleSave} disabled={saving || pendientesDeGuardar === 0} className="h-11 gap-2 rounded-xl px-5">
+    <Button onClick={handleSave} disabled={saving || pendientesDeGuardar === 0 || filasConError > 0} className="h-11 gap-2 rounded-xl px-5">
       {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
       {saving ? "Guardando..." : pendientesDeGuardar > 0 ? `Guardar cambios (${pendientesDeGuardar})` : "Guardar cambios"}
     </Button>
@@ -234,7 +243,7 @@ const Calificaciones = () => {
       <PageHeader
         eyebrow="Evidencia de aprendizaje"
         title="Calificaciones"
-        description="Registra notas y entregas por actividad. La nota se escribe de 0 a 100 y se guarda en la escala 0.0 – 5.0."
+        description="Registra notas y entregas por actividad. La nota se escribe en la escala 0.0 – 5.0, con un decimal."
         icon={ClipboardList}
         tono="bg-menta"
         actions={calificaciones.length > 0 && !isMobile && botonGuardar}
@@ -290,20 +299,20 @@ const Calificaciones = () => {
             <div className="rounded-2xl border border-border bg-card p-4">
               <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><Award className="h-4 w-4" aria-hidden="true" />Aprobados</p>
               <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{aprobados}</p>
-              <p className="mt-1.5 text-xs text-muted-foreground">desde 70 % (3.5)</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">desde {formatoNota(UMBRAL_APROBACION_NOTA)} (70 %)</p>
             </div>
             <div className="rounded-2xl border border-border bg-card p-4">
               <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground"><BarChart3 className="h-4 w-4" aria-hidden="true" />Promedio</p>
-              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{promedio} % <span className="text-base font-semibold text-muted-foreground">· {formatoEscala5(promedio)}</span></p>
+              <p className="mt-1 font-display text-[26px] font-bold leading-none tabular-nums">{formatoNota(promedio)} <span className="text-base font-semibold text-muted-foreground">· {aPorcentaje(promedio)} %</span></p>
               <p className="mt-1.5 text-xs text-muted-foreground" title="Hallazgo H-19, pendiente">Quien no tiene nota cuenta como 0</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
             <span>Estados:</span>
-            <EstadoBadge tono="excelente">Excelente ≥ 90 %</EstadoBadge>
-            <EstadoBadge tono="aprobado">Aprobado 70 – 89 %</EstadoBadge>
-            <EstadoBadge tono="reprobado">Reprobado &lt; 70 %</EstadoBadge>
+            <EstadoBadge tono="excelente">Excelente ≥ 4.5</EstadoBadge>
+            <EstadoBadge tono="aprobado">Aprobado 3.5 – 4.4</EstadoBadge>
+            <EstadoBadge tono="reprobado">Reprobado &lt; 3.5</EstadoBadge>
             <EstadoBadge tono="sin">Sin calificar</EstadoBadge>
           </div>
         </>
@@ -315,7 +324,7 @@ const Calificaciones = () => {
         isMobile ? (
           <ul className="space-y-2.5" aria-label="Estudiantes del grupo">
             {calificaciones.map((c, i) => {
-              const estado = estadoNota(c.calificacion);
+              const estado = estadoNota(c.nota === null ? null : aPorcentaje(c.nota));
               const modificada = filaModificada(c);
               return (
                 <li key={c.estudiante_id} className={`rounded-2xl border p-3.5 ${modificada ? "border-sol bg-mantequilla" : "border-border bg-card"}`}>
@@ -354,7 +363,7 @@ const Calificaciones = () => {
               </TableHeader>
               <TableBody>
                 {calificaciones.map((c, i) => {
-                  const estado = estadoNota(c.calificacion);
+                  const estado = estadoNota(c.nota === null ? null : aPorcentaje(c.nota));
                   const modificada = filaModificada(c);
                   return (
                     <TableRow key={c.estudiante_id} className={modificada ? "bg-mantequilla hover:bg-mantequilla" : ""}>
@@ -379,7 +388,7 @@ const Calificaciones = () => {
               </TableBody>
             </Table>
             <p className="border-t border-border px-4 py-3 text-[13px] text-muted-foreground">
-              Solo se guardan las filas que modifiques. La nota se convierte a la escala 0.0 – 5.0 dividiendo entre 20, con un decimal.
+              Escribe la nota de 0.0 a 5.0 con un decimal (por ejemplo 3.8; también vale 3,8). Solo se guardan las filas que modifiques.
             </p>
           </div>
         )

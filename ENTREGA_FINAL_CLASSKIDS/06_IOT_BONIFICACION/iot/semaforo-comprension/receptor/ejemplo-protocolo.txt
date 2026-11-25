@@ -1,0 +1,17 @@
+EJEMPLO DEL PROTOCOLO escrito a mano para probar el receptor. NO es una captura de la simulación.
+(El receptor ignora esta línea y la anterior porque no empiezan con «{».)
+{"evento":"inicio","dispositivo":"aula-1A","version":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":2}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"duda","total":3}
+{"evento":"rechazado","dispositivo":"aula-1A","ronda":1,"motivo":"muy_seguido"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":1,"opcion":"entendi","total":4}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":1,"entendi":3,"dudas":1,"no_entendi":0,"total":4,"comprension":75,"nivel":"verde"}
+{"evento":"ronda_vacia","dispositivo":"aula-1A","ronda":2}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"duda","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"entendi","total":2}
+{"evento":"voto","dispositivo":"aula-1A","ronda":2,"opcion":"no_entendi","total":3}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":2,"entendi":1,"dudas":1,"no_entendi":1,"total":3,"comprension":33,"nivel":"rojo"}
+{"evento":"voto","dispositivo":"aula-1A","ronda":3,"opcion":"entendi","total":1}
+{"evento":"voto","dispositivo":"aula-1A","ronda":3,"opcion":"duda","total":2}
+{"evento":"resumen","dispositivo":"aula-1A","ronda":3,"entendi":1,"dudas":1,"no_entendi":0,"total":2,"comprension":50,"nivel":"amarillo"}

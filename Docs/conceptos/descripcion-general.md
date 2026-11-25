@@ -38,7 +38,7 @@ Desarrollar un sistema web que permita registrar, consultar y analizar el desemp
 - Autenticación con correo y contraseña, sesión mediante token JWT con vigencia de 8 horas y control de acceso por rol.
 - Incorporación de usuarios por invitación (enlace con vigencia de 48 horas) y recuperación de contraseña por enlace (vigencia de 30 minutos, de un solo uso).
 - Gestión de grupos, estudiantes, materias, asignaciones docente–materia–grupo, actividades, calificaciones, observaciones y alertas, con persistencia real en PostgreSQL.
-- Escala académica oficial de 0.0 a 5.0, con un decimal, en la que se almacenan las calificaciones y se evalúan las alertas. La interfaz las presenta en porcentaje (nota × 20).
+- Escala académica oficial de 0.0 a 5.0, con un decimal, en la que se almacenan las calificaciones y se evalúan las alertas. La interfaz también las registra y muestra en esa escala, con el porcentaje (nota × 20) como dato secundario.
 - Cálculo de promedios y clasificación del rendimiento (Excelente, Bueno, Regular, En riesgo).
 - Alerta automática de bajo rendimiento cuando el promedio acumulado de un estudiante es menor a 3.0 al registrar una nueva calificación.
 - Dashboard del docente, tablero de análisis con cuatro gráficas y listado de estudiantes en riesgo.

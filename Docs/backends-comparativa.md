@@ -26,7 +26,7 @@ Las celdas de ClassKids se basan en el código revisado. Las del candidato Expre
 | Arquitectura | API REST monolítica en un módulo; middleware de autenticación | Rutas (`routes/`) y modelos (`models/`) separados | PENDIENTE | PENDIENTE |
 | Validación | Esquemas Pydantic con rangos y longitudes; errores de integridad con 409/422 (H-05 corregido) | PENDIENTE (Mongoose permite esquemas) | PENDIENTE | PENDIENTE |
 | Seguridad | JWT HS256 de 8 h, PBKDF2, CORS configurable; permisos por rol y por asignación docente–materia–grupo (H-08 corregido el 24/11/2026) | PENDIENTE | PENDIENTE | PENDIENTE |
-| Pruebas | pytest: 24 de integración y 18 unitarias | PENDIENTE | PENDIENTE | PENDIENTE |
+| Pruebas | pytest: 156 en la suite principal (integración, permisos, escala, hallazgos y generador de la demostración), con 18 ejecuciones unitarias | PENDIENTE | PENDIENTE | PENDIENTE |
 | Documentación de la API | OpenAPI automática (`/docs`) y `api-endpoints.md` | PENDIENTE | PENDIENTE | PENDIENTE |
 | Ventajas | Tipado y documentación automática; SQL explícito y auditable | PENDIENTE | PENDIENTE | PENDIENTE |
 | Desventajas | Un solo módulo grande; sin ORM ni migraciones automáticas | PENDIENTE | PENDIENTE | PENDIENTE |

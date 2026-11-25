@@ -1,0 +1,10 @@
+# Configuración para la extensión Wokwi de VS Code (opcional; en wokwi.com no se usa).
+# Antes de iniciar el simulador hay que compilar el sketch, por ejemplo con:
+#   arduino-cli compile --fqbn arduino:avr:uno --output-dir build .
+[wokwi]
+version = 1
+firmware = 'build/sketch.ino.hex'
+elf = 'build/sketch.ino.elf'
+# Expone el puerto serial de la simulación en TCP para el receptor en Python:
+#   python ../receptor/receptor.py --puerto rfc2217://localhost:4000
+rfc2217ServerPort = 4000

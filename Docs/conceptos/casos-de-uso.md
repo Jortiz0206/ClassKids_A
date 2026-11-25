@@ -333,7 +333,7 @@ Durante el proyecto circularon dos numeraciones. La siguiente tabla relaciona la
 
 | Campo | Detalle |
 |---|---|
-| Descripción | Permite registrar o actualizar en una sola operación las calificaciones de todos los estudiantes de un grupo en una actividad. Las calificaciones se almacenan en la escala oficial de 0.0 a 5.0; la pantalla las registra y muestra en porcentaje (nota × 20) y las convierte al guardar (ver «Ciclo de una calificación» en el capítulo de reglas de negocio). |
+| Descripción | Permite registrar o actualizar en una sola operación las calificaciones de todos los estudiantes de un grupo en una actividad. Las calificaciones se almacenan en la escala oficial de 0.0 a 5.0; la pantalla las registra y muestra en esa misma escala, con su equivalencia en porcentaje como dato secundario (ver «Ciclo de una calificación» en el capítulo de reglas de negocio). |
 | Actores | Docente (estudiantes de un grupo donde dicta esa materia) y Administrador |
 | Precondiciones | El usuario inició sesión y tiene asignada la materia de la actividad en el grupo del estudiante. |
 | Postcondiciones | Solo las calificaciones que el docente creó o modificó quedan guardadas; las nuevas en el periodo 1, las editadas conservan su periodo y su observación. Al crear una calificación, el sistema evalúa la regla de alerta (CU-12). |
@@ -346,8 +346,8 @@ Durante el proyecto circularon dos numeraciones. La siguiente tabla relaciona la
 | Paso | Actor | Sistema |
 |---|---|---|
 | 1 | Selecciona «Calificaciones» y elige un grupo. | Carga las actividades del grupo. |
-| 2 | Elige una actividad. | Muestra los estudiantes del grupo ordenados por apellido, con su nota actual convertida a porcentaje (nota × 20; campo vacío si no tiene), el interruptor «Entregado» leído de la base de datos y el estado: Excelente (≥ 90 %, es decir ≥ 4.5), Aprobado (≥ 70 %, ≥ 3.5), Reprobado (> 0) o Sin calificar, con la equivalencia en la escala oficial junto a cada nota (por ejemplo «86 / 100 = 4.3»). Muestra cuatro indicadores: estudiantes, entregados, aprobados (≥ 70) y promedio. El botón «Guardar cambios» está desactivado mientras no haya cambios. |
-| 3 | Digita las notas en porcentaje (0 a 100) y marca «Entregado» cuando corresponda. | Limita cada valor al rango 0–100, resalta las filas modificadas y muestra su número en el botón: «Guardar cambios (n)». |
+| 2 | Elige una actividad. | Muestra los estudiantes del grupo ordenados por apellido, con su nota actual en la escala 0.0–5.0 (campo vacío si no tiene), el interruptor «Entregado» leído de la base de datos y el estado: Excelente (≥ 4.5), Aprobado (≥ 3.5), Reprobado (> 0) o Sin calificar, con las equivalencias junto a cada nota (por ejemplo «86 % · 17.2 / 20» para 4.3). Muestra cuatro indicadores: estudiantes, entregados, aprobados (≥ 3.5) y promedio. El botón «Guardar cambios» está desactivado mientras no haya cambios. |
+| 3 | Escribe las notas de 0.0 a 5.0 (con punto o coma decimal) y marca «Entregado» cuando corresponda. | Resalta las filas modificadas y muestra su número en el botón: «Guardar cambios (n)». Un valor fuera de 0.0–5.0 o con más de un decimal se marca en rojo con el motivo y desactiva el botón hasta corregirlo. |
 | 4 | Pulsa «Guardar cambios (n)». | Solo para las filas modificadas convierte el porcentaje a la escala oficial (÷ 20, con un decimal; por ejemplo, 86 → 4.3) y crea la calificación (`POST`, periodo 1) o la actualiza (`PUT`, solo nota y entrega). La observación y el periodo existentes se conservan. |
 | 5 | — | Al crear cada calificación ejecuta CU-12. Muestra «Calificaciones guardadas correctamente (n)» y recarga la tabla. |
 

@@ -100,8 +100,8 @@ const MisAsignaciones = () => {
                     <span className="text-sm text-muted-foreground">Sin notas</span>
                   ) : (
                     <>
-                      <span className="text-[15px] font-bold text-card-foreground">{f.promedio} %</span>
-                      <EstadoBadge tono={nivel!.tono}>{nivel!.texto} · {formatoEscala5(f.promedio)}</EstadoBadge>
+                      <span className="text-[15px] font-bold text-card-foreground">{formatoEscala5(f.promedio)}</span>
+                      <EstadoBadge tono={nivel!.tono}>{nivel!.texto} · {f.promedio} %</EstadoBadge>
                     </>
                   )}
                 </p>

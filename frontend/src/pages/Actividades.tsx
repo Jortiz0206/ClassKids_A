@@ -89,11 +89,15 @@ const Actividades = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [gruposRes, actRes, matRes, asigRes] = await Promise.all([
+      // H-16: antes se hacían dos peticiones por actividad (estudiantes del grupo y notas de la
+      // actividad). Ahora se piden una sola vez y se agrupan aquí; la API ya filtra por permisos.
+      const [gruposRes, actRes, matRes, asigRes, estRes, calRes] = await Promise.all([
         api.get("/grupos"),
         api.get("/actividades"),
         api.get("/materias"),
         api.get("/asignaciones"),
+        api.get("/estudiantes"),
+        api.get("/calificaciones"),
       ]);
       setAsignaciones(aLista<{ materia_id: number; grupo_id: number }>(asigRes).map((x) => ({ materia_id: String(x.materia_id), grupo_id: String(x.grupo_id) })));
 
@@ -104,16 +108,24 @@ const Actividades = () => {
       setGrupos(gruposList.map((g) => ({ id: String(g.id), nombre: g.nombre })));
       setMaterias(matList.map((m) => ({ id: String(m.id), nombre: m.nombre })));
 
+      const estudiantesPorGrupo = new Map<string, Estudiante[]>();
+      for (const e of aLista<Estudiante>(estRes)) {
+        const g = String(e.grupo_id);
+        if (!estudiantesPorGrupo.has(g)) estudiantesPorGrupo.set(g, []);
+        estudiantesPorGrupo.get(g)!.push(e);
+      }
+      const notasPorActividad = new Map<string, Calificacion[]>();
+      for (const c of aLista<Calificacion>(calRes)) {
+        const a = String(c.actividad_id);
+        if (!notasPorActividad.has(a)) notasPorActividad.set(a, []);
+        notasPorActividad.get(a)!.push(c);
+      }
+
       const enriched = await Promise.all(
         actList.map(async (a) => {
           try {
-            const [estCountRes, calRes] = await Promise.all([
-              api.get(`/estudiantes?grupo_id=${a.grupo_id}`),
-              api.get(`/calificaciones?actividad_id=${a.id}`),
-            ]);
-
-            const estList = aLista<Estudiante>(estCountRes);
-            const cals = aLista<Calificacion>(calRes);
+            const estList = estudiantesPorGrupo.get(String(a.grupo_id)) ?? [];
+            const cals = notasPorActividad.get(String(a.id)) ?? [];
 
             // H-30c: se cuentan ESTUDIANTES distintos del grupo con la entrega marcada, no
             // filas de calificación (una nota repetida contaba dos veces: 7/20 frente a 5/20
@@ -298,7 +310,7 @@ const Actividades = () => {
                 <div className="flex items-center justify-between">
                   {getEstadoBadge(act.estado)}
                   {act.promedioCalificacion !== null && (
-                    <span className={`text-sm font-bold tabular-nums ${clasePromedio(act.promedioCalificacion)}`}>Prom: {act.promedioCalificacion}% <span className="font-semibold text-muted-foreground">· {formatoEscala5(act.promedioCalificacion)}</span></span>
+                    <span className={`text-sm font-bold tabular-nums ${clasePromedio(act.promedioCalificacion)}`}>Prom: {formatoEscala5(act.promedioCalificacion)} <span className="font-semibold text-muted-foreground">· {act.promedioCalificacion} %</span></span>
                   )}
                 </div>
               </CardContent>

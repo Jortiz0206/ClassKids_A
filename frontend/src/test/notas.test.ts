@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  estadoNota, aEscala5, aPorcentaje, formatoEscala5, normalizarEntradaNota, nivelPromedio,
+  estadoNota, aEscala5, aPorcentaje, formatoEscala5, interpretarNota, equivalencias, textoEquivalencias, formatoNota, diferenciaEnNota, nivelPromedio,
   nivelSeguimiento, filaModificada, promedioActividad, iniciales, ETIQUETA_ESTADO,
   UMBRAL_APROBADO, UMBRAL_EXCELENTE, UMBRAL_ALERTA_NOTA, UMBRAL_APROBACION_NOTA, promedioExacto, UMBRAL_ALERTA_PORCENTAJE,
 } from "@/lib/notas";
@@ -72,10 +72,7 @@ describe("escala oficial 0.0 – 5.0 y sus equivalencias", () => {
     expect(aEscala5(100)).toBe(5);
   });
 
-  it("lo digitado fuera de 0–100 se limita, así que nunca se envía una nota menor que 0 ni mayor que 5", () => {
-    expect(aEscala5(normalizarEntradaNota("-2") as number)).toBe(0);
-    expect(aEscala5(normalizarEntradaNota("102") as number)).toBe(5);
-    expect(aEscala5(normalizarEntradaNota("80") as number)).toBe(4); // 80 es un porcentaje: se guarda 4.0, nunca 80
+  it("los promedios en porcentaje se muestran en la escala oficial sin salir de 0 – 5", () => {
     for (let p = 0; p <= 100; p += 0.5) {
       const nota = aEscala5(p);
       expect(nota).toBeGreaterThanOrEqual(0);
@@ -94,14 +91,40 @@ describe("escala oficial 0.0 – 5.0 y sus equivalencias", () => {
   });
 });
 
-describe("normalizarEntradaNota", () => {
-  it("vacío o texto no numérico → sin nota; los valores fuera de rango se limitan a 0–100", () => {
-    expect(normalizarEntradaNota("")).toBeNull();
-    expect(normalizarEntradaNota("   ")).toBeNull();
-    expect(normalizarEntradaNota("abc")).toBeNull();
-    expect(normalizarEntradaNota("150")).toBe(100);
-    expect(normalizarEntradaNota("-5")).toBe(0);
-    expect(normalizarEntradaNota("86")).toBe(86);
+describe("interpretarNota: el docente escribe la nota en la escala 0.0 – 5.0", () => {
+  it("acepta los límites y notas comunes, con punto o coma decimal", () => {
+    for (const [texto, nota] of [["0", 0], ["0.0", 0], ["0.1", 0.1], ["2.5", 2.5], ["3", 3], ["3.8", 3.8], ["3,8", 3.8], ["4.0", 4], ["4.9", 4.9], ["5", 5], ["5.0", 5], [" 4.5 ", 4.5]] as const) {
+      expect(interpretarNota(texto), texto).toEqual({ nota, error: null });
+    }
+  });
+
+  it("vacío = sin nota, sin error", () => {
+    expect(interpretarNota("")).toEqual({ nota: null, error: null });
+    expect(interpretarNota("   ")).toEqual({ nota: null, error: null });
+  });
+
+  it("rechaza sin corregir: fuera de 0 – 5 (incluidos 80 y 100), más de un decimal o texto", () => {
+    for (const texto of ["-0.1", "5.1", "6", "80", "100"]) expect(interpretarNota(texto), texto).toEqual({ nota: null, error: "La nota va de 0.0 a 5.0" });
+    for (const texto of ["2.96", "4.95", "3,25"]) expect(interpretarNota(texto), texto).toEqual({ nota: null, error: "Usa un solo decimal, por ejemplo 3.8" });
+    for (const texto of ["abc", "4.0.1", "3 8", "1e1"]) expect(interpretarNota(texto).error, texto).toBe("Escribe un número, por ejemplo 3.8");
+  });
+});
+
+describe("equivalencias secundarias", () => {
+  it("nota × 20 = porcentaje y nota × 4 = sobre 20", () => {
+    expect(equivalencias(2.5)).toEqual({ porcentaje: 50, sobre20: 10 });
+    expect(equivalencias(3.0)).toEqual({ porcentaje: 60, sobre20: 12 });
+    expect(equivalencias(3.8)).toEqual({ porcentaje: 76, sobre20: 15.2 });
+    expect(equivalencias(4.0)).toEqual({ porcentaje: 80, sobre20: 16 });
+    expect(equivalencias(5.0)).toEqual({ porcentaje: 100, sobre20: 20 });
+    expect(textoEquivalencias(3.8)).toBe("76 % · 15.2 / 20");
+    expect(formatoNota(4)).toBe("4.0");
+  });
+
+  it("diferenciaEnNota expresa en la escala oficial una diferencia en puntos porcentuales", () => {
+    expect(diferenciaEnNota(4)).toBe("+0.2");
+    expect(diferenciaEnNota(-6)).toBe("−0.3");
+    expect(diferenciaEnNota(0)).toBe("+0.0");
   });
 });
 
@@ -124,23 +147,23 @@ describe("bandas de promedio", () => {
 });
 
 describe("guardado de calificaciones (decisión D2)", () => {
-  const base = { calificacion: 86, entregado: true, original: { calificacion: 86, entregado: true } };
+  const base = { nota: 4.3, entregado: true, original: { nota: 4.3, entregado: true } };
 
   it("una fila sin cambios no se guarda", () => {
     expect(filaModificada(base)).toBe(false);
   });
 
   it("cambiar la nota o la entrega marca la fila para guardar", () => {
-    expect(filaModificada({ ...base, calificacion: 90 })).toBe(true);
+    expect(filaModificada({ ...base, nota: 4.5 })).toBe(true);
     expect(filaModificada({ ...base, entregado: false })).toBe(true);
-    expect(filaModificada({ ...base, calificacion: null })).toBe(true);
+    expect(filaModificada({ ...base, nota: null })).toBe(true);
   });
 });
 
 describe("promedioActividad", () => {
   it("mantiene el cálculo actual: quien no tiene nota cuenta como 0 (H-19 pendiente)", () => {
-    const filas = [{ calificacion: 86 }, { calificacion: 98 }, { calificacion: null }, { calificacion: null }];
-    expect(promedioActividad(filas)).toBe(46); // (86 + 98) / 4 = 46
+    const filas = [{ nota: 4.3 }, { nota: 4.9 }, { nota: null }, { nota: null }];
+    expect(promedioActividad(filas)).toBe(2.3); // (4.3 + 4.9) / 4 = 2.3
     expect(promedioActividad([])).toBe(0);
   });
 });

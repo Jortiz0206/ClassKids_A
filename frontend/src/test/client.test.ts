@@ -95,4 +95,23 @@ describe("H-09: varias peticiones rechazadas a la vez", () => {
     await expect(apiFetch("/alertas")).rejects.toThrow("Error 401");
     expect(sessionStorage.getItem(CLAVE_SESION_CERRADA)).toBe("Tu rol cambió. Inicia sesión de nuevo.");
   });
+
+  it("si el genérico llega primero, el motivo de la API lo reemplaza", async () => {
+    sessionStorage.clear();
+    Object.defineProperty(window, "location", { value: { pathname: "/app", assign: vi.fn() }, writable: true });
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized", json: async () => { throw new Error("abortada"); } })
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized", json: async () => ({ detail: "Tu cuenta ya no está activa. Inicia sesión de nuevo." }) })
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized", json: async () => ({ detail: "Tu rol cambió. Inicia sesión de nuevo." }) }) as unknown as typeof fetch;
+    localStorage.setItem("classkids_token", "token-viejo");
+    await expect(apiFetch("/alertas")).rejects.toThrow("Error 401");
+    expect(sessionStorage.getItem(CLAVE_SESION_CERRADA)).toBe("Error 401: Unauthorized");
+    localStorage.setItem("classkids_token", "token-viejo");
+    await expect(apiFetch("/grupos")).rejects.toThrow("no está activa");
+    expect(sessionStorage.getItem(CLAVE_SESION_CERRADA)).toBe("Tu cuenta ya no está activa. Inicia sesión de nuevo.");
+    // Un segundo motivo específico no reemplaza al primero.
+    localStorage.setItem("classkids_token", "token-viejo");
+    await expect(apiFetch("/materias")).rejects.toThrow("Tu rol cambió");
+    expect(sessionStorage.getItem(CLAVE_SESION_CERRADA)).toBe("Tu cuenta ya no está activa. Inicia sesión de nuevo.");
+  });
 });

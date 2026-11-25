@@ -72,16 +72,16 @@ const modulo = (m: ModuloLanding) => m;
 export const MODULOS = {
   calificaciones: modulo({
     id: "calificaciones", nombre: "Calificaciones", icono: ClipboardCheck, tono: "bg-menta",
-    titular: "Notas de 0 a 100, guardadas en la escala oficial.",
+    titular: "Notas de 0.0 a 5.0, la escala oficial del colegio.",
     descripcion: "El docente elige grupo y actividad, escribe la nota y marca la entrega. La equivalencia aparece al instante.",
-    puntos: ["Equivalencia inmediata en la escala 0.0 – 5.0", `Aprobado desde ${UMBRAL_APROBACION_NOTA.toFixed(1)}`, "Solo se guardan las filas modificadas"],
+    puntos: ["Notas de 0.0 a 5.0 con su equivalencia en %", `Aprobado desde ${UMBRAL_APROBACION_NOTA.toFixed(1)}`, "Solo se guardan las filas modificadas"],
     captura: captura(calificacionesClaro, calificacionesOscuro, "Módulo Calificaciones: notas por estudiante con su equivalencia, entrega y estado"),
   }),
   analisis: modulo({
     id: "analisis", nombre: "Análisis", icono: BarChart3, tono: "bg-cielo",
     titular: "El rendimiento, leído de un vistazo.",
     descripcion: "Promedio por grupo, distribución por nivel, tendencia mensual y rendimiento por tipo de actividad.",
-    puntos: [`Referencias en ${UMBRAL_ALERTA_NOTA.toFixed(1)} y ${UMBRAL_APROBACION_NOTA.toFixed(1)}`, "Estudiantes en riesgo académico", "Promedios en % y en escala 0.0 – 5.0"],
+    puntos: [`Referencias en ${UMBRAL_ALERTA_NOTA.toFixed(1)} y ${UMBRAL_APROBACION_NOTA.toFixed(1)}`, "Estudiantes en riesgo académico", "Promedios en la escala 0.0 – 5.0"],
     captura: captura(analisisClaro, analisisOscuro, "Módulo Análisis: indicadores, rendimiento por grupo, distribución y tendencia"),
   }),
   estudiantes: modulo({
@@ -138,8 +138,8 @@ export const REGLA_APROBACION = UMBRAL_APROBACION_NOTA;
 /**
  * Video VIGENTE del recorrido (v3, grabado después de H-08): grabación real de la app en el entorno de pruebas
  * (Docs/evidencias/scripts/grabar-recorrido.cjs) con música instrumental original
- * (Docs/evidencias/scripts/montar-recorrido.py). La v1 (sin audio) y la v2 (anterior a H-08) se conservan como respaldo en
- * Docs/evidencias/video-respaldo/. Si se borra el archivo, ponga null aquí y la sección del video
+ * (Docs/evidencias/scripts/montar-recorrido.py). Las versiones anteriores (v1 sin audio, v2 anterior a H-08 y v3 con la
+ * nota en porcentaje) se eliminaron el 25/11/2026. Si se borra el archivo, ponga null aquí y la sección del video
  * desaparece (no se muestra un reproductor vacío).
  */
 export const VIDEO_RECORRIDO: string | null = "/video/recorrido-classkids-v3.webm";

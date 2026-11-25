@@ -18,7 +18,7 @@ Este documento resume las condiciones que limitan el alcance de la versión actu
 
 ## Restricciones de negocio vigentes
 
-- Escala académica oficial 0.0–5.0, con un decimal; la interfaz presenta las notas en porcentaje (nota × 20). La escala y los umbrales son fijos para todas las instituciones; hacerlos configurables es una mejora futura.
+- Escala académica oficial 0.0–5.0, con un decimal; la interfaz las registra y muestra en esa escala, con el porcentaje como dato secundario. La escala y los umbrales son fijos para todas las instituciones; hacerlos configurables es una mejora futura.
 - Un solo docente por materia en cada grupo.
 - Acceso únicamente por invitación del administrador.
 - Las calificaciones registradas desde la interfaz pertenecen al periodo 1.

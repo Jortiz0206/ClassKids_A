@@ -244,8 +244,8 @@ const Estudiantes = () => {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard icon={GraduationCap} label="Total estudiantes" value={estudiantes.length} tono="bg-cielo" />
-        <StatCard icon={AlertTriangle} label="En riesgo o crítico" value={enRiesgo} hint="promedio menor que 70 %" tono="bg-durazno" />
-        <StatCard icon={TrendingUp} label="Promedio general" value={`${promedioGeneral}%`} hint={`${formatoEscala5(promedioGeneral)} de 5.0`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
+        <StatCard icon={AlertTriangle} label="En riesgo o crítico" value={enRiesgo} hint="promedio menor que 3.5 (70 %)" tono="bg-durazno" />
+        <StatCard icon={TrendingUp} label="Promedio general" value={formatoEscala5(promedioGeneral)} hint={`de 5.0 · ${promedioGeneral} %`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -281,7 +281,7 @@ const Estudiantes = () => {
                   <span className="block truncate text-[15px] font-semibold">{est.nombre} {est.apellido}</span>
                   <span className="mt-1 flex flex-wrap items-center gap-1.5"><EstadoBadge tono="grupo">{est.grupo_nombre}</EstadoBadge>{getEstadoBadge(est.estado)}</span>
                 </span>
-                <span className={`flex-none text-right text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{est.promedio}%<span className="block text-xs font-semibold text-muted-foreground">{formatoEscala5(est.promedio)}</span></span>
+                <span className={`flex-none text-right text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{formatoEscala5(est.promedio)}<span className="block text-xs font-semibold text-muted-foreground">{est.promedio} %</span></span>
               </button>
             </li>
           ))}
@@ -318,8 +318,8 @@ const Estudiantes = () => {
                   </TableCell>
                   <TableCell><EstadoBadge tono="grupo">{est.grupo_nombre}</EstadoBadge></TableCell>
                   <TableCell>
-                    <span className={`text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{est.promedio}%</span>
-                    <span className="ml-1.5 text-[13px] tabular-nums text-muted-foreground">{formatoEscala5(est.promedio)}</span>
+                    <span className={`text-sm font-bold tabular-nums ${clasePromedio(est.promedio)}`}>{formatoEscala5(est.promedio)}</span>
+                    <span className="ml-1.5 text-[13px] tabular-nums text-muted-foreground">{est.promedio} %</span>
                   </TableCell>
                   <TableCell>{getTendenciaIcon(est.tendencia)}</TableCell>
                   <TableCell>{getEstadoBadge(est.estado)}</TableCell>
@@ -381,7 +381,7 @@ const Estudiantes = () => {
               <div className="space-y-4 py-2">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Promedio</p>
-                  <p className={`font-display text-2xl font-bold tabular-nums ${clasePromedio(selectedEstudiante.promedio)}`}>{selectedEstudiante.promedio}% <span className="text-base font-semibold text-muted-foreground">· {formatoEscala5(selectedEstudiante.promedio)} de 5.0</span></p>
+                  <p className={`font-display text-2xl font-bold tabular-nums ${clasePromedio(selectedEstudiante.promedio)}`}>{formatoEscala5(selectedEstudiante.promedio)} <span className="text-base font-semibold text-muted-foreground">de 5.0 · {selectedEstudiante.promedio} %</span></p>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2"><span className="text-xs text-muted-foreground">Estado:</span>{getEstadoBadge(selectedEstudiante.estado)}</div>

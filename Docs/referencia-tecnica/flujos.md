@@ -38,7 +38,7 @@ El docente crea las actividades (tarea, examen, proyecto o participación) indic
 
 ### 6. Registro de calificaciones
 
-El docente elige un grupo y una actividad, digita o cambia las notas en porcentaje (0 a 100), marca las entregas y guarda. Solo se guardan las filas modificadas; los estudiantes sin nota no reciben un 0 y, al editar, se conservan la observación y el periodo de cada calificación. Cada nota se divide entre 20 y se almacena con un decimal en la escala académica oficial de 0.0 a 5.0, asociada al estudiante, la materia y la actividad. Así se construye el historial académico del estudiante. Las pantallas de consulta vuelven a multiplicar la nota por 20 para mostrarla en porcentaje.
+El docente elige un grupo y una actividad, escribe o cambia las notas de 0.0 a 5.0, marca las entregas y guarda. Solo se guardan las filas modificadas; los estudiantes sin nota no reciben un 0 y, al editar, se conservan la observación y el periodo de cada calificación. Cada nota se almacena tal como se escribió, con un decimal, en la escala académica oficial de 0.0 a 5.0, asociada al estudiante, la materia y la actividad. Así se construye el historial académico del estudiante. Las pantallas de consulta la muestran en la misma escala, con el porcentaje como dato secundario.
 
 ### 7. Cálculo y análisis del rendimiento
 

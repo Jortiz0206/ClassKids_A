@@ -159,7 +159,7 @@ Este capítulo recoge **capturas reales de la versión vigente** de ClassKids, t
 
 ## 9. Calificaciones
 
-**Función:** el docente elige un grupo y una actividad, escribe las notas de 0 a 100 y marca las entregas. Las notas se guardan en la escala oficial 0.0 – 5.0.
+**Función:** el docente elige un grupo y una actividad, escribe las notas de 0.0 a 5.0 y marca las entregas. Las notas se guardan tal como se escriben, en la escala oficial.
 
 ![Antes de elegir grupo y actividad](../evidencias/capturas-v3/vigente/modulos/calificaciones/2026-11-24_sin-seleccion_escritorio_claro.png)
 
@@ -172,7 +172,7 @@ Este capítulo recoge **capturas reales de la versión vigente** de ClassKids, t
 ![Calificaciones en el celular con la barra de guardado](../evidencias/capturas-v3/vigente/modulos/calificaciones/2026-11-24_tabla-actividad_celular_claro.png)
 
 **Qué demuestra:**
-- La equivalencia aparece al instante, por ejemplo 75 / 100 = 3.8.
+- Las equivalencias aparecen al instante, por ejemplo «76 % · 15.2 / 20» para 3.8. Un valor inválido se marca en rojo con el motivo.
 - Las filas modificadas se resaltan y solo se guardan esas.
 - El mensaje de éxito es real: se guardó un cambio en la base de pruebas y se restauró enseguida, y se comprobó que la tabla de calificaciones quedó idéntica.
 
@@ -236,9 +236,9 @@ Este capítulo recoge **capturas reales de la versión vigente** de ClassKids, t
 
 ## 14. Recorrido en video
 
-**Función:** la sección «Conoce cómo funciona ClassKids» de la landing reproduce el recorrido vigente (v3, grabado el 24/11/2026 después de H-08): 118 segundos de uso real de la aplicación (1280 × 720), con música instrumental original.
+**Función:** la sección «Conoce cómo funciona ClassKids» de la landing reproduce el recorrido vigente (v3, regrabado el 24/11/2026 con la nota de 0.0 a 5.0): 140 segundos de uso real de la aplicación (1280 × 720), con música instrumental original.
 
-- **Contenido:** el recorrido empieza y termina con una placa «ClassKids · Aprender · Crecer · Avanzar» con la plantica original. Entre las dos muestra la landing; el inicio de sesión del docente de demostración con sus asignaciones (3 grupos, 60 estudiantes, «Mis asignaciones» con el promedio de cada materia en cada grupo); la búsqueda y la ficha de un estudiante; una nota escrita sin guardar con su equivalencia; Análisis filtrado por una materia; el detalle de una alerta; sus grupos, actividades y materias (solo consulta); el inicio de sesión del administrador con la visión general (10 grupos, 200 estudiantes), la gestión de materias, el panel de administración y Usuarios; y el cambio a modo oscuro.
+- **Contenido:** el recorrido empieza y termina con una placa «ClassKids · Aprender · Crecer · Avanzar» con la plantica original. Entre las dos muestra la landing; el inicio de sesión del docente de demostración con sus asignaciones (3 grupos, 60 estudiantes, «Mis asignaciones» con el promedio de cada materia en cada grupo); la búsqueda y la ficha de un estudiante; una nota de 0.0 a 5.0 escrita sin guardar (3.8), con su equivalencia en porcentaje y sobre 20; Análisis filtrado por una materia; el detalle de una alerta; sus grupos, actividades y materias (solo consulta); el inicio de sesión del administrador con la visión general (10 grupos, 200 estudiantes), la gestión de materias, el panel de administración y Usuarios; y el cambio a modo oscuro.
 - **Grabación:** se hizo en el entorno de pruebas con los datos de demostración. El script se detiene si intenta escribir en la base, así que no se guardó ningún cambio.
 - **Reproducción:** el video nunca se reproduce solo. Empieza al pulsar «Ver video» o el control del reproductor.
 - **Música:** suena a volumen bajo (40 % al empezar). Se silencia con el botón de la música y se ajusta con el control «Volumen», además de los controles del navegador.
@@ -249,4 +249,4 @@ Este capítulo recoge **capturas reales de la versión vigente** de ClassKids, t
 
 **Música:** es una composición instrumental original de ClassKids, sintetizada por código en [`montar-recorrido.py`](../evidencias/scripts/montar-recorrido.py), sin muestras de terceros. Está en Fa mayor, a 92 pulsos por minuto, con acordes, arpegio, bajo y percusión suave. Mide −21,5 LUFS, con picos de −8,6 dBFS.
 
-**Respaldo histórico:** en `Docs/evidencias/video-respaldo/` se conservan la v1 (64 segundos, sin audio) y la v2 (82 segundos, con música, grabada antes de H-08: en ella el docente demo veía los 10 grupos).
+**Versiones anteriores:** la v1 (sin audio), la v2 (anterior a H-08: en ella el docente demo veía los 10 grupos) y la v3 con la nota en porcentaje se eliminadas el 25/11/2026 por decisión del equipo: mostraban la nota de 0 a 100 o en porcentaje y el comportamiento anterior a H-08, y no se usan en la plataforma. El único video vigente es el de la landing.

@@ -1,0 +1,3 @@
+# Solo para leer un puerto serial real o la simulación de Wokwi en VS Code (--puerto).
+# Para leer un archivo o la entrada estándar no se necesita ninguna biblioteca externa.
+pyserial==3.5

@@ -59,6 +59,7 @@ Se definen en `backend/.env` (ver `backend/.env.example`).
 | Variable | Obligatoria | Descripción |
 |---|---|---|
 | `DATABASE_URL` | No | Cadena de conexión. Por defecto, la base local de Docker. Se lee de `backend/.env` o del sistema operativo; si existe en ambos, gana la del sistema (H-17 corregido el 24/11/2026). `CLASSKIDS_ENV_FILE` permite indicar otro archivo `.env`. |
+| `CLASSKIDS_ENTORNO` | No | `real`, `test` o `demo`. Si se define, el backend comprueba al arrancar que `DATABASE_URL` apunte a `classkids`, `classkids_test` o `classkids_demo`, respectivamente, y no arranca si no coincide. `GET /` muestra el entorno y la base. |
 | `CORS_ORIGINS` | No | Orígenes permitidos, separados por comas. |
 | `JWT_SECRET` | Sí en producción | Clave de firma de los tokens. Si no se define en desarrollo, se genera una nueva en cada arranque y las sesiones se pierden al reiniciar. **Se recomienda definirla siempre.** |
 | `ENVIRONMENT` | No | `development` o `production`. En `production` el backend no arranca sin `JWT_SECRET`. |
@@ -85,7 +86,15 @@ Se definen en `backend/.env` (ver `backend/.env.example`).
 - Inicie el backend de pruebas **sin** `--reload`: en Windows se observó una recarga automática que nunca terminó y el proceso siguió con el código anterior.
 - **Migraciones:** `backend/migrations/001_calificaciones_entregado.sql` agrega la columna `calificaciones.entregado`. Está aplicada en la base de pruebas y **no en la base real**. Su preparación (respaldo, ensayo, verificación y reversión) está en [`migraciones/001-informe-preparacion.md`](migraciones/001-informe-preparacion.md). El backend detecta la columna al iniciar; después de aplicar o revertir la migración hay que reiniciarlo.
 
-## 5.1 Estructura y convenciones del código
+## 5.1 Entorno de demostración
+
+Base persistente `classkids_demo` (contenedor `classkids_demo_db`, puerto 5434, volumen `classkids_demo_data`), backend en 8002 (`CLASSKIDS_ENV_FILE=.env.demo`) y frontend en 8082 (`npm run demo`).
+
+- **Generación:** los datos se crean con `backend/demo/generar_demo.py` (preparar, generar, verificar), que usa la API real en el mismo proceso.
+- **Protección:** el generador se niega a escribir fuera de `classkids_demo`.
+- **Guía completa:** [`demo/guia-demostracion.md`](demo/guia-demostracion.md).
+
+## 5.2 Estructura y convenciones del código
 
 - **Backend:** todo está en `backend/main.py`. Cada endpoint recibe un esquema Pydantic, ejecuta SQL parametrizado con `text()` y confirma con `db.commit()`. Para agregar un endpoint privado, su ruta debe empezar por uno de los prefijos de `PRIVATE_PREFIXES`; si es administrativo, también por uno de `ADMIN_PREFIXES`.
 - **Frontend:** una página por módulo en `src/pages`. Todas las peticiones pasan por `src/api/client.ts`. Las rutas se declaran en `src/App.tsx` dentro de `ProtectedRoute` o `AdminRoute`.

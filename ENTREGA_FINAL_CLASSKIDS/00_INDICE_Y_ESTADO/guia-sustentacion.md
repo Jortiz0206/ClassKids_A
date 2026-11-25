@@ -44,10 +44,11 @@ Para cada criterio:
 - **En ClassKids:** el proyecto se trabajó por fases, no con sprints formales registrados. Se reconstruyó el proceso en **6 etapas** (análisis, diseño, backend y base de datos, frontend e integración, pruebas y defectos, renovación y documentación), cada una con la evidencia que la respalda.
 - **Tenemos:**
   - Las etapas, en `etapas-retrospectivas.md`.
-  - El backlog de 20 historias con criterios de aceptación y un **esfuerzo estimado de forma retrospectiva** (75 en total). Está marcado como estimación posterior, no como puntos históricos.
+  - El backlog de 22 historias con criterios de aceptación y un **esfuerzo estimado de forma retrospectiva** (86 en total). Está marcado como estimación posterior, no como puntos históricos.
+  - Seis sprints **reconstruidos** a partir de las etapas reales, en `sprints.md`, con entregables y evidencia.
   - Una retrospectiva de cierre con aprendizajes que se pueden comprobar.
   - Plantillas.
-- **Falta (lo completan ustedes):** sus propios puntos, los responsables, el sprint de cierre y su reflexión personal. No se inventaron fechas, reuniones ni asignaciones.
+- **Falta (lo completan ustedes):** sus propios puntos, las tareas con responsable real y su reflexión personal. No hubo ceremonias registradas, y no se presentan como si las hubiera habido.
 - **Dónde:** `Docs/scrum/`.
 - **Cómo demostrarlo:** muestren una etapa con su evidencia (por ejemplo, la de pruebas y defectos) y una historia con sus criterios. Expliquen con honestidad que las etapas son una reconstrucción.
 
@@ -60,7 +61,7 @@ Para cada criterio:
   - JWT de 8 horas y contraseñas PBKDF2.
   - Códigos 400, 401, 403, 404, 409, 422 y 500.
   - Variables en `.env.example`.
-- **Tenemos:** arranque limpio verificado, 128 pruebas de backend (19 de permisos, 11 de los hallazgos del cierre y 56 de la escala 0.0–5.0), la auditoría completa y los permisos por rol y por asignación (H-08) y la autoprotección del administrador (H-18) corregidos el 24/11/2026.
+- **Tenemos:** arranque limpio verificado, 156 pruebas de backend (19 de permisos, 11 de los hallazgos del cierre, 56 de la escala 0.0–5.0 y 28 del generador de la demostración), la auditoría completa y los permisos por rol y por asignación (H-08) y la autoprotección del administrador (H-18) corregidos el 24/11/2026.
 - **Falta (requiere autorización):**
   - H-04: decidir si la alerta se evalúa al editar y por materia (contradice RN-09 y RN-10).
 - **Dónde:** `backend/main.py`, `Docs/backend/auditoria-backend.md`.
@@ -98,12 +99,14 @@ Para cada criterio:
 ## 6. IoT (bonificación)
 
 - **Qué pide:** un prototipo, la recepción de datos y el protocolo explicado.
-- **En sencillo:** un dispositivo que mide algo y le envía los datos a un programa.
-- **En ClassKids:** **no implementado.** La aplicación no tiene ninguna integración IoT, y no se presenta como si la tuviera.
-- **Tenemos:** la búsqueda documentada (no se encontraron actividades de Arduino en el repositorio ni en este equipo), una plantilla y una **propuesta** de prototipo independiente (Arduino + sensor → JSON por serial → Python). No hay capturas, datos ni pruebas de IoT.
-- **Falta:** si la actividad de Arduino de la formación existe (sensor → serial → JSON → Python), aporten el código y la evidencia.
-- **Dónde:** `Docs/iot/propuesta-iot.md`.
-- **Cómo explicarlo:** «el Arduino envía `{"temperatura": 24}` por el puerto serial; Python lo lee con `pyserial` y lo convierte con `json.loads`».
+- **En sencillo:** un dispositivo que capta algo del mundo físico y le envía los datos a un programa.
+- **En ClassKids:** la aplicación **no tiene integración IoT**. El prototipo es independiente.
+- **Tenemos:** el *Semáforo de Comprensión*.
+  - **Cómo funciona:** los estudiantes votan de forma anónima con tres botones; un Arduino UNO en Wokwi muestra un semáforo de LED y una LCD, y envía cada evento en JSON por el puerto serial a 9600 baudios. Un receptor en Python valida los mensajes y guarda los resúmenes en un CSV.
+  - **Pruebas:** 48 automáticas y 9 manuales en Wokwi, todas aprobadas. La grabación (106 s) muestra dos rondas, 7 votos rechazados y los tres colores del semáforo. El monitor serial copiado de Wokwi demuestra el 70 % exacto en verde y la ronda vacía; el receptor lo procesó sin líneas inválidas.
+- **Qué respalda cada evidencia:** la grabación, el funcionamiento general; el registro serial, el CSV del receptor y una prueba automática, el 70 % y la ronda vacía (no aparecen en la grabación). No hay pendientes.
+- **Dónde:** `Docs/iot/propuesta-iot.md` y `ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/`. Las 14 preguntas típicas, con su respuesta, están en `06_IOT_BONIFICACION/Propuesta-sustentacion-iot.md`.
+- **Cómo explicarlo:** «al cerrar la ronda, el Arduino envía `{"evento":"resumen","entendi":3,"dudas":1,"no_entendi":0,"total":4,"comprension":75,"nivel":"verde"}`. Python lo lee con `pyserial`, lo convierte con `json.loads`, comprueba que la suma y el porcentaje cuadren y lo guarda. Es anónimo: no hay datos de ningún estudiante».
 
 ## 7. Plan de pruebas
 
@@ -143,7 +146,7 @@ Para cada criterio:
 - **En ClassKids:**
   - Rediseño completo con las paletas Recreo y Cuaderno vivo, la mascota, Bricolage Grotesque y DM Sans.
   - Menú lateral claro y barra inferior en el celular, con «Más».
-  - Notas con su equivalencia («86 / 100 = 4.3»).
+  - Notas escritas de 0.0 a 5.0, con su equivalencia («4.3 → 86 % · 17.2 / 20»).
   - **Modo claro y oscuro** en toda la plataforma, con la preferencia guardada.
   - Contraste AA en ambos temas (64 de 64).
   - Confirmación antes de borrar o desactivar, y la lista de usuarios adaptada al celular.
@@ -169,8 +172,13 @@ Para cada criterio:
 ## 13. Trabajo en equipo
 
 - **Qué pide:** integrantes, división del trabajo, participación y retroalimentación.
-- **En ClassKids:** los integrantes actuales son Johanna, Alejandra y Jan. Andrés Gutiérrez aparece solo como autor histórico de la versión 1.0.
-- **Falta (lo escriben ustedes):** roles, quién hizo qué, con evidencia, y la retroalimentación de cada uno.
+- **En ClassKids:** los integrantes son Johanna Ortiz, Jan Llanos y María Alejandra Guio.
+- **Tenemos:**
+  - una matriz de asignación **propuesta** frente a lo **ejecutado y comprobado**;
+  - una planificación retrospectiva de reuniones, con fechas estimadas y sin actas, porque no se realizaron todas;
+  - formatos de acta y de retroalimentación.
+- **Cómo explicarlo con honestidad:** «no alcanzamos a hacer todas las reuniones de seguimiento; Johanna asumió gran parte del desarrollo y la consolidación. La planificación está reconstruida y marcada como tal».
+- **Falta (lo escriben ustedes):** la retroalimentación de cada uno y la evidencia de la participación individual.
 - **Dónde:** `Docs/equipo/`.
 
 ## 14. Backends y deuda técnica

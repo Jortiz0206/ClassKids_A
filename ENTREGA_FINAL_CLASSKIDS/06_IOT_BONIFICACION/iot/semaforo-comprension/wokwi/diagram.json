@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "author": "Equipo ClassKids (Johanna Ortiz, Jan Llanos y María Alejandra Guio)",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 230, "left": 20, "attrs": {} },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -80,
+      "left": -234.4,
+      "rotate": 90,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnSi",
+      "top": 520,
+      "left": 20,
+      "attrs": { "color": "green", "label": "Entendí", "key": "1" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnDuda",
+      "top": 520,
+      "left": 120,
+      "attrs": { "color": "yellow", "label": "Tengo dudas", "key": "2" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnNo",
+      "top": 520,
+      "left": 220,
+      "attrs": { "color": "red", "label": "No entendí", "key": "3" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnCerrar",
+      "top": 520,
+      "left": 340,
+      "attrs": { "color": "blue", "label": "Docente: cerrar ronda", "key": "4" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rVerde",
+      "top": 140,
+      "left": 400,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rAmarillo",
+      "top": 140,
+      "left": 450,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rRojo",
+      "top": 140,
+      "left": 500,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledVerde",
+      "top": 60,
+      "left": 405,
+      "attrs": { "color": "green", "label": "≥ 70 %" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledAmarillo",
+      "top": 60,
+      "left": 455,
+      "attrs": { "color": "yellow", "label": "40–69 %" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRojo",
+      "top": 60,
+      "left": 505,
+      "attrs": { "color": "red", "label": "< 40 %" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "zumbador",
+      "top": 250,
+      "left": 420,
+      "attrs": { "volume": "0.3" }
+    }
+  ],
+  "connections": [
+    [ "lcd1:GND", "uno:GND.1", "black", [] ],
+    [ "lcd1:VCC", "uno:5V", "red", [] ],
+    [ "lcd1:SDA", "uno:A4", "orange", [] ],
+    [ "lcd1:SCL", "uno:A5", "purple", [] ],
+    [ "btnSi:1.l", "uno:2", "green", [] ],
+    [ "btnSi:2.l", "uno:GND.2", "black", [] ],
+    [ "btnDuda:1.l", "uno:3", "gold", [] ],
+    [ "btnDuda:2.l", "uno:GND.2", "black", [] ],
+    [ "btnNo:1.l", "uno:4", "red", [] ],
+    [ "btnNo:2.l", "uno:GND.2", "black", [] ],
+    [ "btnCerrar:1.l", "uno:5", "blue", [] ],
+    [ "btnCerrar:2.l", "uno:GND.2", "black", [] ],
+    [ "uno:9", "rVerde:1", "green", [] ],
+    [ "rVerde:2", "ledVerde:A", "green", [] ],
+    [ "ledVerde:C", "uno:GND.3", "black", [] ],
+    [ "uno:10", "rAmarillo:1", "gold", [] ],
+    [ "rAmarillo:2", "ledAmarillo:A", "gold", [] ],
+    [ "ledAmarillo:C", "uno:GND.3", "black", [] ],
+    [ "uno:12", "rRojo:1", "red", [] ],
+    [ "rRojo:2", "ledRojo:A", "red", [] ],
+    [ "ledRojo:C", "uno:GND.3", "black", [] ],
+    [ "zumbador:2", "uno:8", "magenta", [] ],
+    [ "zumbador:1", "uno:GND.3", "black", [] ]
+  ],
+  "dependencies": {}
+}

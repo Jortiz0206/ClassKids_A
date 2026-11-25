@@ -26,7 +26,7 @@
    Se implementó y validó en el entorno de pruebas y se descubrieron y corrigieron cuatro defectos nuevos (H-34 a H-37). La suite creció de 54 a 102 pruebas, con 47 casos unitarios reales. La escala 0.0–5.0, los umbrales 3.0 y 3.5 y las reglas académicas no cambiaron.
 
 10. **Lo que falta depende de información o autorización, no de trabajo oculto.** Quedan pendientes:
-    - información del equipo: Scrum, retroalimentación, los cuatro backends y la decisión sobre IoT;
+    - información del equipo: puntos y retrospectivas de Scrum, retroalimentación y los cuatro backends;
     - autorizaciones: cambios de backend, migración 001, contenedores y despliegue, y commits al cierre.
 
     Cada pendiente está identificado en la matriz de cumplimiento de `ENTREGA_FINAL_CLASSKIDS/`.

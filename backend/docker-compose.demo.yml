@@ -1,0 +1,37 @@
+# Entorno de DEMOSTRACIÓN de ClassKids.
+# - Proyecto Docker propio ("classkids-demo"): contenedor y volumen independientes de la base
+#   real (proyecto "backend", contenedor classkids_db) y de la de pruebas (classkids_test_db).
+# - Base classkids_demo en el puerto 5434, publicado solo en 127.0.0.1.
+# - El volumen classkids_demo_data conserva los datos al detener Docker o reiniciar el equipo.
+# - Se crea con el mismo esquema (init.sql + migración 001). Los datos de demostración los
+#   genera backend/demo/generar_demo.py, que reemplaza los datos iniciales de init.sql.
+#
+# Uso (desde backend/):
+#   docker compose -f docker-compose.demo.yml up -d       # crear / iniciar
+#   docker compose -f docker-compose.demo.yml stop        # detener (conserva los datos)
+#   docker compose -f docker-compose.demo.yml down -v     # borrar SOLO la base de demostración
+name: classkids-demo
+
+services:
+  db_demo:
+    image: postgres:15-alpine
+    container_name: classkids_demo_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: classkids_demo
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - classkids_demo_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./migrations/001_calificaciones_entregado.sql:/docker-entrypoint-initdb.d/02_001_calificaciones_entregado.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d classkids_demo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  classkids_demo_data:

@@ -4,7 +4,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import { colorBarra, LeyendaPromedios } from "@/components/dashboard/PerformanceChart";
 import EstadoBadge from "@/components/common/EstadoBadge";
 import { EstadoCargando, EstadoVacio } from "@/components/common/Estados";
-import { formatoEscala5, nivelPromedio, UMBRAL_ALERTA_PORCENTAJE, UMBRAL_APROBADO } from "@/lib/notas";
+import { diferenciaEnNota, formatoEscala5, nivelPromedio, UMBRAL_ALERTA_PORCENTAJE, UMBRAL_APROBADO } from "@/lib/notas";
 import { ReferenceLine, LabelList } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,10 +141,10 @@ const Analisis = () => {
         else enRiesgo++;
       });
       setDistribucionRiesgo([
-        { name: "Excelente (≥ 90 %)", value: excelente, color: colorBarra.excelente },
-        { name: "Bueno (80 – 89 %)", value: bueno, color: colorBarra.alto },
-        { name: "Regular (70 – 79 %)", value: regular, color: colorBarra.observar },
-        { name: "En riesgo (< 70 %)", value: enRiesgo, color: colorBarra.bajo },
+        { name: "Excelente (4.5 – 5.0)", value: excelente, color: colorBarra.excelente },
+        { name: "Bueno (4.0 – 4.4)", value: bueno, color: colorBarra.alto },
+        { name: "Regular (3.5 – 3.9)", value: regular, color: colorBarra.observar },
+        { name: "En riesgo (< 3.5)", value: enRiesgo, color: colorBarra.bajo },
       ]);
       setTotalEnRiesgo(enRiesgo);
 
@@ -225,7 +225,7 @@ const Analisis = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Lectura pedagógica" title="Análisis de rendimiento" description="Promedios en % y en la escala 0.0 – 5.0 para priorizar el acompañamiento" icon={BarChart3} tono="bg-cielo"
+      <PageHeader eyebrow="Lectura pedagógica" title="Análisis de rendimiento" description="Promedios en la escala 0.0 – 5.0 (con su equivalencia en %) para priorizar el acompañamiento" icon={BarChart3} tono="bg-cielo"
         actions={materias.length > 1 && (
           <div className="flex items-center gap-2">
             <label htmlFor="filtro-materia" className="text-sm font-semibold text-muted-foreground">Materia</label>
@@ -241,13 +241,13 @@ const Analisis = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={Target} label="Promedio general" value={`${promedioGeneral}%`} hint={`${formatoEscala5(Number(promedioGeneral))} de 5.0`} tono="bg-menta" />
+        <StatCard icon={Target} label="Promedio general" value={formatoEscala5(Number(promedioGeneral))} hint={`de 5.0 · ${promedioGeneral} %`} tono="bg-menta" />
         <StatCard icon={Users} label="Estudiantes" value={totalEstudiantes} hint="registrados" tono="bg-cielo" />
-        <StatCard icon={AlertTriangle} label="En riesgo académico" value={totalEnRiesgo} hint="promedio menor que 70 %" tono="bg-durazno" />
+        <StatCard icon={AlertTriangle} label="En riesgo académico" value={totalEnRiesgo} hint="promedio menor que 3.5 (70 %)" tono="bg-durazno" />
         <StatCard
           icon={mejoraMensual >= 0 ? TrendingUp : TrendingDown}
           label="Frente al mes anterior"
-          value={`${mejoraMensual >= 0 ? "+" : ""}${mejoraMensual}%`}
+          value={diferenciaEnNota(mejoraMensual)}
           hint={mejoraMensual >= 0 ? "sube o se mantiene" : "baja"}
           tono={mejoraMensual >= 0 ? "bg-menta" : "bg-durazno"}
         />
@@ -268,16 +268,16 @@ const Analisis = () => {
                   <BarChart data={rendimientoPorGrupo} barSize={28} margin={{ top: 22, right: 8, left: -14, bottom: 0 }}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="grupo" interval={0} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v: string) => v.replace("Grado ", "")} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={false} />
-                    <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => `${v}%`} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tickFormatter={(v: number) => formatoEscala5(v)} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ fill: "hsl(var(--secondary))" }} contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", fontSize: 13 }}
-                      formatter={(value, _nombre, props) => [`${value} % · ${formatoEscala5(Number(value))} de 5.0 (${(props.payload as GrupoRendimiento).estudiantes} est.)`, "Promedio"]} />
+                      formatter={(value, _nombre, props) => [`${formatoEscala5(Number(value))} de 5.0 · ${value} % (${(props.payload as GrupoRendimiento).estudiantes} est.)`, "Promedio"]} />
                     <ReferenceLine y={60} stroke="hsl(var(--nivel-alerta-fg))" strokeDasharray="5 4" strokeWidth={2} />
                     <ReferenceLine y={70} stroke="hsl(var(--foreground))" strokeDasharray="5 4" strokeWidth={2} />
                     <Bar dataKey="promedio" radius={[6, 6, 0, 0]} isAnimationActive={false}>
                       {rendimientoPorGrupo.map((entry, index) => (
                         <Cell key={index} fill={colorBarra[nivelPromedio(entry.promedio)]} />
                       ))}
-                      {!isMobile && <LabelList dataKey="promedio" position="top" formatter={(v: number) => `${v}%`} style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }} />}
+                      {!isMobile && <LabelList dataKey="promedio" position="top" formatter={(v: number) => formatoEscala5(v)} style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }} />}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -328,9 +328,9 @@ const Analisis = () => {
                 <LineChart data={tendenciaMensual} margin={{ top: 10, right: 12, left: -14, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={false} />
-                  <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v: number) => `${v}%`} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tickFormatter={(v: number) => formatoEscala5(v)} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", fontSize: 13 }}
-                    formatter={(value) => [`${value} % · ${formatoEscala5(Number(value))} de 5.0`, "Promedio"]} />
+                    formatter={(value) => [`${formatoEscala5(Number(value))} de 5.0 · ${value} %`, "Promedio"]} />
                   <ReferenceLine y={60} stroke="hsl(var(--nivel-alerta-fg))" strokeDasharray="5 4" strokeWidth={1.5} />
                   <ReferenceLine y={70} stroke="hsl(var(--foreground))" strokeDasharray="5 4" strokeWidth={1.5} />
                   <Line type="monotone" dataKey="promedio" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 5, fill: "hsl(var(--primary))" }} isAnimationActive={false} />
@@ -353,9 +353,9 @@ const Analisis = () => {
                   <div key={item.tipo}>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-medium text-card-foreground">{item.tipo}</span>
-                      <span className="text-sm font-bold tabular-nums text-card-foreground">{item.promedio}% <span className="font-semibold text-muted-foreground">· {formatoEscala5(item.promedio)}</span></span>
+                      <span className="text-sm font-bold tabular-nums text-card-foreground">{formatoEscala5(item.promedio)} <span className="font-semibold text-muted-foreground">· {item.promedio} %</span></span>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-secondary" role="img" aria-label={`${item.tipo}: ${item.promedio}%`}>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-secondary" role="img" aria-label={`${item.tipo}: ${formatoEscala5(item.promedio)} de 5.0`}>
                       <div className="h-full rounded-full" style={{ width: `${item.promedio}%`, background: colorBarra[nivelPromedio(item.promedio)] }} />
                     </div>
                   </div>
@@ -374,7 +374,7 @@ const Analisis = () => {
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" aria-hidden="true" /> Estudiantes en riesgo académico
           </CardTitle>
-          <p className="text-[13px] text-muted-foreground">Promedio menor que 70 % (3.5). «Crítico»: menor que 60 % (3.0), el umbral de alerta.</p>
+          <p className="text-[13px] text-muted-foreground">Promedio menor que 3.5 (70 %). «Crítico»: menor que 3.0 (60 %), el umbral de alerta.</p>
         </CardHeader>
         <CardContent>
           {estudiantesEnRiesgo.length > 0 ? (
@@ -397,7 +397,7 @@ const Analisis = () => {
                         <EstadoBadge tono="grupo">{est.grupo}</EstadoBadge>
                       </td>
                       <td className="py-3 px-3">
-                        <span className="font-bold tabular-nums text-card-foreground">{est.promedio}% <span className="font-semibold text-muted-foreground">· {formatoEscala5(est.promedio)}</span></span>
+                        <span className="font-bold tabular-nums text-card-foreground">{formatoEscala5(est.promedio)} <span className="font-semibold text-muted-foreground">· {est.promedio} %</span></span>
                       </td>
                       <td className="py-3 px-3">
                         {est.tendencia === "down" ? (

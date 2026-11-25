@@ -176,9 +176,9 @@ El docente solo ve los grupos y las actividades de sus asignaciones, y solo pued
 | 50 | 2.5 | Reprobado |
 
 1. Elija el grupo y luego la actividad.
-2. Escriba o cambie la calificación de los estudiantes en porcentaje (0 a 100). Los estudiantes sin nota aparecen con el campo vacío («—»). Desde 70 (3.5) se muestra como Aprobado y desde 90 (4.5) como Excelente.
+2. Escriba o cambie la calificación de los estudiantes de 0.0 a 5.0, con un decimal (por ejemplo 3.8; también puede escribir 3,8). Los estudiantes sin nota aparecen con el campo vacío («—»). Desde 3.5 se muestra como Aprobado y desde 4.5 como Excelente. Si escribe un valor fuera de la escala (por ejemplo 80) o con dos decimales, el campo se marca en rojo con el motivo y no podrá guardar hasta corregirlo.
 3. Marque o desmarque «Entregado» según corresponda.
-4. Junto a cada nota verá su equivalencia en la escala oficial, por ejemplo «86 / 100 = 4.3». Es solo informativa: se guarda el mismo valor de siempre.
+4. Junto a cada nota verá sus equivalencias, por ejemplo «76 % · 15.2 / 20» para 3.8. Son solo informativas: se guarda la nota que escribió.
 5. Las filas que modificó se resaltan en amarillo con la leyenda «Sin guardar», y el botón indica cuántas son: pulse «Guardar cambios (n)». Si no hay cambios, el botón está desactivado. En el celular, el botón aparece en una barra sobre la navegación inferior.
 6. Si cambia el tamaño de la ventana o gira la tableta, las notas digitadas se conservan.
 

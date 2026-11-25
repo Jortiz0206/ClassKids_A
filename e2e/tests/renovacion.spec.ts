@@ -10,6 +10,10 @@ test.describe("navegación móvil", () => {
     await loginDocente(page);
     const barra = page.getByRole("navigation", { name: "Navegación principal" });
     await expect(barra.getByRole("link")).toHaveText([/Inicio/, /Estudiantes/, /Calificaciones/, /Alertas/]);
+    // El aviso de bienvenida aparece arriba: abajo tapaba la barra y bloqueaba «Más» mientras se veía.
+    const aviso = page.getByText("¡Bienvenido a ClassKids!");
+    await expect(aviso).toBeVisible();
+    expect((await aviso.boundingBox())!.y).toBeLessThan(200);
     await barra.getByRole("button", { name: "Más" }).click();
     const hoja = page.getByRole("dialog");
     for (const modulo of ["Grupos", "Actividades", "Análisis", "Materias"]) {
@@ -39,11 +43,11 @@ test("Calificaciones muestra la equivalencia en la escala 0.0 – 5.0 sin cambia
   await page.getByRole("combobox").nth(1).click();
   await page.getByRole("option", { name: /Taller de Sumas y Restas/ }).click();
   const campo = page.getByLabel("Calificación de Isabella Díaz");
-  await expect(campo).toHaveValue("86");
-  await expect(page.locator(`#${await campo.getAttribute("aria-describedby")}`)).toHaveText("/ 100 = 4.3");
+  await expect(campo).toHaveValue("4.3");
+  await expect(page.locator(`#${await campo.getAttribute("aria-describedby")}`)).toContainText("86 % · 17.2 / 20");
   // Escribir una nota actualiza el estado y la equivalencia; no se guarda nada sin pulsar el botón.
-  await page.getByLabel("Calificación de Mariana Acosta").fill("75");
-  await expect(page.getByRole("row", { name: /Acosta, Mariana/ })).toContainText("= 3.8");
+  await page.getByLabel("Calificación de Mariana Acosta").fill("3.8");
+  await expect(page.getByRole("row", { name: /Acosta, Mariana/ })).toContainText("76 % · 15.2 / 20");
   await expect(page.getByRole("row", { name: /Acosta, Mariana/ })).toContainText("Aprobado");
   await expect(page.getByRole("button", { name: "Guardar cambios (1)" })).toBeEnabled();
 });
@@ -85,11 +89,11 @@ test("Cambiar el ancho de la ventana no borra las notas digitadas sin guardar", 
   await page.getByRole("option", { name: "Grado 1A", exact: true }).click();
   await page.getByRole("combobox").nth(1).click();
   await page.getByRole("option", { name: /Taller de Sumas y Restas/ }).click();
-  await page.getByLabel("Calificación de Mariana Acosta").fill("75");
+  await page.getByLabel("Calificación de Mariana Acosta").fill("3.8");
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByLabel("Calificación de Mariana Acosta")).toHaveValue("75");
+  await expect(page.getByLabel("Calificación de Mariana Acosta")).toHaveValue("3.8");
   await page.setViewportSize({ width: 1366, height: 860 });
-  await expect(page.getByLabel("Calificación de Mariana Acosta")).toHaveValue("75");
+  await expect(page.getByLabel("Calificación de Mariana Acosta")).toHaveValue("3.8");
   await expect(page.getByRole("button", { name: "Guardar cambios (1)" })).toBeEnabled();
 });
 

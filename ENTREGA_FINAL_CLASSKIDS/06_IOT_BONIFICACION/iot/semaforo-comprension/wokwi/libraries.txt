@@ -1,0 +1,2 @@
+# Bibliotecas que Wokwi instala para este proyecto (una por línea)
+LiquidCrystal I2C

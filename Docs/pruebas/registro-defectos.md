@@ -23,7 +23,7 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 |---|---|---|---|---|---|---|
 | H-01 | La interfaz clasificaba con el promedio redondeado y no coincidía con la alerta del backend en el límite de 3.0 | Calificaciones / Alertas | Alta | Crítica | **Corregido** (24/11): se clasifica con el promedio exacto; los dos umbrales aprobados (3.5 aprobación, 3.0 alerta) no cambian | Vitest `notas.test.ts` (H-01) |
 | H-02 | Guardar calificaciones registraba 0 a estudiantes sin nota | Calificaciones | Crítica | Crítica | **Corregido** | Playwright `calificaciones.spec.ts` (3 pruebas) |
-| H-03 | Pérdida de precisión al convertir % a un decimal | Calificaciones | Media | Alta | Abierto | `lib/notas.ts` documenta la conversión; Vitest fija el comportamiento actual |
+| H-03 | Pérdida de precisión al convertir % a un decimal | Calificaciones | Media | Alta | **Corregido** (24/11): la nota se escribe en 0.0–5.0 | Vitest `interpretarNota`; Playwright `calificaciones.spec.ts` |
 | H-04 | La regla de alerta no se evalúa al editar ni por materia | Alertas (backend) | Alta | Alta | **Pendiente de decisión funcional**: evaluar al editar contradice RN-10 (aprobada) y evaluar por materia contradice RN-09; la parte de duplicados se corrigió con H-32 | Código, RN-09, RN-10 |
 | H-05 | Entradas inválidas respondían 500 | Backend | Alta | Alta | **Corregido** (24/11): validación de rangos y longitudes en los esquemas, errores de integridad con 409/422 y manejador global | pytest `test_hallazgos_cierre.py` (5 casos H-05) |
 | H-06 | Calificaciones sin actividad o repetidas | Datos | Media | Alta | Abierto | Verificado con `Docs/evidencias/scripts/verificacion-bd.sql` |
@@ -36,7 +36,7 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 | H-13 | Botones sin acción en Grupos, Actividades y Estudiantes | Frontend | Baja | Baja | **Corregido** | Playwright «Grupos: Ver estudiantes del grupo…» |
 | H-14 | Indicadores del Dashboard (conteos, «Activo» fijo, lista, nombre oculto) | Dashboard | Media | Media | **Corregido parcialmente** | Playwright «H-25…», «Panel de alertas…», «Ver todos…»; capturas `02_dashboard_escritorio.png` |
 | H-15 | El detalle de la alerta no mostraba el mensaje ni el grupo | Alertas | Baja | Baja | **Corregido** | Playwright «Alertas: el detalle muestra el grupo y el mensaje…» |
-| H-16 | Actividades: 107 peticiones y 5,2 s; sin paginación en servidor | Rendimiento | Media | Media | Abierto | Medición del 20/11/2026 |
+| H-16 | Actividades: 107 peticiones y 5,2 s; sin paginación en servidor | Rendimiento | Media | Media | **Corregido parcialmente** (24/11): 6 peticiones en total; sigue sin paginación | Recorrido de la demostración |
 | H-17 | `DATABASE_URL` del archivo `.env` se ignoraba | Backend | Media | Media | **Corregido** (24/11): `database.py` carga `.env` antes de leer la variable | pytest `test_hallazgos_cierre.py` (2 casos H-17) |
 | H-18 | El administrador podía quitarse el rol o desactivarse | Usuarios | Alta | Alta | **Corregido** (24/11, interfaz y API) | Playwright «El administrador no puede cambiarse el rol ni desactivarse… (H-18)»; `test_permisos.py` (4 casos H-18) |
 | H-19 | El promedio de la actividad cuenta como 0 a quien no tiene nota | Calificaciones | Media | Media | Abierto (se muestra la aclaración en pantalla) | Vitest `promedioActividad` fija el comportamiento actual |
@@ -64,12 +64,16 @@ Actualizado el 20/11/2026. Consolida en un formato de seguimiento los hallazgos 
 | H-41 | Tras reiniciar el equipo, el contenedor de pruebas quedaba detenido (`restart: no`) y pytest fallaba al cargar `conftest.py` con una traza de SQLAlchemy, sin ejecutar ninguna prueba | Pruebas (fixtures) | Media | Alta | **Corregido** (24/11) | `conftest.py` comprueba la base en `pytest_sessionstart` y sale con código 3 y un mensaje claro; `docker-compose.test.yml` con `restart: unless-stopped` |
 | H-42 | El backend respondía 500 en la primera petición después de reiniciar PostgreSQL (conexión muerta en el pool de SQLAlchemy) | Backend | Media | Media | **Corregido** (24/11) | `create_engine(..., pool_pre_ping=True)` en `database.py`; comprobado reiniciando la base de pruebas con el backend encendido: el primer inicio de sesión responde 200 |
 | H-43 | Las respuestas 401 y 403 del middleware de autenticación salían sin cabeceras CORS: el navegador las bloqueaba y la interfaz no veía el motivo | Backend | Media | Alta | **Corregido** (24/11): CORS es el middleware más externo | pytest `test_401_y_403_del_middleware_llevan_cabeceras_cors` |
+| H-45 | En el celular, el aviso de bienvenida tapaba la barra inferior y bloqueaba «Más» | Frontend (celular) | Media | Alta | **Corregido** (24/11): avisos arriba en el celular | Playwright `renovacion.spec.ts` (posición del aviso) |
+| H-46 | El motivo del cierre de sesión (H-09) podía quedar reemplazado por «Error 401» | Frontend | Baja | Media | **Corregido** (24/11): el motivo de la API prevalece | Vitest `client.test.ts`; Playwright `sesion.spec.ts` |
+| H-47 | El receptor del prototipo IoT se detenía con `UnicodeEncodeError` en la consola de Windows | IoT (receptor) | Media | Alta | **Corregido** (24/11): flechas ASCII | pytest `test_el_receptor_funciona_en_una_consola_de_windows` |
+| H-48 | Archivos `.log` del prototipo IoT excluidos por `.gitignore`: las pruebas fallarían en otra copia | IoT (publicación) | Media | Alta | **Corregido** (24/11): renombrados a `.txt` | Pruebas en una copia con solo los archivos publicables |
 | H-44 | La API aceptaba notas con más de un decimal, que PostgreSQL redondeaba en silencio (2.96 → 3.0), y la interfaz redondeaba los porcentajes impares de forma desigual (87 % → 4.3) | Backend y frontend | Media | Alta | **Corregido** (24/11): 422 si la nota no es un número de 0 a 5 con un decimal; redondeo uniforme en `aEscala5` | pytest `test_escala_notas.py`, Vitest `notas.test.ts`, Playwright `calificaciones.spec.ts` |
 
 **Conteo:**
-- Corregidos: 27 (el 24/11/2026: H-01, H-05, H-08, H-09, H-17, H-18, H-41, H-42, H-43 y H-44).
-- Corregidos parcialmente o solo en pruebas: 6.
-- Abiertos: 10.
+- Corregidos: 32 (el 24/11/2026: H-01, H-03, H-05, H-08, H-09, H-17, H-18, H-41 a H-48).
+- Corregidos parcialmente o solo en pruebas: 7 (incluye H-16).
+- Abiertos: 8.
 - Pendiente de decisión funcional: 1 (H-04).
 
 ## 2. Detalle de los defectos de la renovación visual

@@ -50,7 +50,7 @@ async function esperar(page) {
     await page.goto(B + "/app/calificaciones"); await esperar(page);
     await page.getByRole("combobox").first().click(); await page.getByRole("option", { name: "Grado 1A", exact: true }).click();
     await page.getByRole("combobox").nth(1).click(); await page.getByRole("option", { name: /Taller de Sumas y Restas/ }).click();
-    await page.getByLabel("Calificación de Mariana Acosta").fill("75"); await page.waitForTimeout(400);
+    await page.getByLabel("Calificación de Mariana Acosta").fill("3.8"); await page.waitForTimeout(400);
     await page.getByLabel("Calificación de Mariana Acosta").evaluate((el) => { el.blur(); el.scrollIntoView({ block: "center" }); }); await page.waitForTimeout(500);
     await foto("calificaciones");
     await page.goto(B + "/app/alertas"); await esperar(page);

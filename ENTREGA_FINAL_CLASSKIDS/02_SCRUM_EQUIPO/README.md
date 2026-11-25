@@ -12,7 +12,8 @@ Explicación en palabras sencillas y cómo demostrarlo: [`../00_INDICE_Y_ESTADO/
 |---|---|
 | Estado y registro histórico | [`Docs/scrum/README.md`](../../Docs/scrum/README.md) |
 | Reconstrucción honesta del proceso por etapas (E-1 a E-6), con evidencia | [`Docs/scrum/etapas-retrospectivas.md`](../../Docs/scrum/etapas-retrospectivas.md) |
-| Product Backlog: 20 HU, criterios y esfuerzo estimado retrospectivamente (marcado como tal) | [`Docs/scrum/product-backlog.md`](../../Docs/scrum/product-backlog.md) |
+| Sprints reconstruidos a partir de las etapas reales (sin ceremonias registradas) | [`Docs/scrum/sprints.md`](../../Docs/scrum/sprints.md) |
+| Product Backlog: 22 HU (HU-21 y HU-22 se agregaron con los permisos por asignación), criterios y esfuerzo estimado retrospectivamente (marcado como tal) | [`Docs/scrum/product-backlog.md`](../../Docs/scrum/product-backlog.md) |
 | Retrospectiva de cierre basada en aprendizajes verificables | [`Docs/scrum/retrospectiva-cierre.md`](../../Docs/scrum/retrospectiva-cierre.md) |
 | Plantilla de sprints y tareas | [`Docs/scrum/sprints.md`](../../Docs/scrum/sprints.md) |
 | Plantilla de retrospectivas | [`Docs/scrum/retrospectivas.md`](../../Docs/scrum/retrospectivas.md) |

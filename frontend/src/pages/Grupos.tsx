@@ -182,7 +182,7 @@ const Grupos = () => {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard icon={Users} label="Grupos activos" value={grupos.length} tono="bg-lavanda" />
         <StatCard icon={GraduationCap} label="Estudiantes totales" value={totalEstudiantes} tono="bg-cielo" />
-        <StatCard icon={TrendingUp} label="Promedio global" value={`${promedioGlobal}%`} hint={`${formatoEscala5(promedioGlobal)} de 5.0`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
+        <StatCard icon={TrendingUp} label="Promedio global" value={formatoEscala5(promedioGlobal)} hint={`de 5.0 · ${promedioGlobal} %`} tono="bg-menta" className="col-span-2 lg:col-span-1" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -241,8 +241,8 @@ const Grupos = () => {
                   <p className="text-xs text-muted-foreground">Actividades</p>
                 </div>
                 <div>
-                  <p className={`font-display text-xl font-bold tabular-nums ${getPerformanceColor(grupo.promedioGeneral || 0)}`}>{grupo.promedioGeneral}%</p>
-                  <p className="text-xs text-muted-foreground">Promedio · {formatoEscala5(grupo.promedioGeneral || 0)}</p>
+                  <p className={`font-display text-xl font-bold tabular-nums ${getPerformanceColor(grupo.promedioGeneral || 0)}`}>{formatoEscala5(grupo.promedioGeneral || 0)}</p>
+                  <p className="text-xs text-muted-foreground">Promedio de 5.0 · {grupo.promedioGeneral} %</p>
                 </div>
               </div>
               <div className="space-y-2">

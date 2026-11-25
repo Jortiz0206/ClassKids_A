@@ -293,7 +293,7 @@ Todas aprobadas antes y después de cada etapa. Casos unitarios reales: 55. `tsc
 
 ## F.6 IoT
 
-**No implementado.** ClassKids no tiene integración IoT. [`propuesta-iot.md`](../../Docs/iot/propuesta-iot.md) contiene la búsqueda realizada y una propuesta de prototipo independiente, marcada como propuesta. No hay capturas, datos ni pruebas de IoT.
+*(Estado al 23/11/2026. Actualización: sección J.)* **No implementado.** ClassKids no tiene integración IoT. [`propuesta-iot.md`](../../Docs/iot/propuesta-iot.md) contiene la búsqueda realizada y una propuesta de prototipo independiente, marcada como propuesta. No hay capturas, datos ni pruebas de IoT.
 
 ## F.7 Control al cierre
 
@@ -332,7 +332,7 @@ Todas aprobadas antes y después de cada etapa. Casos unitarios reales: 55. `tsc
 **Video.**
 - La v3 (118 s) reemplaza a la v2. Muestra la landing, al docente con sus asignaciones e indicadores por materia, y al administrador con la visión general, la gestión de materias y Usuarios.
 - Conserva la música original (−21,5 LUFS).
-- La v2 se guarda en `Docs/evidencias/video-respaldo/`.
+- La v2 se guardó en `Docs/evidencias/video-respaldo/` (eliminada el 25/11/2026; ver la tabla de la sección J).
 
 **Presentación PDF.** `ClassKids_presentacion.pdf` se eliminó por obsoleto y no se recuperó. Ningún criterio de la rúbrica exige una presentación aparte del documento Word, así que no se generó una nueva.
 
@@ -374,4 +374,113 @@ Todas aprobadas antes y después de cada etapa. Casos unitarios reales: 55. `tsc
 - desaparece la columna Tendencia de Estudiantes.
 
 Las tres ramas quedan en el mismo commit y se publican con avance rápido, sin push forzado.
+
+## J. Auditoría integral (24/11/2026)
+
+### J.1 Resumen
+- **Qué se revisó:**
+  - todo el repositorio: código, configuración, pruebas, `Docs/`, evidencias, video y esta carpeta;
+  - los 14 criterios frente a la implementación real;
+  - las tres bases de datos, en modo de solo lectura.
+- **Corregido:** dos defectos nuevos (H-45 y H-46) e inconsistencias entre documentos.
+- **Construido:** el prototipo IoT independiente, *Semáforo de Comprensión*, y la planificación retrospectiva del equipo, marcada como tal.
+- **Sin tocar:**
+  - las reglas de negocio y los permisos;
+  - el esquema;
+  - la base real y la base de demostración (no se regeneró `classkids_demo`).
+- **Sin commits ni push.**
+
+### J.2 Inventario por área
+
+| Área | Ubicación | Estado | Acción |
+|---|---|---|---|
+| Backend | `backend/` (`main.py`, `database.py`, `init.sql`, `migrations/`, `tests/`, `demo/`, `tests_demo/`, `docker-compose*.yml`, `pytest.ini`) | Vigente | Conservar |
+| Frontend | `frontend/` | Vigente | Actualizar `components/ui/sonner.tsx` (H-45) y `api/client.ts` (H-46) |
+| Pruebas E2E | `e2e/tests/` (entorno de pruebas) y `e2e/demo/` (demostración) | Vigente | Reforzar `renovacion.spec.ts` (posición del aviso) |
+| IoT | `iot/semaforo-comprension/` (nuevo) | Necesario para la entrega (criterio 6) | Crear; independiente del sistema |
+| Documentación | `Docs/` (conceptos, referencia técnica, pruebas, scrum, equipo, IoT, evidencias, demo, entregable) | Vigente, con inconsistencias corregidas | Actualizar |
+| Evidencias | `Docs/evidencias/` | Vigente (142 capturas regeneradas; video de 140 s con la nota de 0.0 a 5.0) | Agregar el índice `Docs/evidencias/README.md` |
+| Videos anteriores | `Docs/evidencias/video-respaldo/` (v1, v2 y v3 con la nota en porcentaje) | Respaldo histórico | **Eliminados el 25/11/2026** por decisión del equipo: escala de notas obsoleta y comportamiento anterior a H-08; no los usa la plataforma |
+| Word anterior | `Docs/entregable/ClassKids_Documento_Proyecto_v2.docx` | Historial de versiones (referenciado) | Conservar |
+| Scripts de capturas antiguos | `Docs/evidencias/scripts/capturas.cjs` y `capturas-pruebas.cjs` | **Obsoletos.** Generaban carpetas que ya no existen, y `capturas.cjs` apunta al entorno real | **Eliminar: pendiente de autorización** |
+| Carpeta de entrega | `ENTREGA_FINAL_CLASSKIDS/` (un índice por criterio, que enlaza a `Docs/`, sin duplicar documentos) | Vigente | Actualizar estados |
+| Locales excluidos | `.claude/`, `README-INSTALACION-VSCODE.txt`, `backend/.env*`, `backend/CREDENCIALES_*.md`, `backend/backups/` | Excluidos por `.gitignore` y `.git/info/exclude` | Conservar fuera de Git |
+
+Enlaces relativos de todos los `.md`: **0 rotos** (comprobación automática). El único error encontrado en esta revisión se corrigió: el enlace a la política de protección de datos en la propuesta IoT.
+
+### J.3 Problemas detectados y correcciones
+
+| Problema | Corrección | Comprobación |
+|---|---|---|
+| **H-45.** En el celular, el aviso de bienvenida tapaba la barra inferior y bloqueaba «Más». Aparecía como un fallo intermitente de Playwright en algunas ejecuciones completas | Avisos arriba en el celular | Traza de Playwright (el aviso interceptaba el toque); prueba reforzada; 3 de 3 repeticiones |
+| **H-46.** El motivo del cierre de sesión (H-09) podía quedar reemplazado por «Error 401» | El motivo de la API prevalece sobre el genérico | Prueba de Vitest que falla con la versión anterior; `sesion.spec.ts`, 3 de 3 |
+| Conteos distintos entre documentos: README con RF-25 y RNF-17; matriz con 25 RF, 17 RNF y 20 HU; backlog sin HU-21 ni HU-22 | 26 RF, 18 RNF y 22 HU en todos los documentos; HU-21 y HU-22 agregadas al backlog (esfuerzo retrospectivo 86) | Conteo sobre `RFs.md`, `NFs.md` y `HUs.md` |
+| Estados desactualizados en la carpeta de entrega (backend «parcial», IoT «no implementado», equipo «pendiente») | Estados sincronizados con la matriz | Matriz de cumplimiento |
+| Cifras antiguas de pruebas en `backends-comparativa.md` | Actualizadas | — |
+| Script de comparación con falsos positivos (se detectó en la etapa anterior) | Corregido; comparación fila por fila | Sección J.6 |
+
+### J.4 Matriz de trazabilidad de los cambios de esta auditoría
+
+| Cambio | Código | Pruebas | Documentos | Evidencias |
+|---|---|---|---|---|
+| H-45 (avisos en el celular) | `frontend/src/components/ui/sonner.tsx` | `e2e/tests/renovacion.spec.ts` | `hallazgos.md`, `registro-defectos.md` | Capturas regeneradas (celular) |
+| H-46 (motivo del cierre de sesión) | `frontend/src/api/client.ts` | `frontend/src/test/client.test.ts`, `e2e/tests/sesion.spec.ts` | `hallazgos.md`, `registro-defectos.md` | — |
+| Prototipo IoT | `iot/semaforo-comprension/` (independiente) | `iot/semaforo-comprension/pruebas/` (38) | `Docs/iot/propuesta-iot.md`, carpeta 06, guía de sustentación, matriz | Pendiente en ese momento: evidencia de Wokwi (resuelto en las secciones K y L) |
+| Equipo y Scrum | — | — | `Docs/equipo/` (matriz sección 3, `planificacion-y-actas.md`), `Docs/scrum/` (sprints reconstruidos, backlog con HU-21 y HU-22) | — |
+| Conteos de requisitos | — | — | README, matriz y Scrum | — |
+
+### J.5 Video de recorrido
+- `frontend/public/video/recorrido-classkids-v3.webm` (140 s).
+- **Coincide con la interfaz actual:** muestra la nota de 0.0 a 5.0 con sus equivalencias, sin presentarla como escala 0 a 100.
+- **Permisos y datos:** el docente solo ve sus asignaciones y los datos son los ficticios del entorno de pruebas.
+- **Reproducción:** no arranca solo y sus controles de audio funcionan (prueba de la landing).
+- **La escena de calificación es ilustrativa:** escribe 3.8 y el rótulo dice «este cambio no se guarda». No demuestra persistencia; la persistencia la demuestran las pruebas E2E (`calificaciones.spec.ts` y el recorrido de la demostración).
+- **Avisos en el video:** se grabó antes de H-45, pero ese cambio no le afecta. Las escenas son de escritorio, donde los avisos siguen abajo a la derecha.
+
+### J.6 Huellas de las bases de datos (MD5 de solo lectura)
+
+| Huella | Base | Qué incluye | Resultado al 24/11/2026 |
+|---|---|---|---|
+| `921f9581…` | `classkids` (real) | Por cada calificación, ordenadas por id: `id`, `estudiante_id`, `nota` y `actividad_id` | Igual a la del respaldo `classkids_real_cierre_20261124.dump`: **sin cambios** |
+| `6293dd84…` | `classkids_test` | Las 40 calificaciones manuales del equipo (ids 831 a 870): `id`, `estudiante_id`, `actividad_id`, `nota`, `entregado` y `fecha_registro` | Igual: **se conservan** |
+| `ce8d37fe…` | `classkids_test` | Las 3 alertas manuales (ids 187 a 189): `id`, `estudiante_id`, `mensaje` y `estado` | Igual: **se conservan** |
+| `e5cbe87a…` | `classkids_demo` | Huella del generador (`generar_demo.py`): todas las tablas de negocio, sin hashes, tokens ni marcas automáticas | Es la huella de la generación. La base actual difiere solo por la cuenta desactivada `docente.recorrido@demo.classkids.local`, que deja la prueba del recorrido (`e2e/demo`). No se regeneró |
+
+**Comparación de `classkids_test` contra su respaldo:** solo difieren las 40 calificaciones y las 3 alertas manuales. Se comprobó fila por fila en todas las tablas.
+
+## K. Cierre del prototipo IoT (24/11/2026, después de la simulación)
+
+**Qué cambió desde la sección J:**
+- **Ubicación:** el equipo movió el prototipo de `iot/semaforo-comprension/` a `ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/`. Las rutas citadas en la sección J corresponden a la ubicación anterior.
+- **Simulación:** el equipo ejecutó la simulación en Wokwi y guardó el ZIP descargado y una grabación de 106 s.
+
+| Revisión | Resultado |
+|---|---|
+| ZIP de Wokwi | 4 archivos (`sketch.ino`, `diagram.json`, `libraries.txt`, `wokwi-project.txt`), idénticos byte a byte a los de `wokwi/`. Corresponden a este prototipo: mismos pines, umbrales, fórmula y protocolo |
+| Circuito frente al código | Coinciden: botones en 2–5 con `INPUT_PULLUP`, zumbador en 8, LED en 9, 10 y 12 con 220 Ω, LCD I2C 0x27 en A4/A5 y tierras en GND.1–3. Sin conflicto de temporizador: `tone()` usa el Timer2, y el pin 11 no se usa |
+| Grabación | Muestra el arranque, 19 votos, 7 rechazos, dos rondas cerradas (30 % y 22 %, rojo) y los tres colores. Cada estado de la LCD coincide con la fórmula, incluido el 40 % en amarillo |
+| Receptor | Al ejecutarlo en una consola de Windows se detenía con `UnicodeEncodeError` por las flechas «→» y «←». Se corrigió con flechas ASCII; la prueba nueva falla con la versión anterior |
+| Pruebas automáticas | 47 de 47 (antes 38): 6 casos de cálculo tomados de la simulación, el registro serial de la grabación, el resumen de la captura y el receptor en la consola de Windows |
+| Pruebas manuales | 7 de 9 con evidencia; faltan el 70 % exacto y el cierre sin votos |
+| Organización | Grabación movida de `wokwi/` a `evidencias/`, con un nombre sin espacios (mismo SHA-256); se agregaron 6 fotogramas sin la barra de la cuenta, la captura, una copia del ZIP, el registro transcrito y el CSV del receptor; se borraron dos carpetas `__pycache__` |
+| Sin cambios | `sketch.ino`, `diagram.json` y `libraries.txt` siguen idénticos al proyecto de Wokwi. ClassKids no se modificó |
+
+**Pendiente:**
+- ~~las dos pruebas manuales~~ y ~~el monitor serial copiado de Wokwi~~: **hechos el 25/11/2026** (sección L);
+- grabación: el original (93,5 MiB) queda en local, excluido por `.gitignore`; en Git va una copia ligera `.webm` de 3 MB, sin audio y sin la barra de la cuenta (25/11/2026).
+
+## L. Validación final del prototipo IoT (25/11/2026)
+
+| Tipo de evidencia | Qué demuestra | Archivo |
+|---|---|---|
+| Simulación en Wokwi (monitor serial copiado por el equipo) | Prueba 6: 7 «Entendí» y 3 «Tengo dudas», con un voto rechazado que no se sumó → 70 %, verde. Prueba 8: cierre sin votos → `ronda_vacia` en la ronda 2 | `ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/evidencias/registro-wokwi.txt` (14 líneas) |
+| Receptor en Python | 10 votos, 1 rechazado, 1 ronda vacía, 1 resumen, 0 líneas inválidas, 0 ignoradas | `ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/evidencias/resumenes.csv` |
+| Pruebas automáticas | 48 de 48 (nueva: `test_el_registro_copiado_de_wokwi_70_por_ciento_y_ronda_vacia`) | `ENTREGA_FINAL_CLASSKIDS/06_IOT_BONIFICACION/iot/semaforo-comprension/pruebas/test_prototipo.py` |
+
+**Resultado:**
+- **Pruebas manuales:** 9 de 9 aprobadas.
+- **Criterio 6:** cumplido y verificado.
+- **Capturas:** el equipo decidió no agregar capturas de las pruebas 6 y 8. Su validación se sustenta en el registro serial, el CSV del receptor y la prueba automática; la grabación respalda el funcionamiento general y no se le atribuyen esas dos pruebas.
+- **Errores nuevos:** ninguno.
+- **Sin cambios:** el receptor, el sketch y el circuito.
 

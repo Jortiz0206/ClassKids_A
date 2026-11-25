@@ -146,7 +146,7 @@ async function abrirActividad1(page) {
   await c.page.keyboard.press("Escape");
   await ir(c, "/app/calificaciones"); await foto(c, "modulos/calificaciones", "sin-seleccion", "Calificaciones antes de elegir grupo (estado vacío)");
   await abrirActividad1(c.page); await foto(c, "modulos/calificaciones", "tabla-actividad", "Calificaciones de Grado 1A · Taller de Sumas y Restas", { completa: true });
-  await c.page.getByLabel("Calificación de Mariana Acosta").fill("75"); await c.page.waitForTimeout(300);
+  await c.page.getByLabel("Calificación de Mariana Acosta").fill("3.8"); await c.page.waitForTimeout(300);
   await foto(c, "modulos/calificaciones", "fila-editada-equivalencia", "Fila editada sin guardar con su equivalencia");
   // Mensaje de éxito real: cambia la entrega de Lucas Hernández, guarda y la restaura.
   await ir(c, "/app/calificaciones"); await abrirActividad1(c.page);
@@ -194,7 +194,7 @@ async function abrirActividad1(page) {
   await ir(c, "/app/grupos"); await foto(c, "modulos/grupos", "lista", "Grupos");
   await ir(c, "/app/actividades"); await foto(c, "modulos/actividades", "lista", "Actividades");
   await ir(c, "/app/calificaciones"); await abrirActividad1(c.page);
-  await c.page.getByLabel("Calificación de Mariana Acosta").fill("75"); await c.page.waitForTimeout(400);
+  await c.page.getByLabel("Calificación de Mariana Acosta").fill("3.8"); await c.page.waitForTimeout(400);
   await c.page.getByLabel("Calificación de Mariana Acosta").scrollIntoViewIfNeeded();
   await foto(c, "modulos/calificaciones", "tabla-actividad", "Calificaciones con barra de guardado");
   await ir(c, "/app/analisis"); await foto(c, "modulos/analisis", "rendimiento", "Análisis");

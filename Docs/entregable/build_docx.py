@@ -72,6 +72,7 @@ CHAPTERS = [
     ("iot/propuesta-iot.md", "anexo"),
     ("evidencias/permisos/verificacion-api-permisos.md", "anexo"),
     ("evidencias/escala-notas/verificacion-escala.md", "anexo"),
+    ("demo/guia-demostracion.md", "anexo"),
 ]
 
 VERSIONS = [
@@ -93,6 +94,11 @@ VERSIONS = [
      "arquitectura, referencia de la API, matriz de trazabilidad, manual de usuario por rol, Dashboard del docente "
      "por materia, filtro por materia en Análisis, reporte de ejecución del 24/11/2026 (152 pruebas), verificación "
      "de permisos de la API y capturas actualizadas."),
+    ("3.2", "25/11/2026", "Equipo ClassKids (María Alejandra Guio, Faloon Johanna Ortiz, Jan Llanos)",
+     "Escala 0.0–5.0 verificada de extremo a extremo (H-44), avisos en el celular (H-45) y motivo del cierre de "
+     "sesión (H-46); base de demostración reproducible; prototipo IoT «Semáforo de Comprensión» simulado en Wokwi, "
+     "con receptor corregido (H-47, H-48); deuda técnica revisada contra los hallazgos corregidos; registro de "
+     "defectos H-01 a H-48."),
 ]
 
 stats = {"figuras": 0, "tablas": 0, "faltantes": []}
